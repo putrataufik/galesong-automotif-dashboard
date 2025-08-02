@@ -1,0 +1,20 @@
+<!-- Header hanya tampil di mobile -->
+<header class="mobile-header bg-white border-bottom shadow-sm d-md-none">
+  <div class="d-flex align-items-center justify-content-between h-100 px-3">
+    <!-- Menu Button -->
+    <button 
+      class="btn btn-link p-0 text-dark"
+      (click)="onMenuToggle()"
+      type="button">
+      <img src="assets/icons/bars.png" alt="Menu" width="20" height="20">
+    </button>
+
+    <!-- Page Title -->
+    <h6 class="mb-0 fw-semibold text-dark flex-grow-1 text-center">
+      {{ pageTitle() }}
+    </h6>
+
+    <!-- Right Space (untuk symmetry) -->
+    <div style="width: 20px;"></div>
+  </div>
+</header>

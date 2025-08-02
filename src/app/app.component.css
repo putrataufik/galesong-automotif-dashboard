@@ -1,0 +1,29 @@
+/* Mobile overlay tanpa delay */
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1045;
+  cursor: pointer;
+}
+
+/* Main content positioning */
+@media (min-width: 768px) {
+  .main-content-desktop {
+    margin-left: 200px !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .main-content-mobile {
+    margin-left: 0 !important;
+  }
+  
+  /* Adjust content area untuk mobile header */
+  .main-content-mobile main {
+    padding-top: 1rem !important;
+  }
+}

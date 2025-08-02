@@ -1,0 +1,26 @@
+<div class="d-flex vh-100 overflow-hidden">
+  <!-- Sidebar -->
+  <app-sidebar 
+    [isCollapsed]="isSidebarCollapsed()"
+    (toggleSidebar)="toggleSidebar()">
+  </app-sidebar>
+
+  <!-- Main Content Area -->
+  <div class="flex-fill d-flex flex-column main-content-desktop main-content-mobile">
+    <!-- Mobile Header -->
+    <app-header 
+      [pageTitle]="currentPageTitle()"
+      (menuToggle)="toggleSidebar()">
+    </app-header>
+    
+    <!-- Page Content -->
+    <main class="flex-fill p-4 bg-light overflow-auto">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- Mobile Overlay -->
+  @if (!isSidebarCollapsed() && isMobile()) {
+    <div class="mobile-overlay" (click)="closeSidebar()"></div>
+  }
+</div>

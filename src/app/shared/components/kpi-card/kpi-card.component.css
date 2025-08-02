@@ -1,0 +1,43 @@
+.kpi-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: default;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+}
+
+.kpi-card.loading {
+  opacity: 0.7;
+}
+
+.kpi-title {
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.kpi-value {
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.kpi-trend {
+  font-size: 0.75rem;
+}
+
+.icon-wrapper {
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .kpi-value {
+    font-size: 1.25rem;
+  }
+  
+  .card-body {
+    padding: 1rem !important;
+  }
+}

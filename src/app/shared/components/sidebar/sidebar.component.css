@@ -1,0 +1,38 @@
+/* Sidebar tanpa delay/transition */
+.sidebar {
+  width: 200px !important;
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  z-index: 1050 !important;
+  background-color: white !important;
+  border-right: 1px solid #dee2e6 !important;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1) !important;
+}
+
+.nav-link:hover {
+  background-color: #f8f9fa !important;
+}
+
+.nav-link.active {
+  background-color: #e3f2fd !important;
+  color: #1976d2 !important;
+}
+
+.nav-link.active .pi {
+  color: #1976d2 !important;
+}
+
+/* Mobile specific styles - TANPA TRANSITION */
+@media (max-width: 767.98px) {
+  .sidebar.mobile-hidden {
+    transform: translateX(-100%) !important;
+    /* Hapus transition untuk response instant */
+  }
+
+  .sidebar:not(.mobile-hidden) {
+    transform: translateX(0) !important;
+    z-index: 1050 !important;
+    /* Hapus transition untuk response instant */
+  }
+}

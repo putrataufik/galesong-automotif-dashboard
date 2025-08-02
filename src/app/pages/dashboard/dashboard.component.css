@@ -1,0 +1,5 @@
+/* Hanya styling yang tidak bisa dilakukan dengan Bootstrap */
+.card:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}

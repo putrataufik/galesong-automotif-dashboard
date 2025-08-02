@@ -1,0 +1,22 @@
+.mobile-header {
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+
+.btn-link {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.btn-link:focus {
+  box-shadow: none !important;
+}
+
+/* Hanya tampil di mobile */
+@media (min-width: 768px) {
+  .mobile-header {
+    display: none !important;
+  }
+}
