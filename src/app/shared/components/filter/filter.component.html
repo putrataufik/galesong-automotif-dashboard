@@ -1,0 +1,98 @@
+<!-- Alert Section - Fixed Bottom Position -->
+@if (showAlert()) {
+<div
+  class="position-fixed bottom-0 start-50 translate-middle-x mb-3"
+  style="z-index: 1050; width: 90%; max-width: 500px"
+>
+  <div
+    class="alert alert-{{ alertType() }} alert-dismissible fade show shadow"
+    role="alert"
+  >
+    <i
+      class="bi {{
+        alertType() === 'success'
+          ? 'bi-check-circle-fill'
+          : 'bi-exclamation-triangle-fill'
+      }} me-2"
+    ></i>
+    {{ alertMessage() }}
+    <button type="button" class="btn-close" (click)="hideAlert()"></button>
+  </div>
+</div>
+}
+
+<!-- Filter Section -->
+<div class="bg-white shadow-sm rounded-3 p-3">
+  <!-- Layout Atas - 3 Select Options -->
+  <div class="row justify-content-center align-items-end g-3 mb-3">
+    <!-- 3 select options -->
+    <div class="col-md-3">
+      <label for="company-select" class="form-label small text-muted"
+        >Perusahaan</label
+      >
+      <select
+        id="company-select"
+        class="form-select"
+        (change)="onCompanyChange($event)"
+      >
+        <option value="">Pilih Perusahaan</option>
+        @for (company of companies; track company.value) {
+        <option [value]="company.value">{{ company.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label for="branch-select" class="form-label small text-muted"
+        >Cabang</label
+      >
+      <select
+        id="branch-select"
+        class="form-select"
+        [disabled]="!selectedCompany()"
+      >
+        @if (selectedCompany()) { @for (branch of availableBranches(); track
+        branch.value) {
+        <option
+          [value]="branch.value"
+          [selected]="branch.value === 'all-branch'"
+        >
+          {{ branch.name }}
+        </option>
+        } } @else {
+        <option value="">Pilih Perusahaan Dulu</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label for="category-select" class="form-label small text-muted"
+        >Kategori</label
+      >
+      <select id="category-select" class="form-select">
+        @for (category of categories; track category.value) {
+        <option
+          [value]="category.value"
+          [selected]="category.value === 'all-category'"
+        >
+          {{ category.name }}
+        </option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Layout Bawah - Tombol Cari -->
+  <div class="row justify-content-center">
+    <div class="col-md-3 d-flex align-items-end justify-content-center">
+      <button
+        type="button"
+        class="btn btn-primary px-5 py-2"
+        (click)="onSearch()"
+      >
+        <i class="bi bi-search me-1"></i>
+        Cari
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, input } from '@angular/core';
-import { KpiCardData } from '../../../core/models/dashboard.model';
+import { Component } from '@angular/core';
+
 
 @Component({
   selector: 'app-kpi-card',
@@ -10,8 +10,5 @@ import { KpiCardData } from '../../../core/models/dashboard.model';
   styleUrl: './kpi-card.component.css'
 })
 export class KpiCardComponent {
-  // Input Signal - Menerima data dari parent component
-  data = input.required<KpiCardData>();
 
-  loading = input<boolean>(false);
 }
