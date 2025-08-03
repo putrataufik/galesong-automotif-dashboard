@@ -1,39 +1,38 @@
-<!-- dashboard.component.html -->
 <div class="container-fluid p-4">
-  <!-- Header Section -->
   <div class="row mb-4">
     <div class="col-12">
       <h2 class="fw-bold text-dark mb-3">
         Dashboard <span class="text-primary">Galesong Otomotif</span>
       </h2>
-      <!-- Filter Section -->
-      <app-filter></app-filter>
 
+      <app-filter (search)="onSearch($event)"></app-filter>
     </div>
   </div>
 
-  <!-- Main Content Area -->
   <div class="content-wrapper">
-    <!-- Static Content - No Dynamic States -->
     <div class="row g-4">
-      <!-- Placeholder for KPI Cards -->
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-body text-center p-5 bg-light rounded-3">
-            <p class="h5 text-muted">Area untuk KPI Cards</p>
-            <small class="text-muted">KPI Cards akan ditampilkan di sini setelah implementasi.</small>
+      <!-- Loading -->
+      <div *ngIf="loading" class="col-12 text-center text-muted">
+        <p>Loading data...</p>
+      </div>
+
+      <!-- KPI Cards -->
+      <div *ngIf="!loading && kpiData.length > 0" class="col-12">
+        <div class="row g-3">
+          <div *ngFor="let kpi of kpiData" class="col-md-3">
+            <app-kpi-card
+              [title]="kpi.title"
+              [value]="kpi.value"
+              [unit]="kpi.unit"
+              [subtitle]="kpi.subtitle"
+            ></app-kpi-card>
           </div>
         </div>
       </div>
 
-      <!-- Placeholder for Charts -->
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-body text-center p-5 bg-light rounded-3">
-            <p class="h5 text-muted">Area untuk Chart dan Visualisasi Data</p>
-            <small class="text-muted">Implementasi Chart.js akan ditambahkan di sini.</small>
-          </div>
-        </div>
+      <!-- Placeholder jika belum ada data -->
+      <div *ngIf="!loading && kpiData.length === 0" class="col-12 text-center text-muted">
+        <p>Silakan pilih filter dan klik Cari untuk menampilkan data.</p>
       </div>
     </div>
   </div>

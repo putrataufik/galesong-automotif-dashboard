@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, EventEmitter, Output, signal } from '@angular/core';
 
 interface Branch {
   value: string;
@@ -29,6 +29,7 @@ export class FilterComponent {
   showAlert = signal<boolean>(false);
   alertMessage = signal<string>('');
   alertType = signal<'success' | 'danger'>('danger');
+  @Output() search = new EventEmitter<{ company: string; branch: string; category: string }>();
   // Data Company dan Branchnya
   companies: Company[] = [
     {
@@ -167,7 +168,13 @@ export class FilterComponent {
       );
       return;
     }
-
+// Emit filter ke parent (Dashboard)
+    this.search.emit({
+      company: companySelect.value,
+      branch: branchSelect.value,
+      category: categorySelect.value,
+    });
+    
     const filters = {
       company: companySelect.value,
       branch: branchSelect.value,
