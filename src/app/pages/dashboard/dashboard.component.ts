@@ -37,11 +37,11 @@ export class DashboardComponent implements OnInit {
         });
 
         // Untuk chart (nanti kita aktifkan lagi kalau endpoint ada)
-        // this.dashboardService.getChartData(filter, false).subscribe((data) => {
-        //   if (data && data.length > 0) {
-        //     this.chartData = data;
-        //   }
-        // });
+        this.dashboardService.getChartData(filter, false).subscribe((data) => {
+          if (data && data.length > 0) {
+            this.chartData = data;
+          }
+        });
       }
     }
   }

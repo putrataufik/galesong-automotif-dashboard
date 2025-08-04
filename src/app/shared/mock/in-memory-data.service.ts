@@ -128,15 +128,15 @@ export class InMemoryDataService implements InMemoryDbService {
           title: 'Total Sales',
           value: combinedKpi.totalSales,
           unit: 'unit',
-          icon: 'icons/sales.png',
+          icon: 'icons/car.png',
           bgColor: '#BFE8FF',
         });
         kpiCards.push({
           title: 'Total Omzet Sales',
           value: `Rp. ${(combinedKpi.totalOmzetSales / 1_000_000_000).toFixed(1)} M`,
           unit: '',
-          icon: 'icons/omzet-sales.png',
-          bgColor: '#C1CED8',
+          icon: 'icons/increase.png',
+          bgColor: '#C3FFBF',
         });
       }
 
@@ -146,14 +146,14 @@ export class InMemoryDataService implements InMemoryDbService {
           title: 'Total After Sales',
           value: combinedKpi.totalAfterSales,
           unit: '',
-          icon: 'icons/after-sales.png',
+          icon: 'icons/wrench.png',
           bgColor: '#BFD1FF',
         });
         kpiCards.push({
           title: 'Total Omzet After Sales',
           value: `Rp. ${(combinedKpi.totalOmzetAfterSales / 1_000_000_000).toFixed(1)} M`,
           unit: '',
-          icon: 'icons/omzet-after-sales.png',
+          icon: 'icons/increase.png',
           bgColor: '#C3FFBF',
         });
       }
@@ -165,7 +165,7 @@ export class InMemoryDataService implements InMemoryDbService {
             title: 'Cabang dengan Sales Tertinggi',
             value: combinedKpi.topSalesBranch,
             unit: '',
-            icon: 'icons/top-sales.png',
+            icon: 'icons/winner.png',
             bgColor: '#F4E9BF',
           });
         }
@@ -174,7 +174,7 @@ export class InMemoryDataService implements InMemoryDbService {
             title: 'Cabang dengan After Sales Terbaik',
             value: combinedKpi.topAfterSalesBranch,
             unit: '',
-            icon: 'icons/top-after-sales.png',
+            icon: 'icons/winner.png',
             bgColor: '#F4E9BF',
           });
         }
@@ -185,14 +185,14 @@ export class InMemoryDataService implements InMemoryDbService {
         title: 'Total Pendapatan',
         value: `Rp. ${(combinedKpi.totalPendapatan / 1_000_000_000).toFixed(1)} M`,
         unit: '',
-        icon: 'icons/revenue.png',
+        icon: 'icons/uptrend.png',
         bgColor: '#C3FFBF',
       });
       kpiCards.push({
         title: 'Total Pengeluaran',
         value: `Rp. ${(combinedKpi.totalPengeluaran / 1_000_000_000).toFixed(1)} M`,
         unit: '',
-        icon: 'icons/expense.png',
+        icon: 'icons/downtrend.png',
         bgColor: '#FFBFBF',
       }); 
 
