@@ -8,8 +8,8 @@
       <img
         [attr.src]="icon"
         [alt]="title"
-        width="35"
-        height="35"
+        width="30"
+        height="30"
         (error)="onIconError($event)"
       />
     </div>
@@ -18,10 +18,16 @@
     <div class="flex-fill">
       <h6 class="kpi-title text-muted mb-1">{{ title }}</h6>
       <div class="d-flex align-items-baseline">
-        <h4 class="kpi-value fw-bold mb-0 text-dark">
-          {{ value }}
-        </h4>
-        <small class="text-muted ms-1">{{ unit }}</small>
+        <div>
+          <h4
+            class="kpi-value fw-bold mb-0 d-inline text-dark"
+            [ngClass]="{ shrink: ('' + value).length > 12 }"
+          >
+            {{ value }}
+          </h4>
+
+          <small class="text-muted ms-1">{{ unit }}</small>
+        </div>
       </div>
     </div>
   </div>

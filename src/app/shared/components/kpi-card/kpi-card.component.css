@@ -27,8 +27,15 @@
 }
 
 .kpi-value {
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  line-height: 1.2;
+  flex: 1;
 }
+.kpi-value.shrink {
+  font-size: 1rem;
+}
+
+
 
 .kpi-subtitle {
   font-size: 0.75rem;
