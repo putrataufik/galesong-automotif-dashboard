@@ -12,38 +12,40 @@ export class DashboardService {
   constructor(private http: HttpClient) {}
 
   // Ambil data KPI
-  getKpiData(filters: any, forceRefresh = false): Observable<any[]> {
-    if (this.kpiCache && !forceRefresh) {
-      return of(this.kpiCache); // Ambil dari cache
-    }
-
-    return new Observable((observer) => {
-      this.http.get<any[]>('api/kpi').subscribe({
-        next: (data) => {
-          this.kpiCache = data; // Simpan ke cache
-          observer.next(data);
-          observer.complete();
-        },
-        error: (err) => observer.error(err)
-      });
-    });
+getKpiData(filters: any, forceRefresh = false): Observable<any[]> {
+  if (this.kpiCache && !forceRefresh) {
+    return of(this.kpiCache); // Ambil dari cache
   }
+
+  return new Observable((observer) => {
+    this.http.get<any[]>('api/kpi', { params: filters }).subscribe({
+      next: (data) => {
+        this.kpiCache = data; // Simpan ke cache
+        observer.next(data);
+        observer.complete();
+      },
+      error: (err) => observer.error(err)
+    });
+  });
+}
+
 
   // Ambil data Chart
   getChartData(filters: any, forceRefresh = false): Observable<any[]> {
-    if (this.chartCache && !forceRefresh) {
-      return of(this.chartCache);
-    }
+    // if (this.chartCache && !forceRefresh) {
+    //   return of(this.chartCache);
+    // }
 
-    return new Observable((observer) => {
-      this.http.get<any[]>('api/charts').subscribe({
-        next: (data) => {
-          this.chartCache = data;
-          observer.next(data);
-          observer.complete();
-        },
-        error: (err) => observer.error(err)
-      });
-    });
+    // return new Observable((observer) => {
+    //   this.http.get<any[]>('api/charts').subscribe({
+    //     next: (data) => {
+    //       this.chartCache = data;
+    //       observer.next(data);
+    //       observer.complete();
+    //     },
+    //     error: (err) => observer.error(err)
+    //   });
+    // });
+     return of([]);
   }
 }

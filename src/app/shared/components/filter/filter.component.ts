@@ -1,4 +1,14 @@
-import { Component, computed, EventEmitter, Output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  EventEmitter,
+  Inject,
+  OnInit,
+  Output,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 interface Branch {
   value: string;
@@ -23,13 +33,22 @@ interface Category {
   templateUrl: './filter.component.html',
   styleUrl: './filter.component.css',
 })
-
-export class FilterComponent {
+export class FilterComponent implements OnInit {
   selectedCompany = signal<string>('');
+  selectedBranch = signal<string>('');
+  selectedCategory = signal<string>('');
   showAlert = signal<boolean>(false);
   alertMessage = signal<string>('');
   alertType = signal<'success' | 'danger'>('danger');
-  @Output() search = new EventEmitter<{ company: string; branch: string; category: string }>();
+
+  @Output() search = new EventEmitter<{
+    company: string;
+    branch: string;
+    category: string;
+  }>();
+
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
+
   // Data Company dan Branchnya
   companies: Company[] = [
     {
@@ -37,14 +56,8 @@ export class FilterComponent {
       name: 'Sinar Galesong Mandiri',
       branches: [
         { value: 'all-branch', name: 'Semua Cabang' },
-        {
-          value: 'suzuki-urip-sumoharjo',
-          name: 'Suzuki Motor Cabang Urip Sumoharjo',
-        },
-        {
-          value: 'suzuki-yos-sudarso',
-          name: 'Suzuki Motor Cabang Yos Sudarso',
-        },
+        { value: 'suzuki-urip-sumoharjo', name: 'Suzuki Motor Cabang Urip Sumoharjo' },
+        { value: 'suzuki-yos-sudarso', name: 'Suzuki Motor Cabang Yos Sudarso' },
         { value: 'suzuki-aeropala', name: 'Suzuki Motor Cabang Aeropala' },
         { value: 'suzuki-gowa', name: 'Suzuki Motor Cabang Gowa' },
       ],
@@ -82,6 +95,7 @@ export class FilterComponent {
       ],
     },
   ];
+
   // Data kategori
   categories: Category[] = [
     { value: 'all-category', name: 'Semua Kategori' },
@@ -92,15 +106,32 @@ export class FilterComponent {
   // Computed signal untuk cabang yang tersedia berdasarkan perusahaan terpilih
   availableBranches = computed(() => {
     const selectedCompanyValue = this.selectedCompany();
-    if (!selectedCompanyValue) {
-      return [];
-    }
-
+    if (!selectedCompanyValue) return [];
     const company = this.companies.find(
       (c) => c.value === selectedCompanyValue
     );
     return company?.branches || [];
   });
+
+  ngOnInit() {
+    // Cek apakah di browser sebelum akses localStorage
+    if (isPlatformBrowser(this.platformId)) {
+      const savedFilter = localStorage.getItem('dashboardFilter');
+      if (savedFilter) {
+        const filter = JSON.parse(savedFilter);
+        this.selectedCompany.set(filter.company);
+        this.selectedBranch.set(filter.branch);
+        this.selectedCategory.set(filter.category);
+
+        // set value ke select element
+        setTimeout(() => {
+          (document.getElementById('company-select') as HTMLSelectElement).value = filter.company;
+          (document.getElementById('branch-select') as HTMLSelectElement).value = filter.branch;
+          (document.getElementById('category-select') as HTMLSelectElement).value = filter.category;
+        }, 0);
+      }
+    }
+  }
 
   // Method untuk handle perubahan perusahaan
   onCompanyChange(event: Event) {
@@ -108,84 +139,58 @@ export class FilterComponent {
     this.selectedCompany.set(target.value);
 
     // Set default ke "Semua Cabang" ketika perusahaan berubah
-    const branchSelect = document.getElementById(
-      'branch-select'
-    ) as HTMLSelectElement;
+    const branchSelect = document.getElementById('branch-select') as HTMLSelectElement;
     if (branchSelect) {
       branchSelect.value = 'all-branch';
     }
   }
 
-  // <<<<<<<<=============== ALLERT METHOD ==============>>>>>>>>
+  // Alert handler
   showAlertMessage(message: string, type: 'success' | 'danger' = 'danger') {
     this.alertMessage.set(message);
     this.alertType.set(type);
     this.showAlert.set(true);
 
     // Auto hide alert setelah 5 detik
-    setTimeout(() => {
-      this.hideAlert();
-    }, 5000);
+    setTimeout(() => this.hideAlert(), 5000);
   }
-  // Method untuk menyembunyikan alert
+
   hideAlert() {
     this.showAlert.set(false);
   }
 
-  // <<<<<<<<=============== ALLERT METHOD ==============>>>>>>>>
-
-  // Method untuk handle pencarian
+  // Handle pencarian
   onSearch() {
-    const companySelect = document.getElementById(
-      'company-select'
-    ) as HTMLSelectElement;
-    const branchSelect = document.getElementById(
-      'branch-select'
-    ) as HTMLSelectElement;
-    const categorySelect = document.getElementById(
-      'category-select'
-    ) as HTMLSelectElement;
+    const companySelect = document.getElementById('company-select') as HTMLSelectElement;
+    const branchSelect = document.getElementById('branch-select') as HTMLSelectElement;
+    const categorySelect = document.getElementById('category-select') as HTMLSelectElement;
 
-    // Validasi filter yang kosong
+    // Validasi filter
     const emptyFilters = [];
+    if (!companySelect.value) emptyFilters.push('Perusahaan');
+    if (!branchSelect.value) emptyFilters.push('Cabang');
+    if (!categorySelect.value) emptyFilters.push('Kategori');
 
-    if (!companySelect.value) {
-      emptyFilters.push('Perusahaan');
-    }
-    if (!branchSelect.value) {
-      emptyFilters.push('Cabang');
-    }
-    if (!categorySelect.value) {
-      emptyFilters.push('Kategori');
-    }
-
-    // Jika ada filter yang kosong, tampilkan alert
     if (emptyFilters.length > 0) {
-      const missingFilters = emptyFilters.join(', ');
       this.showAlertMessage(
-        `Mohon lengkapi filter berikut: ${missingFilters}`,
+        `Mohon lengkapi filter berikut: ${emptyFilters.join(', ')}`,
         'danger'
       );
       return;
     }
-// Emit filter ke parent (Dashboard)
-    this.search.emit({
-      company: companySelect.value,
-      branch: branchSelect.value,
-      category: categorySelect.value,
-    });
-    
+
     const filters = {
       company: companySelect.value,
       branch: branchSelect.value,
       category: categorySelect.value,
     };
 
-    console.log('Filter yang dipilih:', filters);
-    // Implementasi logika pencarian di sini
-    this.showAlertMessage(
-      'Pencarian berhasil! Data sedang dimuat...',
-      'success'
-    );
+    // Simpan ke localStorage jika di browser
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('dashboardFilter', JSON.stringify(filters));
+    }
+
+    this.search.emit(filters);
+    this.showAlertMessage('Pencarian berhasil! Data sedang dimuat...', 'success');
   }
 }

@@ -1,28 +1,27 @@
-<div class="card border-0 shadow-sm h-100 kpi-card">
-  <div class="card-body p-3">
-    <div class="d-flex align-items-center">
-      <!-- Icon -->
-      <div class="me-3">
-        <div class="icon-wrapper rounded-circle p-2 d-flex align-items-center justify-content-center bg-light" 
-             style="width: 40px; height: 40px;">
-          <i class="bi {{ iconClass }} text-primary"></i>
-        </div>
-      </div>
+<div class="card kpi-card h-100">
+  <div class="card-body d-flex align-items-center p-3">
+    <!-- Icon -->
+    <div
+      class="icon-wrapper rounded-circle d-flex align-items-center justify-content-center me-3"
+      [ngStyle]="{ 'background-color': bgColor }"
+    >
+      <img
+        [attr.src]="icon"
+        [alt]="title"
+        width="24"
+        height="24"
+        (error)="onIconError($event)"
+      />
+    </div>
 
-      <!-- Content -->
-      <div class="flex-fill">
-        <h6 class="kpi-title text-muted mb-1 small">
-          {{ title }}
-        </h6>
-
-        <div class="kpi-value-container mb-2">
-          <h4 class="kpi-value fw-bold mb-0 d-inline text-dark">
-            {{ value }}
-          </h4>
-          <small class="text-muted ms-1">{{ unit }}</small>
-        </div>
-
-        <small class="text-muted d-block">{{ subtitle }}</small>
+    <!-- Text -->
+    <div class="flex-fill">
+      <h6 class="kpi-title text-muted mb-1">{{ title }}</h6>
+      <div class="d-flex align-items-baseline">
+        <h4 class="kpi-value fw-bold mb-0 text-dark">
+          {{ value }}
+        </h4>
+        <small class="text-muted ms-1">{{ unit }}</small>
       </div>
     </div>
   </div>

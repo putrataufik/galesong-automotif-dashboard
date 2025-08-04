@@ -12,6 +12,10 @@ export class KpiCardComponent {
   @Input() title = '';
   @Input() value: number | string = 0;
   @Input() unit = '';
-  @Input() subtitle = '';
-  @Input() iconClass = 'bi-graph-up'; // default icon
+  @Input() icon = ''; // path icon dari public
+  @Input() bgColor = '#f5f5f5'; // background default icon
+
+  onIconError(event: Event) {
+    (event.target as HTMLImageElement).src = 'icons/dashboard.png'; // fallback icon
+  }
 }

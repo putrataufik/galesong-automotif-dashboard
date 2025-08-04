@@ -24,14 +24,18 @@
               [title]="kpi.title"
               [value]="kpi.value"
               [unit]="kpi.unit"
-              [subtitle]="kpi.subtitle"
+              [icon]="kpi.icon"
+              [bgColor]="kpi.bgColor"
             ></app-kpi-card>
           </div>
         </div>
       </div>
 
       <!-- Placeholder jika belum ada data -->
-      <div *ngIf="!loading && kpiData.length === 0" class="col-12 text-center text-muted">
+      <div
+        *ngIf="!loading && kpiData.length === 0"
+        class="col-12 text-center text-muted"
+      >
         <p>Silakan pilih filter dan klik Cari untuk menampilkan data.</p>
       </div>
     </div>

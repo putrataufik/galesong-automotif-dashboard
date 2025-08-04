@@ -16,8 +16,8 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/financial-tracking/financial-tracking.component').then(m => m.FinancialTrackingComponent),
     title: 'Financial Tracking - Galesong Automotif'
   },
-  {
-    path: '**',
-    redirectTo: '/dashboard'
-  }
+  // {
+  //   path: '**',
+  //   redirectTo: '/dashboard'
+  // }
 ];
