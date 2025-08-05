@@ -1,207 +1,165 @@
+// src/app/shared/mock/in-memory-data.service.ts
 import { Injectable } from '@angular/core';
 import { InMemoryDbService, RequestInfo } from 'angular-in-memory-web-api';
-
-// Interface untuk tipe item KPI Card
-interface KpiCard {
-  title: string;
-  value: string | number;
-  unit: string;
-  icon: string;
-  bgColor: string;
-}
+import { COMPANIES, CATEGORIES } from './master-data';
+import { DataGenerators } from './data-generators';
+import { RequestHandlers } from './request-handlers';
+import { KpiDataItem, ChartDataItem } from './interfaces';
 
 @Injectable({
   providedIn: 'root',
 })
 export class InMemoryDataService implements InMemoryDbService {
-  // Data perusahaan & branch
-  private companies = [
-    {
-      company: 'sinar-galesong-mandiri',
-      branches: [
-        'suzuki-urip-sumoharjo',
-        'suzuki-yos-sudarso',
-        'suzuki-aeropala',
-        'suzuki-gowa',
-      ],
-    },
-    {
-      company: 'sinar-galesong-prima',
-      branches: ['cabang-bitung', 'cabang-manado', 'cabang-kotamobagu'],
-    },
-    {
-      company: 'sinar-galesong-automobil',
-      branches: ['mg-pettarani', 'mg-kairagi'],
-    },
-    {
-      company: 'sinar-galesong-mobilindo',
-      branches: [
-        'hyundaipettarani',
-        'hyundai-gorontalo',
-        'hyundai-palu',
-        'hyundai-kendari',
-        'hyundai-palopo',
-        'hyundai-sungguminasa',
-      ],
-    },
-  ];
-
-  // Akan diisi otomatis di constructor
-  private kpiData: any[] = [];
+  private kpiData: KpiDataItem[] = [];
+  private revenueExpenseData: ChartDataItem[] = [];
+  private targetRealizationData: ChartDataItem[] = [];
+  private salesAfterSalesData: ChartDataItem[] = [];
+  private branchPerformanceData: any[] = [];
 
   constructor() {
-    // Generate data dummy otomatis
-    const categories = ['sales', 'after-sales'];
+    this.generateAllData();
+  }
 
-    this.companies.forEach((comp) => {
+  createDb() {
+    return {
+      kpi: this.kpiData,
+      revenueExpense: this.revenueExpenseData,
+      targetRealization: this.targetRealizationData,
+      salesAfterSales: this.salesAfterSalesData,
+      branchPerformance: this.branchPerformanceData,
+    };
+  }
+
+  private generateAllData() {
+    this.generateKpiData();
+    this.generateChartData();
+  }
+
+  private generateKpiData() {
+    COMPANIES.forEach((comp) => {
       comp.branches.forEach((branch) => {
-        categories.forEach((cat) => {
+        CATEGORIES.forEach((cat) => {
           this.kpiData.push({
             company: comp.company,
             branch: branch,
             category: cat,
-            kpis: this.generateKpi(cat, branch),
+            kpis: DataGenerators.generateKpi(cat, branch),
           });
         });
       });
     });
   }
 
-  createDb() {
-    return { kpi: this.kpiData };
-  }
+  private generateChartData() {
+    // Generate Revenue vs Expense data for all combinations
+    COMPANIES.forEach((comp) => {
+      comp.branches.forEach((branch) => {
+        ['sales', 'after-sales', 'all-category'].forEach((category) => {
+          this.revenueExpenseData.push({
+            company: comp.company,
+            branch: branch,
+            category: category,
+            data: DataGenerators.generateRevenueExpenseData(
+              comp.company,
+              branch,
+              category
+            ),
+          });
+        });
+      });
+    });
 
-  // Generate nilai KPI berdasarkan kategori dan branch
-  private generateKpi(category: string, branch: string) {
-    const rand = (min: number, max: number) =>
-      Math.floor(Math.random() * (max - min + 1)) + min;
+    COMPANIES.forEach((comp) => {
+      this.salesAfterSalesData.push({
+        company: comp.company,
+        branch: 'all-branch',
+        category: 'all-category',
+        data: DataGenerators.generateSalesAfterSalesData(
+          comp.company,
+          'all-branch'
+        ),
+      });
+    });
 
-    return {
-      totalSales: category === 'sales' ? rand(100, 2000) : 0,
-      totalAfterSales: category === 'after-sales' ? rand(50, 1000) : 0,
-      totalPendapatan: rand(5, 40) * 1_000_000_000,
-      totalPengeluaran: rand(2, 20) * 1_000_000_000,
-      topSalesBranch: category === 'sales' ? branch : '',
-      topAfterSalesBranch: category === 'after-sales' ? branch : '',
-      totalOmzetSales: category === 'sales' ? rand(2, 20) * 1_000_000_000 : 0,
-      totalOmzetAfterSales:
-        category === 'after-sales' ? rand(2, 10) * 1_000_000_000 : 0,
-    };
+    // Generate Branch Performance data (only for all-branch)
+    COMPANIES.forEach((comp) => {
+      this.branchPerformanceData.push({
+        company: comp.company,
+        branch: 'all-branch',
+        category: 'all-category',
+        data: DataGenerators.generateBranchPerformanceData(comp.company),
+      });
+    });
+
+    // Generate Target vs Realization data (only for after-sales)
+    COMPANIES.forEach((comp) => {
+      comp.branches.forEach((branch) => {
+        this.targetRealizationData.push({
+          company: comp.company,
+          branch: branch,
+          category: 'after-sales',
+          data: DataGenerators.generateTargetRealizationData(
+            comp.company,
+            branch
+          ),
+        });
+      });
+    });
   }
 
   get(reqInfo: RequestInfo) {
-    if (reqInfo.collectionName === 'kpi') {
-      const company = reqInfo.query.get('company')?.[0];
-      const branch = reqInfo.query.get('branch')?.[0];
-      const category = reqInfo.query.get('category')?.[0];
+    console.log('=== IN-MEMORY API REQUEST ===');
+    console.log('Collection:', reqInfo.collectionName);
+    console.log('Query params:', reqInfo.query);
+    console.log('URL:', reqInfo.url);
+    console.log('Available collections:', Object.keys(this.createDb()));
 
-      let data = this.kpiData.filter((item) => item.company === company);
+    switch (reqInfo.collectionName) {
+      case 'kpi':
+        console.log('Handling KPI request...');
+        return RequestHandlers.handleKpiRequest(reqInfo, this.kpiData);
 
-      // Filter branch jika bukan all-branch
-      if (branch && branch !== 'all-branch') {
-        data = data.filter((item) => item.branch === branch);
-      }
+      case 'revenueExpense':
+        console.log('Handling Revenue Expense request...');
+        console.log(
+          'Revenue Expense Data count:',
+          this.revenueExpenseData.length
+        );
+        return RequestHandlers.handleRevenueExpenseRequest(
+          reqInfo,
+          this.revenueExpenseData
+        );
 
-      // Filter category jika bukan all-category
-      if (category && category !== 'all-category') {
-        data = data.filter((item) => item.category === category);
-      }
+      case 'targetRealization':
+        console.log('Handling Target Realization request...');
+        console.log(
+          'Target Realization Data count:',
+          this.targetRealizationData.length
+        );
+        return RequestHandlers.handleTargetRealizationRequest(
+          reqInfo,
+          this.targetRealizationData
+        );
+      case 'salesAfterSales':
+        console.log('Handling Sales After Sales request...');
+        return RequestHandlers.handleSalesAfterSalesRequest(
+          reqInfo,
+          this.salesAfterSalesData
+        );
 
-      // Gabungkan data KPI
-      const combinedKpi = {
-        totalSales: data.reduce((sum, d) => sum + d.kpis.totalSales, 0),
-        totalAfterSales: data.reduce((sum, d) => sum + d.kpis.totalAfterSales, 0),
-        totalPendapatan: data.reduce((sum, d) => sum + d.kpis.totalPendapatan, 0),
-        totalPengeluaran: data.reduce((sum, d) => sum + d.kpis.totalPengeluaran, 0),
-        topSalesBranch: data.find((d) => d.kpis.topSalesBranch)?.kpis.topSalesBranch || '',
-        topAfterSalesBranch: data.find((d) => d.kpis.topAfterSalesBranch)?.kpis.topAfterSalesBranch || '',
-        totalOmzetSales: data.reduce((sum, d) => sum + d.kpis.totalOmzetSales, 0),
-        totalOmzetAfterSales: data.reduce((sum, d) => sum + d.kpis.totalOmzetAfterSales, 0),
-      };
+      case 'branchPerformance':
+        console.log('Handling Branch Performance request...');
+        return RequestHandlers.handleBranchPerformanceRequest(
+          reqInfo,
+          this.branchPerformanceData
+        );
 
-      // Buat array KPI Cards sesuai filter
-      const kpiCards: KpiCard[] = [];
-
-      // KPI Sales (tampil jika category bukan after-sales)
-      if (category !== 'after-sales') {
-        kpiCards.push({
-          title: 'Total Sales',
-          value: combinedKpi.totalSales,
-          unit: 'unit',
-          icon: 'icons/car.png',
-          bgColor: '#BFE8FF',
-        });
-        kpiCards.push({
-          title: 'Total Omzet Sales',
-          value: `Rp. ${(combinedKpi.totalOmzetSales / 1_000_000_000).toFixed(1)} M`,
-          unit: '',
-          icon: 'icons/increase.png',
-          bgColor: '#C3FFBF',
-        });
-      }
-
-      // KPI After Sales (tampil jika category bukan sales)
-      if (category !== 'sales') {
-        kpiCards.push({
-          title: 'Total After Sales',
-          value: combinedKpi.totalAfterSales,
-          unit: '',
-          icon: 'icons/wrench.png',
-          bgColor: '#BFD1FF',
-        });
-        kpiCards.push({
-          title: 'Total Omzet After Sales',
-          value: `Rp. ${(combinedKpi.totalOmzetAfterSales / 1_000_000_000).toFixed(1)} M`,
-          unit: '',
-          icon: 'icons/increase.png',
-          bgColor: '#C3FFBF',
-        });
-      }
-
-      // KPI yang hanya muncul untuk filter all-branch
-      if (branch === 'all-branch') {
-        if (category !== 'after-sales') {
-          kpiCards.push({
-            title: 'Cabang dengan Sales Tertinggi',
-            value: combinedKpi.topSalesBranch,
-            unit: '',
-            icon: 'icons/winner.png',
-            bgColor: '#F4E9BF',
-          });
-        }
-        if (category !== 'sales') {
-          kpiCards.push({
-            title: 'Cabang dengan After Sales Terbaik',
-            value: combinedKpi.topAfterSalesBranch,
-            unit: '',
-            icon: 'icons/winner.png',
-            bgColor: '#F4E9BF',
-          });
-        }
-      }
-
-      // KPI umum (Pendapatan & Pengeluaran)
-      kpiCards.push({
-        title: 'Total Pendapatan',
-        value: `Rp. ${(combinedKpi.totalPendapatan / 1_000_000_000).toFixed(1)} M`,
-        unit: '',
-        icon: 'icons/uptrend.png',
-        bgColor: '#C3FFBF',
-      });
-      kpiCards.push({
-        title: 'Total Pengeluaran',
-        value: `Rp. ${(combinedKpi.totalPengeluaran / 1_000_000_000).toFixed(1)} M`,
-        unit: '',
-        icon: 'icons/downtrend.png',
-        bgColor: '#FFBFBF',
-      }); 
-
-      return reqInfo.utils.createResponse$(() => ({
-        body: kpiCards,
-        status: 200,
-      }));
+      default:
+        console.warn('Unknown collection:', reqInfo.collectionName);
+        console.log(
+          'Expected collections: kpi, revenueExpense, targetRealization'
+        );
+        return undefined;
     }
-
-    return undefined;
   }
 }

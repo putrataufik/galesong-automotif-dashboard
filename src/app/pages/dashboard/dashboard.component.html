@@ -4,40 +4,109 @@
       <h2 class="fw-bold text-dark mb-3">
         Dashboard <span class="text-primary">Galesong Otomotif</span>
       </h2>
-
       <app-filter (search)="onSearch($event)"></app-filter>
     </div>
   </div>
 
   <div class="content-wrapper">
-    <div class="row g-4">
-      <!-- Loading -->
-      <div *ngIf="loading" class="col-12 text-center text-muted">
+    <!-- Loading -->
+    <div *ngIf="loading" class="row g-4">
+      <div class="col-12 text-center text-muted">
         <p>Loading data...</p>
       </div>
+    </div>
 
-      <!-- KPI Cards -->
-      <div *ngIf="!loading && kpiData.length > 0" class="col-12">
+    <!-- KPI Cards Section -->
+    <div *ngIf="!loading && kpiData.length > 0" class="row g-4 mb-4">
+      <div class="col-12">
+        <h5 class="fw-semibold text-dark mb-3">Key Performance Indicators</h5>
         <div class="row g-3">
-          <div *ngFor="let kpi of kpiData" class="col-12 col-sm-6 col-md-6 col-xl-3">
-
+          <div
+            *ngFor="let kpi of kpiData"
+            class="col-12 col-sm-6 col-md-6 col-xl-3"
+          >
             <app-kpi-card
               [title]="kpi.title"
               [value]="kpi.value"
               [unit]="kpi.unit"
               [icon]="kpi.icon"
               [bgColor]="kpi.bgColor"
-            ></app-kpi-card>
+            >
+            </app-kpi-card>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Placeholder jika belum ada data -->
-      <div
-        *ngIf="!loading && kpiData.length === 0"
-        class="col-12 text-center text-muted"
-      >
-        <p>Silakan pilih filter dan klik Cari untuk menampilkan data.</p>
+    <!-- Charts Section - Simplified Grid -->
+    <div *ngIf="!loading && hasAnyChartData()" class="row g-4 mb-4">
+      <div class="col-12">
+        <h5 class="fw-semibold text-dark mb-3">Analytics Charts</h5>
+
+        <!-- Simple Grid: Auto-arrange all charts in 2-column layout -->
+        <div class="row g-4">
+          <!-- Revenue vs Expense Chart -->
+          <div *ngIf="revenueExpenseData.length > 0" class="col-12 col-lg-6">
+            <app-revenue-expense-barchart
+              [data]="revenueExpenseData"
+              title="pendapatan vs pengeluaran"
+            >
+            </app-revenue-expense-barchart>
+          </div>
+
+          <!-- Target vs Realization Chart -->
+          <div *ngIf="targetRealizationData.length > 0" class="col-12 col-lg-6">
+            <app-target-realization-barchart
+              [data]="targetRealizationData"
+              [title]="'Target vs Realisasi After Sales'"
+            >
+            </app-target-realization-barchart>
+          </div>
+
+          <!-- Sales vs After Sales Line Chart -->
+          <div *ngIf="salesAfterSalesData.length > 0" class="col-12 col-lg-6">
+            <app-sales-aftersales-linechart
+              [data]="salesAfterSalesData"
+              [title]="'Omzet Sales vs Omzet After Sales'"
+            >
+            </app-sales-aftersales-linechart>
+          </div>
+
+          <!-- Branch Performance Horizontal Bar Chart -->
+          <div *ngIf="branchPerformanceData.length > 0" class="col-12 col-lg-6">
+            <app-branch-performance-barchart
+              [data]="branchPerformanceData"
+              [title]="'Performa Cabang Berdasarkan Omzet'"
+            >
+            </app-branch-performance-barchart>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Placeholder jika belum ada data -->
+    <div *ngIf="!loading && kpiData.length === 0" class="row g-4">
+      <div class="col-12 text-center text-muted py-5">
+        <i class="bi bi-search fs-1 text-muted mb-3"></i>
+        <h6 class="text-muted">Belum Ada Data</h6>
+        <p class="text-muted mb-0">
+          Silakan pilih filter dan klik Cari untuk menampilkan data KPI dan
+          chart.
+        </p>
+      </div>
+    </div>
+
+    <!-- Message when no chart data available -->
+    <div
+      *ngIf="!loading && kpiData.length > 0 && !hasAnyChartData()"
+      class="row g-4"
+    >
+      <div class="col-12 text-center py-5">
+        <i class="bi bi-bar-chart fs-1 text-muted mb-3"></i>
+        <h6 class="text-muted">No Chart Data Available</h6>
+        <p class="text-muted mb-0">
+          Chart data will appear here once you search with valid filters.
+        </p>
       </div>
     </div>
   </div>
