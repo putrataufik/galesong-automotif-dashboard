@@ -1,35 +1,73 @@
-<!-- dashboard.component.html -->
 <div class="container-fluid p-4">
-  <!-- Header Section -->
   <div class="row mb-4">
     <div class="col-12">
       <h2 class="fw-bold text-dark mb-3">
         Dashboard <span class="text-primary">Galesong Otomotif</span>
       </h2>
-      <!-- Filter Section -->
-      <app-filter></app-filter>
 
+      <app-filter
+        [initialFilter]="prefilledFilter"
+        [loading]="loading()"
+        (search)="onSearch($event)"
+      />
     </div>
   </div>
 
-  <!-- Main Content Area -->
-  <div class="content-wrapper">
-    <!-- Static Content - No Dynamic States -->
-    <div class="row g-4">
-      <!-- Placeholder for KPI Cards -->
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <app-kpi-card></app-kpi-card>
-        </div>
-      </div>
+  <!-- KPI Section -->
+  <div class="row g-3">
+    <div class="col-12 col-md-4">
+      <app-kpi-card
+        [title]="'Total Unit Sales'"
+        [value]="kpiTotalUnitSales()"
+        unit="unit"
+        [subtitle]="loading() ? 'Memuat...' : 'Akumulasi penjualan per tahun'"
+        icon="bi-box-seam"
+        iconBgClass="bg-primary bg-opacity-10"
+      />
+    </div>
 
-      <!-- Placeholder for Charts -->
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-body text-center p-5 bg-light rounded-3">
-            <p class="h5 text-muted">Area untuk Chart dan Visualisasi Data</p>
-            <small class="text-muted">Implementasi Chart.js akan ditambahkan di sini.</small>
-          </div>
+    <div class="col-12 col-md-4">
+      <app-kpi-card
+        [title]="'Model Favorit'"
+        [value]="kpiTopModel()?.name || '—'"
+        [subtitle]="
+          kpiTopModel()
+            ? kpiTopModel()!.unit + ' unit terjual'
+            : loading()
+            ? 'Memuat...'
+            : 'Belum ada data'
+        "
+        icon="bi-star-fill"
+        iconBgClass="bg-warning bg-opacity-10"
+      />
+    </div>
+
+    <div class="col-12 col-md-4">
+      <app-kpi-card
+        [title]="'Cabang Penjualan Tertinggi'"
+        [value]="kpiTopBranch()?.code || '—'"
+        [subtitle]="
+          kpiTopBranch()
+            ? kpiTopBranch()!.unit + ' unit terjual'
+            : loading()
+            ? 'Memuat...'
+            : 'Belum ada data'
+        "
+        icon="bi-building"
+        iconBgClass="bg-success bg-opacity-10"
+      />
+    </div>
+  </div>
+
+  <!-- Placeholder untuk chart (nanti) -->
+  <div class="row g-4 mt-3">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center p-5 bg-light rounded-3">
+          <p class="h5 text-muted">Area untuk Chart dan Visualisasi Data</p>
+          <small class="text-muted"
+            >Implementasi Chart.js akan ditambahkan di sini.</small
+          >
         </div>
       </div>
     </div>

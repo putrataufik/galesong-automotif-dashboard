@@ -1,88 +1,49 @@
-<!-- Alert Section - Fixed Bottom Position -->
-@if (showAlert()) {
-<div
-  class="position-fixed bottom-0 start-50 translate-middle-x mb-3"
-  style="z-index: 1050; width: 90%; max-width: 500px"
->
-  <div
-    class="alert alert-{{ alertType() }} alert-dismissible fade show shadow"
-    role="alert"
-  >
-    <i
-      class="bi {{
-        alertType() === 'success'
-          ? 'bi-check-circle-fill'
-          : 'bi-exclamation-triangle-fill'
-      }} me-2"
-    ></i>
-    {{ alertMessage() }}
-    <button type="button" class="btn-close" (click)="hideAlert()"></button>
+@if (showAlert) {
+  <div class="position-fixed bottom-0 start-50 translate-middle-x mb-3" style="z-index:1050; width:90%; max-width:500px">
+    <div class="alert alert-{{ alertType }} alert-dismissible fade show shadow" role="alert">
+      <i class="bi {{ alertType === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill' }} me-2"></i>
+      {{ alertMessage }}
+      <button type="button" class="btn-close" (click)="hideAlert()"></button>
+    </div>
   </div>
-</div>
 }
 
-<!-- Filter Section -->
+<!-- FILTER -->
 <div class="bg-white shadow-sm rounded-3 p-3">
-  <!-- Layout Atas - 3 Select Options -->
   <div class="row justify-content-center align-items-end g-3 mb-3">
-    <!-- Perusahaan -->
     <div class="col-md-4">
-      <label for="company-select" class="form-label small text-muted"
-        >Perusahaan</label
-      >
-      <select
-        id="company-select"
-        class="form-select"
-        (change)="onCompanyChange($event)"
-      >
+      <label for="company" class="form-label small text-muted">Perusahaan</label>
+      <select id="company" class="form-select" [(ngModel)]="company" (change)="onFilterChange()">
         <option value="">Pilih Perusahaan</option>
-        @for (company of companies; track company.value) {
-        <option [value]="company.value">{{ company.name }}</option>
+        @for (c of companies; track c.value) {
+          <option [value]="c.value">{{ c.name }}</option>
         }
       </select>
     </div>
 
-    <!-- Kategori -->
     <div class="col-md-4">
-      <label for="category-select" class="form-label small text-muted"
-        >Kategori</label
-      >
-      <select id="category-select" class="form-select">
-        @for (category of categories; track category.value) {
-        <option
-          [value]="category.value"
-          [selected]="category.value === 'all-category'"
-        >
-          {{ category.name }}
-        </option>
+      <label for="category" class="form-label small text-muted">Kategori</label>
+      <select id="category" class="form-select" [(ngModel)]="category" (change)="onFilterChange()">
+        @for (k of categories; track k.value) {
+          <option [value]="k.value">{{ k.name }}</option>
         }
       </select>
     </div>
 
-    <!-- Periode -->
     <div class="col-md-4">
-      <label for="period-select" class="form-label small text-muted"
-        >Periode</label
-      >
-      <select id="period-select" class="form-select">
-        <option value="">Pilih Periode</option>
-        @for (period of periods; track period.value) {
-        <option [value]="period.value">{{ period.name }}</option>
+      <label for="period" class="form-label small text-muted">Periode</label>
+      <select id="period" class="form-select" [(ngModel)]="period" (change)="onFilterChange()">
+        @for (p of periods; track p.value) {
+          <option [value]="p.value">{{ p.name }}</option>
         }
       </select>
     </div>
   </div>
 
-  <!-- Layout Bawah - Tombol Cari -->
   <div class="row justify-content-center">
     <div class="col-md-4 d-flex justify-content-center">
-      <button
-        type="button"
-        class="btn btn-primary px-5 py-2"
-        (click)="onSearch()"
-      >
-        <i class="bi bi-search me-1"></i>
-        Cari
+      <button type="button" class="btn btn-primary px-5 py-2" (click)="onSearchClick()" [disabled]="loading">
+        <i class="bi bi-search me-1"></i> Cari
       </button>
     </div>
   </div>
