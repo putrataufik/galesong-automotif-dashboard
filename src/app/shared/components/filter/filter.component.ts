@@ -1,17 +1,16 @@
-import { Component, computed, signal } from '@angular/core';
-
-interface Branch {
-  value: string;
-  name: string;
-}
+import { Component, signal } from '@angular/core';
 
 interface Company {
   value: string;
   name: string;
-  branches: Branch[];
 }
 
 interface Category {
+  value: string;
+  name: string;
+}
+
+interface Period {
   value: string;
   name: string;
 }
@@ -29,58 +28,27 @@ export class FilterComponent {
   showAlert = signal<boolean>(false);
   alertMessage = signal<string>('');
   alertType = signal<'success' | 'danger'>('danger');
-  // Data Company dan Branchnya
+
+  // Data Company tanpa branches
   companies: Company[] = [
     {
       value: 'sinar-galesong-mandiri',
-      name: 'Sinar Galesong Mandiri',
-      branches: [
-        { value: 'all-branch', name: 'Semua Cabang' },
-        {
-          value: 'suzuki-urip-sumoharjo',
-          name: 'Suzuki Motor Cabang Urip Sumoharjo',
-        },
-        {
-          value: 'suzuki-yos-sudarso',
-          name: 'Suzuki Motor Cabang Yos Sudarso',
-        },
-        { value: 'suzuki-aeropala', name: 'Suzuki Motor Cabang Aeropala' },
-        { value: 'suzuki-gowa', name: 'Suzuki Motor Cabang Gowa' },
-      ],
+      name: 'Sinar Galesong Mandiri'
     },
     {
       value: 'sinar-galesong-prima',
-      name: 'Sinar Galesong Prima',
-      branches: [
-        { value: 'all-branch', name: 'Semua Cabang' },
-        { value: 'cabang-bitung', name: 'Cabang Bitung' },
-        { value: 'cabang-manado', name: 'Cabang Manado' },
-        { value: 'cabang-kotamobagu', name: 'Cabang Kotamobagu' },
-      ],
+      name: 'Sinar Galesong Prima'
     },
     {
       value: 'sinar-galesong-automobil',
-      name: 'Sinar Galesong Automobil',
-      branches: [
-        { value: 'all-branch', name: 'Semua Cabang' },
-        { value: 'mg-pettarani', name: 'MG Pettarani' },
-        { value: 'mg-kairagi', name: 'MG Kairagi' },
-      ],
+      name: 'Sinar Galesong Automobil'
     },
     {
       value: 'sinar-galesong-mobilindo',
-      name: 'Sinar Galesong Mobilindo',
-      branches: [
-        { value: 'all-branch', name: 'Semua Cabang' },
-        { value: 'hyundai-pettarani', name: 'Hyundai Pettarani' },
-        { value: 'hyundai-gorontalo', name: 'Hyundai Gorontalo' },
-        { value: 'hyundai-palu', name: 'Hyundai Palu' },
-        { value: 'hyundai-kendari', name: 'Hyundai Kendari' },
-        { value: 'hyundai-palopo', name: 'Hyundai Palopo' },
-        { value: 'hyundai-sungguminasa', name: 'Hyundai Sungguminasa' },
-      ],
+      name: 'Sinar Galesong Mobilindo'
     },
   ];
+
   // Data kategori
   categories: Category[] = [
     { value: 'all-category', name: 'Semua Kategori' },
@@ -88,34 +56,39 @@ export class FilterComponent {
     { value: 'after-sales', name: 'After Sales' },
   ];
 
-  // Computed signal untuk cabang yang tersedia berdasarkan perusahaan terpilih
-  availableBranches = computed(() => {
-    const selectedCompanyValue = this.selectedCompany();
-    if (!selectedCompanyValue) {
-      return [];
-    }
+  // Data periode - dinamis berdasarkan tahun sekarang
+  periods: Period[] = this.generateYearPeriods();
 
-    const company = this.companies.find(
-      (c) => c.value === selectedCompanyValue
-    );
-    return company?.branches || [];
-  });
+  // Method untuk generate periode tahun dinamis
+  private generateYearPeriods(): Period[] {
+    const currentYear = new Date().getFullYear();
+    const periods: Period[] = [];
+    
+    // Tambahkan "Tahun Ini" sebagai pilihan pertama
+    periods.push({ 
+      value: currentYear.toString(), 
+      name: `Tahun Ini (${currentYear})` 
+    });
+    
+    // Tambahkan 5 tahun ke belakang
+    for (let i = 1; i <= 5; i++) {
+      const year = currentYear - i;
+      periods.push({ 
+        value: year.toString(), 
+        name: year.toString() 
+      });
+    }
+    
+    return periods;
+  }
 
   // Method untuk handle perubahan perusahaan
   onCompanyChange(event: Event) {
     const target = event.target as HTMLSelectElement;
     this.selectedCompany.set(target.value);
-
-    // Set default ke "Semua Cabang" ketika perusahaan berubah
-    const branchSelect = document.getElementById(
-      'branch-select'
-    ) as HTMLSelectElement;
-    if (branchSelect) {
-      branchSelect.value = 'all-branch';
-    }
   }
 
-  // <<<<<<<<=============== ALLERT METHOD ==============>>>>>>>>
+  // <<<<<<<<=============== ALERT METHOD ==============>>>>>>>>
   showAlertMessage(message: string, type: 'success' | 'danger' = 'danger') {
     this.alertMessage.set(message);
     this.alertType.set(type);
@@ -126,23 +99,24 @@ export class FilterComponent {
       this.hideAlert();
     }, 5000);
   }
+
   // Method untuk menyembunyikan alert
   hideAlert() {
     this.showAlert.set(false);
   }
 
-  // <<<<<<<<=============== ALLERT METHOD ==============>>>>>>>>
+  // <<<<<<<<=============== ALERT METHOD ==============>>>>>>>>
 
   // Method untuk handle pencarian
   onSearch() {
     const companySelect = document.getElementById(
       'company-select'
     ) as HTMLSelectElement;
-    const branchSelect = document.getElementById(
-      'branch-select'
-    ) as HTMLSelectElement;
     const categorySelect = document.getElementById(
       'category-select'
+    ) as HTMLSelectElement;
+    const periodSelect = document.getElementById(
+      'period-select'
     ) as HTMLSelectElement;
 
     // Validasi filter yang kosong
@@ -151,11 +125,11 @@ export class FilterComponent {
     if (!companySelect.value) {
       emptyFilters.push('Perusahaan');
     }
-    if (!branchSelect.value) {
-      emptyFilters.push('Cabang');
-    }
     if (!categorySelect.value) {
       emptyFilters.push('Kategori');
+    }
+    if (!periodSelect.value) {
+      emptyFilters.push('Periode');
     }
 
     // Jika ada filter yang kosong, tampilkan alert
@@ -170,8 +144,8 @@ export class FilterComponent {
 
     const filters = {
       company: companySelect.value,
-      branch: branchSelect.value,
       category: categorySelect.value,
+      period: periodSelect.value,
     };
 
     console.log('Filter yang dipilih:', filters);
