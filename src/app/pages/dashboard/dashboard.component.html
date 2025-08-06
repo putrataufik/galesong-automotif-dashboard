@@ -38,6 +38,7 @@
       </div>
     </div>
 
+    <!-- Charts Section -->
     <div *ngIf="!loading && hasAnyChartData()" class="row g-4 mb-4">
       <div class="col-12">
         <h5 class="fw-semibold text-dark mb-3">Analytics Charts</h5>
@@ -69,14 +70,24 @@
                   [data]="getData(chart.key)"
                   [title]="chart.title">
                 </app-branch-performance-barchart>
+
+                <app-sales-omzet-linechart
+                  *ngSwitchCase="'app-sales-omzet-linechart'"
+                  [data]="getData(chart.key)"
+                  [title]="chart.title">
+                </app-sales-omzet-linechart>
+                
+                <app-after-sales-omzet-linechart
+                  *ngSwitchCase="'app-after-sales-omzet-linechart'"
+                  [data]="getData(chart.key)"
+                  [title]="chart.title">
+                </app-after-sales-omzet-linechart>
               </ng-container>
             </div>
           </ng-container>
         </div>
       </div>
     </div>
-    
-
 
     <!-- Placeholder jika belum ada data -->
     <div *ngIf="!loading && kpiData.length === 0" class="row g-4">

@@ -36,8 +36,8 @@ export class RequestHandlers {
     reqInfo: RequestInfo,
     data: ChartDataItem<TData>[]
   ): ChartDataItem<TData>[] {
-    const company  = reqInfo.query.get('company')?.[0];
-    const branch   = reqInfo.query.get('branch')?.[0];
+    const company = reqInfo.query.get('company')?.[0];
+    const branch = reqInfo.query.get('branch')?.[0];
     const category = reqInfo.query.get('category')?.[0];
 
     let result = data.filter((item) => item.company === company);
@@ -88,8 +88,8 @@ export class RequestHandlers {
 
   /** KPI Cards */
   static handleKpiRequest(reqInfo: RequestInfo, kpiData: KpiDataItem[]) {
-    const company  = reqInfo.query.get('company')?.[0];
-    const branch   = reqInfo.query.get('branch')?.[0];
+    const company = reqInfo.query.get('company')?.[0];
+    const branch = reqInfo.query.get('branch')?.[0];
     const category = reqInfo.query.get('category')?.[0];
 
     let data = kpiData.filter((item) => item.company === company);
@@ -201,7 +201,7 @@ export class RequestHandlers {
     reqInfo: RequestInfo,
     revenueExpenseData: ChartDataItem<MonthlyData>[]
   ) {
-    const filtered   = this.filterByQuery(reqInfo, revenueExpenseData);
+    const filtered = this.filterByQuery(reqInfo, revenueExpenseData);
     const aggregated = this.aggregateMonthly(filtered, ['revenue', 'expense'] as const);
     return reqInfo.utils.createResponse$(() => ({ body: aggregated, status: 200 }));
   }
@@ -211,7 +211,7 @@ export class RequestHandlers {
     reqInfo: RequestInfo,
     targetRealizationData: ChartDataItem<MonthlyTargetData>[]
   ) {
-    const filtered   = this.filterByQuery(reqInfo, targetRealizationData);
+    const filtered = this.filterByQuery(reqInfo, targetRealizationData);
     const aggregated = this.aggregateMonthly(filtered, ['target', 'realization'] as const);
     return reqInfo.utils.createResponse$(() => ({ body: aggregated, status: 200 }));
   }
@@ -228,9 +228,60 @@ export class RequestHandlers {
         i.branch === 'all-branch' &&
         i.category === 'all-category'
     )?.data ?? [];
+    console.log('Sales After Sales Result:', result);
     return reqInfo.utils.createResponse$(() => ({ body: result, status: 200 }));
   }
 
+  static handleSalesOnlyRequest(
+    reqInfo: RequestInfo,
+    salesData: ChartDataItem<MonthlySalesData>[]
+  ) {
+    const company = reqInfo.query.get('company')?.[0];
+    const salesItems = salesData.filter(
+      (i) => i.company === company && i.category === 'sales'
+    );
+    
+    const monthlyData: { [key: string]: { month: string; salesOmzet: number; afterSalesOmzet: number } } = {};
+    salesItems.forEach(item => {
+      item.data.forEach(d => {
+        if (!monthlyData[d.month]) {
+          monthlyData[d.month] = { month: d.month, salesOmzet: 0, afterSalesOmzet: 0 };
+        }
+        monthlyData[d.month].salesOmzet += d.salesOmzet;
+      });
+    });
+    
+    const result = Object.values(monthlyData);
+    console.log('Sales Only Results:', result);
+    return reqInfo.utils.createResponse$(() => ({ body: result, status: 200 }));
+  }
+
+static handleAfterSalesOnlyRequest(
+    reqInfo: RequestInfo,
+    afterSalesData: ChartDataItem<MonthlySalesData>[]
+  ) {
+    const company = reqInfo.query.get('company')?.[0];
+    const afterSalesItems = afterSalesData.filter(
+      (i) => i.company === company && i.category === 'after-sales'
+    );
+    
+    const monthlyData: { [key: string]: { month: string; salesOmzet: number; afterSalesOmzet: number } } = {};
+    afterSalesItems.forEach(item => {
+      item.data.forEach(d => {
+        if (!monthlyData[d.month]) {
+          monthlyData[d.month] = { month: d.month, salesOmzet: 0, afterSalesOmzet: 0 };
+        }
+        monthlyData[d.month].afterSalesOmzet += d.afterSalesOmzet;
+      });
+    });
+    
+    const result = Object.values(monthlyData);
+    console.log('After Sales Only Results:', result);
+    return reqInfo.utils.createResponse$(() => ({ body: result, status: 200 }));
+  
+  }
+
+ 
   /** Non-bulanan: Branch Performance (list cabang per company) */
   static handleBranchPerformanceRequest(
     reqInfo: RequestInfo,

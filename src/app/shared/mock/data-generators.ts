@@ -36,6 +36,7 @@ export class DataGenerators {
       realization: this.randomRealization(company, branch)
     }));
   }
+  
 
   private static randomRevenue(company: string, branch: string, category: string): number {
     const baseRevenue = company.includes('mandiri') ? 15_000_000_000 : 

@@ -25,6 +25,9 @@ export class InMemoryDataService implements InMemoryDbService {
   private salesAfterSalesData: ChartDataItem<MonthlySalesData>[] = [];
   private branchPerformanceData: ChartDataItem<BranchPerformanceData>[] = [];
 
+  private salesOnlyData: ChartDataItem<MonthlySalesData>[] = [];
+  private afterSalesOnlyData: ChartDataItem<MonthlySalesData>[] = [];
+
   constructor() {
     this.generateAllData();
   }
@@ -36,6 +39,8 @@ export class InMemoryDataService implements InMemoryDbService {
       targetRealization: this.targetRealizationData,
       salesAfterSales: this.salesAfterSalesData,
       branchPerformance: this.branchPerformanceData,
+      salesOnly: this.salesOnlyData,
+      afterSalesOnly: this.afterSalesOnlyData,
     };
   }
 
@@ -92,6 +97,30 @@ export class InMemoryDataService implements InMemoryDbService {
         ) as MonthlySalesData[],
       });
     });
+    // Line Chart Sales Only
+    COMPANIES.forEach((comp) => {
+      comp.branches.forEach((branch) => {
+        this.salesOnlyData.push({
+          company: comp.company,
+          branch: branch,
+          category: 'sales',
+          data: DataGenerators.generateSalesAfterSalesData(comp.company, branch)
+            .map(item => ({ month: item.month, salesOmzet: item.salesOmzet, afterSalesOmzet: 0 })),
+        });
+      });
+    });
+    //Line Chart after-sales only
+    COMPANIES.forEach((comp) => {
+      comp.branches.forEach((branch) => {
+        this.afterSalesOnlyData.push({
+          company: comp.company,
+          branch: branch,
+          category: 'after-sales',
+          data: DataGenerators.generateSalesAfterSalesData(comp.company, branch)
+            .map(item => ({ month: item.month, salesOmzet: 0, afterSalesOmzet: item.afterSalesOmzet })),
+        });
+      });
+    });
 
     // Branch Performance (non-bulanan, list per cabang)
     COMPANIES.forEach((comp) => {
@@ -145,6 +174,17 @@ export class InMemoryDataService implements InMemoryDbService {
           reqInfo,
           this.salesAfterSalesData
         );
+
+      case 'salesOnly':
+        return RequestHandlers.handleSalesOnlyRequest(
+          reqInfo,
+          this.salesOnlyData
+        );
+      case 'afterSalesOnly':
+        return RequestHandlers.handleAfterSalesOnlyRequest(
+          reqInfo,
+          this.afterSalesOnlyData
+        )
 
       case 'branchPerformance':
         return RequestHandlers.handleBranchPerformanceRequest(

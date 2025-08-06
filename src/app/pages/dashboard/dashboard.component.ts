@@ -4,19 +4,34 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, finalize, tap } from 'rxjs/operators';
 
+// < KPI Components
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
+// KPI Components />
+
+// < Filter Component
 import { FilterComponent } from '../../shared/components/filter/filter.component';
+// Filter Component />
+
+// < Chart Components
 import { RevenueExpenseBarChartComponent } from '../../shared/components/charts/revenue-expense-barchart/revenue-expense-barchart.component';
 import { TargetRealizationBarChartComponent } from '../../shared/components/charts/target-realization-barchart/target-realization-barchart.component';
 import { SalesAftersalesLinechartComponent } from '../../shared/components/charts/sales-aftersales-linechart/sales-aftersales-linechart.component';
 import { BranchPerformanceBarChartComponent } from '../../shared/components/charts/branch-performance-barchart/branch-performance-barchart.component';
+import { SalesOmzetLinechartComponent } from '../../shared/components/charts/sales-omzet-linechart/sales-omzet-linechart.component';
+import { AfterSalesOmzetLinechartComponent } from '../../shared/components/charts/after-sales-omzet-linechart/after-sales-omzet-linechart.component';
+// Chart Component />
+
+// < Services
 import { DashboardService } from '../../shared/services/dashboard.service';
+// Services />
 
 type ChartKey =
   | 'revenueExpenseData'
   | 'targetRealizationData'
   | 'salesAfterSalesData'
-  | 'branchPerformanceData';
+  | 'branchPerformanceData'
+  | 'salesOmzetData'
+  | 'afterSalesOmzetData';
 
 interface Filters {
   company: string;
@@ -30,9 +45,11 @@ interface ChartConfig {
   component: 'app-revenue-expense-barchart'
            | 'app-target-realization-barchart'
            | 'app-sales-aftersales-linechart'
-           | 'app-branch-performance-barchart';
+           | 'app-branch-performance-barchart'
+           | 'app-sales-omzet-linechart'
+           | 'app-after-sales-omzet-linechart';
   shouldLoad: (f: Filters) => boolean;
-  loader: (f: Filters, force: boolean) => Observable<any[]>;
+  loader: (f: Filters) => Observable<any[]>;
   clearWhenHidden?: boolean; // default true
 }
 
@@ -47,6 +64,8 @@ interface ChartConfig {
     TargetRealizationBarChartComponent,
     SalesAftersalesLinechartComponent,
     BranchPerformanceBarChartComponent,
+    SalesOmzetLinechartComponent,
+    AfterSalesOmzetLinechartComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
@@ -58,6 +77,8 @@ export class DashboardComponent implements OnInit {
   targetRealizationData: any[] = [];
   salesAfterSalesData: any[] = [];
   branchPerformanceData: any[] = [];
+  salesOmzetData: any[] = [];
+  afterSalesOmzetData: any[] = [];
 
   loading = false;
   currentFilters: Partial<Filters> = {};
@@ -69,29 +90,43 @@ export class DashboardComponent implements OnInit {
       title: 'Pendapatan vs Pengeluaran',
       component: 'app-revenue-expense-barchart',
       shouldLoad: () => true,
-      loader: (f, force) => this.dashboardService.getRevenueExpenseChartData(f, force),
+      loader: (f) => this.dashboardService.getRevenueExpenseChartData(f),
     },
     {
       key: 'targetRealizationData',
       title: 'Target vs Realisasi After Sales',
       component: 'app-target-realization-barchart',
       shouldLoad: (f) => f.category === 'after-sales',
-      loader: (f, force) => this.dashboardService.getTargetRealizationChartData(f, force),
+      loader: (f) => this.dashboardService.getTargetRealizationChartData(f),
     },
     {
       key: 'salesAfterSalesData',
       title: 'Omzet Sales vs Omzet After Sales',
       component: 'app-sales-aftersales-linechart',
       shouldLoad: (f) => f.category === 'all-category',
-      loader: (f, force) => this.dashboardService.getSalesAfterSalesChartData(f, force),
+      loader: (f) => this.dashboardService.getSalesAfterSalesChartData(f),
     },
     {
       key: 'branchPerformanceData',
       title: 'Performa Cabang Berdasarkan Omzet',
       component: 'app-branch-performance-barchart',
       shouldLoad: (f) => f.branch === 'all-branch',
-      loader: (f, force) => this.dashboardService.getBranchPerformanceChartData(f, force),
+      loader: (f) => this.dashboardService.getBranchPerformanceChartData(f),
     },
+    {
+      key: 'salesOmzetData',
+      title: 'Trend Omzet Sales',
+      component: 'app-sales-omzet-linechart',
+      shouldLoad: (f) => f.category === 'sales',
+      loader: (f) => this.dashboardService.getSalesOnlyChartData(f),
+    },
+    {
+      key: 'afterSalesOmzetData',
+      title: 'Trend Omzet After Sales',
+      component: 'app-after-sales-omzet-linechart',
+      shouldLoad: (f) => f.category === 'after-sales',
+      loader: (f) => this.dashboardService.getAfterSalesOnlyChartData(f),
+    }
   ];
 
   constructor(
@@ -107,7 +142,7 @@ export class DashboardComponent implements OnInit {
         try {
           const filter: Filters = JSON.parse(saved);
           this.currentFilters = filter;
-          this.loadDashboardData(filter, false);
+          this.loadDashboardData(filter);
         } catch {
           // ignore parse errors
         }
@@ -117,11 +152,11 @@ export class DashboardComponent implements OnInit {
 
   // ---- Public API (dipanggil dari <app-filter>)
   onSearch(filters: Filters) {
-    this.loadDashboardData(filters, true); // force refresh saat user klik Cari
+    this.loadDashboardData(filters);
   }
 
   // ---- Loader utama (DRY + forkJoin agar loading selesai serentak)
-  private loadDashboardData(filters: Filters, forceRefresh = false) {
+  private loadDashboardData(filters: Filters) {
     this.loading = true;
     this.currentFilters = filters;
 
@@ -129,7 +164,7 @@ export class DashboardComponent implements OnInit {
 
     // KPI selalu dimuat
     tasks.push(
-      this.dashboardService.getKpiData(filters, forceRefresh).pipe(
+      this.dashboardService.getKpiData(filters, true).pipe(
         tap((d) => (this.kpiData = d)),
         catchError(() => {
           this.kpiData = [];
@@ -142,7 +177,7 @@ export class DashboardComponent implements OnInit {
     for (const cfg of this.chartConfigs) {
       if (cfg.shouldLoad(filters)) {
         tasks.push(
-          cfg.loader(filters, forceRefresh).pipe(
+          cfg.loader(filters).pipe(
             tap((d) => ((this as any)[cfg.key] = d)),
             catchError(() => {
               (this as any)[cfg.key] = [];
@@ -165,6 +200,7 @@ export class DashboardComponent implements OnInit {
     const v = (this as any)[key];
     return Array.isArray(v) && v.length > 0;
   }
+  
   getData<T = any>(key: ChartKey): T[] {
     return (this as any)[key] ?? [];
   }
@@ -175,24 +211,9 @@ export class DashboardComponent implements OnInit {
       this.revenueExpenseData.length > 0 ||
       this.targetRealizationData.length > 0 ||
       this.salesAfterSalesData.length > 0 ||
-      this.branchPerformanceData.length > 0
+      this.branchPerformanceData.length > 0 ||
+      this.salesOmzetData.length > 0 ||
+      this.afterSalesOmzetData.length > 0
     );
-  }
-  shouldShowTargetRealizationChart(): boolean {
-    return (this.currentFilters.category as string) === 'after-sales';
-  }
-  shouldShowSalesAfterSalesChart(): boolean {
-    return (this.currentFilters.category as string) === 'all-category';
-  }
-  shouldShowBranchPerformanceChart(): boolean {
-    return (this.currentFilters.branch as string) === 'all-branch';
-  }
-
-  // Opsional util debug
-  debugCache() {
-    this.dashboardService.getCacheStatus();
-  }
-  clearCache() {
-    this.dashboardService.clearAllCache();
   }
 }

@@ -102,6 +102,15 @@ export class DashboardService {
     return this.fetchWithCache('api/revenueExpense', filters, 'revenue', forceRefresh);
   }
 
+  // ✅ Fix: Ganti nama method untuk konsisten dengan component
+  getSalesOnlyChartData(filters: any, forceRefresh = false) {
+    return this.fetchWithCache('api/salesOnly', filters, 'salesOnly', forceRefresh);
+  }
+
+  getAfterSalesOnlyChartData(filters: any, forceRefresh = false) {
+    return this.fetchWithCache('api/afterSalesOnly', filters, 'afterSalesOnly', forceRefresh);
+  }
+
   getTargetRealizationChartData(filters: any, forceRefresh = false) {
     return this.fetchWithCache('api/targetRealization', filters, 'target', forceRefresh);
   }
