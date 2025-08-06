@@ -1,33 +1,33 @@
-<!-- KPI Card Component -->
-<div class="card border-0 shadow-sm h-100 kpi-card">
-  <div class="card-body p-3">
-    <!-- Static Content -->
-    <div class="d-flex align-items-center">
-      <!-- Icon Placeholder -->
-      <div class="me-3">
-        <div class="icon-wrapper rounded-circle p-2 d-flex align-items-center justify-content-center bg-light" 
-             style="width: 40px; height: 40px;">
-          <i class="bi bi-graph-up text-primary"></i>
-        </div>
-      </div>
+<div class="card kpi-card h-100">
+  <div class="card-body d-flex align-items-center p-3">
+    <!-- Icon -->
+    <div
+      class="icon-wrapper rounded-4 d-flex align-items-center justify-content-center me-3"
+      [ngStyle]="{ 'background-color': bgColor }"
+    >
+      <img
+        [attr.src]="icon"
+        [alt]="title"
+        width="30"
+        height="30"
+        (error)="onIconError($event)"
+      />
+    </div>
 
-      <!-- Content -->
-      <div class="flex-fill">
-        <!-- Title -->
-        <h6 class="kpi-title text-muted mb-1 small">
-          KPI Title
-        </h6>
-
-        <!-- Value -->
-        <div class="kpi-value-container mb-2">
-          <h4 class="kpi-value fw-bold mb-0 d-inline text-dark">
-            0
+    <!-- Text -->
+    <div class="flex-fill">
+      <h6 class="kpi-title text-muted mb-1">{{ title }}</h6>
+      <div class="d-flex align-items-baseline">
+        <div>
+          <h4
+            class="kpi-value fw-bold mb-0 d-inline text-dark"
+            [ngClass]="{ shrink: ('' + value).length > 12 }"
+          >
+            {{ value }}
           </h4>
-          <small class="text-muted ms-1">unit</small>
-        </div>
 
-        <!-- Subtitle -->
-        <small class="text-muted d-block">Subtitle placeholder</small>
+          <small class="text-muted ms-1">{{ unit }}</small>
+        </div>
       </div>
     </div>
   </div>

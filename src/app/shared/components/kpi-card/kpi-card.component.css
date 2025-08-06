@@ -1,43 +1,42 @@
 .kpi-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: default;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: #fff;
+  transition: all 0.2s ease;
 }
 
 .kpi-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
-}
-
-.kpi-card.loading {
-  opacity: 0.7;
-}
-
-.kpi-title {
-  font-size: 0.8rem;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.kpi-value {
-  font-size: 1.5rem;
-  line-height: 1.2;
-}
-
-.kpi-trend {
-  font-size: 0.75rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 
 .icon-wrapper {
-  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0; /* jangan mengecil walau text panjang */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; /* pastikan bulat */
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .kpi-value {
-    font-size: 1.25rem;
-  }
-  
-  .card-body {
-    padding: 1rem !important;
-  }
+.kpi-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.kpi-value {
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  line-height: 1.2;
+  flex: 1;
+}
+.kpi-value.shrink {
+  font-size: 1rem;
+}
+
+
+
+.kpi-subtitle {
+  font-size: 0.75rem;
 }
