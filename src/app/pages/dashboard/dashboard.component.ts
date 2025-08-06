@@ -1,6 +1,9 @@
 // src/app/pages/dashboard/dashboard.component.ts
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser, CommonModule } from '@angular/common';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, finalize, tap } from 'rxjs/operators';
+
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
 import { FilterComponent } from '../../shared/components/filter/filter.component';
 import { RevenueExpenseBarChartComponent } from '../../shared/components/charts/revenue-expense-barchart/revenue-expense-barchart.component';
@@ -9,13 +12,37 @@ import { SalesAftersalesLinechartComponent } from '../../shared/components/chart
 import { BranchPerformanceBarChartComponent } from '../../shared/components/charts/branch-performance-barchart/branch-performance-barchart.component';
 import { DashboardService } from '../../shared/services/dashboard.service';
 
+type ChartKey =
+  | 'revenueExpenseData'
+  | 'targetRealizationData'
+  | 'salesAfterSalesData'
+  | 'branchPerformanceData';
+
+interface Filters {
+  company: string;
+  branch: string;   // 'all-branch' | kode cabang
+  category: string; // 'all-category' | 'sales' | 'after-sales'
+}
+
+interface ChartConfig {
+  key: ChartKey;
+  title: string;
+  component: 'app-revenue-expense-barchart'
+           | 'app-target-realization-barchart'
+           | 'app-sales-aftersales-linechart'
+           | 'app-branch-performance-barchart';
+  shouldLoad: (f: Filters) => boolean;
+  loader: (f: Filters, force: boolean) => Observable<any[]>;
+  clearWhenHidden?: boolean; // default true
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
     CommonModule,
-    KpiCardComponent,
     FilterComponent,
+    KpiCardComponent,
     RevenueExpenseBarChartComponent,
     TargetRealizationBarChartComponent,
     SalesAftersalesLinechartComponent,
@@ -25,134 +52,124 @@ import { DashboardService } from '../../shared/services/dashboard.service';
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit {
+  // ---- State Data
   kpiData: any[] = [];
   revenueExpenseData: any[] = [];
   targetRealizationData: any[] = [];
   salesAfterSalesData: any[] = [];
   branchPerformanceData: any[] = [];
+
   loading = false;
-  currentFilters: any = {};
+  currentFilters: Partial<Filters> = {};
+
+  // ---- Chart Configs (tambah chart baru tinggal tambah item di sini)
+  chartConfigs: ChartConfig[] = [
+    {
+      key: 'revenueExpenseData',
+      title: 'Pendapatan vs Pengeluaran',
+      component: 'app-revenue-expense-barchart',
+      shouldLoad: () => true,
+      loader: (f, force) => this.dashboardService.getRevenueExpenseChartData(f, force),
+    },
+    {
+      key: 'targetRealizationData',
+      title: 'Target vs Realisasi After Sales',
+      component: 'app-target-realization-barchart',
+      shouldLoad: (f) => f.category === 'after-sales',
+      loader: (f, force) => this.dashboardService.getTargetRealizationChartData(f, force),
+    },
+    {
+      key: 'salesAfterSalesData',
+      title: 'Omzet Sales vs Omzet After Sales',
+      component: 'app-sales-aftersales-linechart',
+      shouldLoad: (f) => f.category === 'all-category',
+      loader: (f, force) => this.dashboardService.getSalesAfterSalesChartData(f, force),
+    },
+    {
+      key: 'branchPerformanceData',
+      title: 'Performa Cabang Berdasarkan Omzet',
+      component: 'app-branch-performance-barchart',
+      shouldLoad: (f) => f.branch === 'all-branch',
+      loader: (f, force) => this.dashboardService.getBranchPerformanceChartData(f, force),
+    },
+  ];
 
   constructor(
     private dashboardService: DashboardService,
     @Inject(PLATFORM_ID) private platformId: object
   ) {}
 
+  // ---- Lifecycle
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      const savedFilter = localStorage.getItem('dashboardFilter');
-
-      if (savedFilter) {
-        const filter = JSON.parse(savedFilter);
-        this.currentFilters = filter;
-
-        // Load KPI data
-        this.dashboardService.getKpiData(filter, false).subscribe((data) => {
-          if (data && data.length > 0) {
-            this.kpiData = data;
-          }
-        });
-
-        // Load Revenue vs Expense chart data
-        this.dashboardService
-          .getRevenueExpenseChartData(filter)
-          .subscribe((data) => {
-            console.log('Initial Revenue Expense Data:', data);
-            this.revenueExpenseData = data;
-          });
-
-        // Load Target vs Realization chart data (HANYA untuk after-sales)
-        if (filter.category === 'after-sales') {
-          this.dashboardService
-            .getTargetRealizationChartData(filter)
-            .subscribe((data) => {
-              console.log('Initial Target Realization Data:', data);
-              this.targetRealizationData = data;
-            });
+      const saved = localStorage.getItem('dashboardFilter');
+      if (saved) {
+        try {
+          const filter: Filters = JSON.parse(saved);
+          this.currentFilters = filter;
+          this.loadDashboardData(filter, false);
+        } catch {
+          // ignore parse errors
         }
       }
     }
   }
 
-  onSearch(filters: any) {
+  // ---- Public API (dipanggil dari <app-filter>)
+  onSearch(filters: Filters) {
+    this.loadDashboardData(filters, true); // force refresh saat user klik Cari
+  }
+
+  // ---- Loader utama (DRY + forkJoin agar loading selesai serentak)
+  private loadDashboardData(filters: Filters, forceRefresh = false) {
     this.loading = true;
     this.currentFilters = filters;
 
-    // Load KPI data
-    this.dashboardService.getKpiData(filters, true).subscribe({
-      next: (data) => {
-        console.log('KPI Data:', data);
-        this.kpiData = data;
-        this.loading = false;
-      },
-      error: () => (this.loading = false),
-    });
+    const tasks: Observable<any>[] = [];
 
-    // Load Revenue vs Expense chart data (always show)
-    this.dashboardService.getRevenueExpenseChartData(filters).subscribe({
-      next: (data) => {
-        console.log('Revenue Expense Data received:', data);
-        this.revenueExpenseData = data;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error loading revenue expense data:', err);
-        this.loading = false;
-      },
-    });
-    // Load Sales vs After Sales chart data (hanya untuk all-category)
-    if (filters.category === 'all-category') {
-      this.dashboardService.getSalesAfterSalesChartData(filters).subscribe({
-        next: (data) => {
-          console.log('Sales After Sales Data received:', data);
-          this.salesAfterSalesData = data;
-        },
-        error: (err) => {
-          console.error('Error loading sales after sales data:', err);
-          this.salesAfterSalesData = [];
-        },
-      });
-    } else {
-      this.salesAfterSalesData = [];
+    // KPI selalu dimuat
+    tasks.push(
+      this.dashboardService.getKpiData(filters, forceRefresh).pipe(
+        tap((d) => (this.kpiData = d)),
+        catchError(() => {
+          this.kpiData = [];
+          return of([]);
+        })
+      )
+    );
+
+    // Chart by config
+    for (const cfg of this.chartConfigs) {
+      if (cfg.shouldLoad(filters)) {
+        tasks.push(
+          cfg.loader(filters, forceRefresh).pipe(
+            tap((d) => ((this as any)[cfg.key] = d)),
+            catchError(() => {
+              (this as any)[cfg.key] = [];
+              return of([]);
+            })
+          )
+        );
+      } else if (cfg.clearWhenHidden !== false) {
+        (this as any)[cfg.key] = [];
+      }
     }
 
-    // Load Branch Performance chart data (hanya untuk all-branch)
-    if (filters.branch === 'all-branch') {
-      this.dashboardService.getBranchPerformanceChartData(filters).subscribe({
-        next: (data) => {
-          console.log('Branch Performance Data received:', data);
-          this.branchPerformanceData = data;
-        },
-        error: (err) => {
-          console.error('Error loading branch performance data:', err);
-          this.branchPerformanceData = [];
-        },
-      });
-    } else {
-      this.branchPerformanceData = [];
-    }
-
-    // Load Target vs Realization chart data (HANYA untuk after-sales)
-    if (filters.category === 'after-sales') {
-      this.dashboardService.getTargetRealizationChartData(filters).subscribe({
-        next: (data) => {
-          console.log('Target Realization Data received:', data);
-          this.targetRealizationData = data;
-        },
-        error: (err) => {
-          console.error('Error loading target realization data:', err);
-          this.targetRealizationData = [];
-        },
-      });
-    } else {
-      // Clear target realization data jika bukan after-sales
-      this.targetRealizationData = [];
-    }
+    forkJoin(tasks)
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe();
   }
 
-  // Ganti semua helper methods di dashboard.component.ts dengan yang ini:
+  // ---- Helpers untuk template (menghindari penggunaan `this[...]` langsung di HTML)
+  hasData(key: ChartKey): boolean {
+    const v = (this as any)[key];
+    return Array.isArray(v) && v.length > 0;
+  }
+  getData<T = any>(key: ChartKey): T[] {
+    return (this as any)[key] ?? [];
+  }
 
-  // Simple helper to check if any chart data exists
+  // ---- Helpers untuk show/hide chart tertentu (kalau template lama masih pakai ini)
   hasAnyChartData(): boolean {
     return (
       this.revenueExpenseData.length > 0 ||
@@ -161,17 +178,21 @@ export class DashboardComponent implements OnInit {
       this.branchPerformanceData.length > 0
     );
   }
-
-  // Keep existing conditional logic simple (optional - can remove if not needed)
   shouldShowTargetRealizationChart(): boolean {
-    return this.currentFilters.category === 'after-sales';
+    return (this.currentFilters.category as string) === 'after-sales';
   }
-
   shouldShowSalesAfterSalesChart(): boolean {
-    return this.currentFilters.category === 'all-category';
+    return (this.currentFilters.category as string) === 'all-category';
+  }
+  shouldShowBranchPerformanceChart(): boolean {
+    return (this.currentFilters.branch as string) === 'all-branch';
   }
 
-  shouldShowBranchPerformanceChart(): boolean {
-    return this.currentFilters.branch === 'all-branch';
+  // Opsional util debug
+  debugCache() {
+    this.dashboardService.getCacheStatus();
+  }
+  clearCache() {
+    this.dashboardService.clearAllCache();
   }
 }

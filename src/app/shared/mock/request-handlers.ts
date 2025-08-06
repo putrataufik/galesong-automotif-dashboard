@@ -6,12 +6,90 @@ import {
   ChartDataItem,
   MonthlyData,
   MonthlyTargetData,
+  MonthlySalesData,
+  BranchPerformanceData,
 } from './interfaces';
 
 export class RequestHandlers {
+  // --------------------
+  // Constants
+  // --------------------
+  private static readonly MONTHS = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+    'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+  ];
+
+  // --------------------
+  // Utilities
+  // --------------------
+
+  /**
+   * Filter berdasarkan query string: company, branch, category.
+   * - branch:
+   *    * jika 'all-branch' → tidak dipersempit
+   *    * jika spesifik → dipersempit
+   * - category:
+   *    * jika spesifik ('sales' / 'after-sales') → filter spesifik
+   *    * jika 'all-category' ATAU tidak ada → gunakan data 'all-category'
+   */
+  private static filterByQuery<TData>(
+    reqInfo: RequestInfo,
+    data: ChartDataItem<TData>[]
+  ): ChartDataItem<TData>[] {
+    const company  = reqInfo.query.get('company')?.[0];
+    const branch   = reqInfo.query.get('branch')?.[0];
+    const category = reqInfo.query.get('category')?.[0];
+
+    let result = data.filter((item) => item.company === company);
+
+    if (branch && branch !== 'all-branch') {
+      result = result.filter((item) => item.branch === branch);
+    }
+
+    if (category && category !== 'all-category') {
+      result = result.filter((item) => item.category === category);
+    } else {
+      result = result.filter((item) => item.category === 'all-category');
+    }
+
+    return result;
+  }
+
+  /**
+   * Agregasi bulanan untuk field numerik yang diberikan.
+   * Contoh:
+   *   aggregateMonthly(filtered, ['revenue','expense'] as const)
+   *   aggregateMonthly(filtered, ['target','realization'] as const)
+   */
+  private static aggregateMonthly<
+    T extends { month: string },
+    U extends keyof T & string
+  >(
+    items: ChartDataItem<T>[],
+    fields: readonly U[],
+  ): Array<{ month: string } & Record<U, number>> {
+    return this.MONTHS.map((month) => {
+      const rows = items
+        .flatMap((it) => it.data) // T[]
+        .filter((d) => d.month === month);
+
+      const out = { month } as { month: string } & Record<U, number>;
+      for (const f of fields) {
+        // @ts-expect-error: T[f] dipastikan number oleh kontrak pemanggil
+        out[f] = rows.reduce((sum, d) => sum + (Number(d[f]) || 0), 0);
+      }
+      return out;
+    });
+  }
+
+  // --------------------
+  // Handlers
+  // --------------------
+
+  /** KPI Cards */
   static handleKpiRequest(reqInfo: RequestInfo, kpiData: KpiDataItem[]) {
-    const company = reqInfo.query.get('company')?.[0];
-    const branch = reqInfo.query.get('branch')?.[0];
+    const company  = reqInfo.query.get('company')?.[0];
+    const branch   = reqInfo.query.get('branch')?.[0];
     const category = reqInfo.query.get('category')?.[0];
 
     let data = kpiData.filter((item) => item.company === company);
@@ -19,71 +97,59 @@ export class RequestHandlers {
     if (branch && branch !== 'all-branch') {
       data = data.filter((item) => item.branch === branch);
     }
-
     if (category && category !== 'all-category') {
       data = data.filter((item) => item.category === category);
     }
 
-    // Gabungkan data KPI
     const combinedKpi = {
       totalSales: data.reduce((sum, d) => sum + d.kpis.totalSales, 0),
       totalAfterSales: data.reduce((sum, d) => sum + d.kpis.totalAfterSales, 0),
       totalPendapatan: data.reduce((sum, d) => sum + d.kpis.totalPendapatan, 0),
-      totalPengeluaran: data.reduce(
-        (sum, d) => sum + d.kpis.totalPengeluaran,
-        0
-      ),
-      topSalesBranch:
-        data.find((d) => d.kpis.topSalesBranch)?.kpis.topSalesBranch || '',
-      topAfterSalesBranch:
-        data.find((d) => d.kpis.topAfterSalesBranch)?.kpis
-          .topAfterSalesBranch || '',
+      totalPengeluaran: data.reduce((sum, d) => sum + d.kpis.totalPengeluaran, 0),
+      topSalesBranch: data.find((d) => d.kpis.topSalesBranch)?.kpis.topSalesBranch || '',
+      topAfterSalesBranch: data.find((d) => d.kpis.topAfterSalesBranch)?.kpis.topAfterSalesBranch || '',
       totalOmzetSales: data.reduce((sum, d) => sum + d.kpis.totalOmzetSales, 0),
-      totalOmzetAfterSales: data.reduce(
-        (sum, d) => sum + d.kpis.totalOmzetAfterSales,
-        0
-      ),
+      totalOmzetAfterSales: data.reduce((sum, d) => sum + d.kpis.totalOmzetAfterSales, 0),
     };
 
-    // Buat array KPI Cards sesuai filter
     const kpiCards: KpiCard[] = [];
 
     if (category !== 'after-sales') {
-      kpiCards.push({
-        title: 'Total Sales',
-        value: combinedKpi.totalSales,
-        unit: 'unit',
-        icon: 'icons/car.png',
-        bgColor: '#BFE8FF',
-      });
-      kpiCards.push({
-        title: 'Total Omzet Sales',
-        value: `Rp. ${(combinedKpi.totalOmzetSales / 1_000_000_000).toFixed(
-          1
-        )} M`,
-        unit: '',
-        icon: 'icons/increase.png',
-        bgColor: '#C3FFBF',
-      });
+      kpiCards.push(
+        {
+          title: 'Total Sales',
+          value: combinedKpi.totalSales,
+          unit: 'unit',
+          icon: 'icons/car.png',
+          bgColor: '#BFE8FF',
+        },
+        {
+          title: 'Total Omzet Sales',
+          value: `Rp. ${(combinedKpi.totalOmzetSales / 1_000_000_000).toFixed(1)} M`,
+          unit: '',
+          icon: 'icons/increase.png',
+          bgColor: '#C3FFBF',
+        },
+      );
     }
 
     if (category !== 'sales') {
-      kpiCards.push({
-        title: 'Total After Sales',
-        value: combinedKpi.totalAfterSales,
-        unit: '',
-        icon: 'icons/wrench.png',
-        bgColor: '#BFD1FF',
-      });
-      kpiCards.push({
-        title: 'Total Omzet After Sales',
-        value: `Rp. ${(
-          combinedKpi.totalOmzetAfterSales / 1_000_000_000
-        ).toFixed(1)} M`,
-        unit: '',
-        icon: 'icons/increase.png',
-        bgColor: '#C3FFBF',
-      });
+      kpiCards.push(
+        {
+          title: 'Total After Sales',
+          value: combinedKpi.totalAfterSales,
+          unit: '',
+          icon: 'icons/wrench.png',
+          bgColor: '#BFD1FF',
+        },
+        {
+          title: 'Total Omzet After Sales',
+          value: `Rp. ${(combinedKpi.totalOmzetAfterSales / 1_000_000_000).toFixed(1)} M`,
+          unit: '',
+          icon: 'icons/increase.png',
+          bgColor: '#C3FFBF',
+        },
+      );
     }
 
     if (branch === 'all-branch') {
@@ -107,25 +173,22 @@ export class RequestHandlers {
       }
     }
 
-    // KPI umum (Pendapatan & Pengeluaran)
-    kpiCards.push({
-      title: 'Total Pendapatan',
-      value: `Rp. ${(combinedKpi.totalPendapatan / 1_000_000_000).toFixed(
-        1
-      )} M`,
-      unit: '',
-      icon: 'icons/uptrend.png',
-      bgColor: '#C3FFBF',
-    });
-    kpiCards.push({
-      title: 'Total Pengeluaran',
-      value: `Rp. ${(combinedKpi.totalPengeluaran / 1_000_000_000).toFixed(
-        1
-      )} M`,
-      unit: '',
-      icon: 'icons/downtrend.png',
-      bgColor: '#FFBFBF',
-    });
+    kpiCards.push(
+      {
+        title: 'Total Pendapatan',
+        value: `Rp. ${(combinedKpi.totalPendapatan / 1_000_000_000).toFixed(1)} M`,
+        unit: '',
+        icon: 'icons/uptrend.png',
+        bgColor: '#C3FFBF',
+      },
+      {
+        title: 'Total Pengeluaran',
+        value: `Rp. ${(combinedKpi.totalPengeluaran / 1_000_000_000).toFixed(1)} M`,
+        unit: '',
+        icon: 'icons/downtrend.png',
+        bgColor: '#FFBFBF',
+      },
+    );
 
     return reqInfo.utils.createResponse$(() => ({
       body: kpiCards,
@@ -133,169 +196,48 @@ export class RequestHandlers {
     }));
   }
 
+  /** Bulanan: Revenue vs Expense */
   static handleRevenueExpenseRequest(
     reqInfo: RequestInfo,
-    revenueExpenseData: ChartDataItem[]
+    revenueExpenseData: ChartDataItem<MonthlyData>[]
   ) {
-    console.log('=== REVENUE EXPENSE HANDLER ===');
-    const company = reqInfo.query.get('company')?.[0];
-    const branch = reqInfo.query.get('branch')?.[0];
-    const category = reqInfo.query.get('category')?.[0];
-
-    console.log('Filter params:', { company, branch, category });
-    console.log('Total revenue expense data:', revenueExpenseData.length);
-
-    let filteredData = revenueExpenseData.filter(
-      (item) => item.company === company
-    );
-    console.log('After company filter:', filteredData.length);
-
-    if (branch && branch !== 'all-branch') {
-      filteredData = filteredData.filter((item) => item.branch === branch);
-      console.log('After branch filter:', filteredData.length);
-    }
-
-    // Filter by category
-    if (category && category !== 'all-category') {
-      filteredData = filteredData.filter((item) => item.category === category);
-      console.log('After category filter (specific):', filteredData.length);
-    } else {
-      // If all-category, use the all-category data
-      filteredData = filteredData.filter(
-        (item) => item.category === 'all-category'
-      );
-      console.log('After category filter (all-category):', filteredData.length);
-    }
-
-    // Aggregate data if multiple branches
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
-    ];
-    const aggregatedData: MonthlyData[] = months.map((month) => {
-      const monthData = filteredData
-        .map((item) => item.data as MonthlyData[])
-        .flat()
-        .filter((data) => data.month === month);
-
-      return {
-        month,
-        revenue: monthData.reduce((sum, data) => sum + data.revenue, 0),
-        expense: monthData.reduce((sum, data) => sum + data.expense, 0),
-      };
-    });
-
-    console.log('Final aggregated data:', aggregatedData);
-
-    return reqInfo.utils.createResponse$(() => ({
-      body: aggregatedData,
-      status: 200,
-    }));
+    const filtered   = this.filterByQuery(reqInfo, revenueExpenseData);
+    const aggregated = this.aggregateMonthly(filtered, ['revenue', 'expense'] as const);
+    return reqInfo.utils.createResponse$(() => ({ body: aggregated, status: 200 }));
   }
 
+  /** Bulanan: Target vs Realization (after-sales) */
   static handleTargetRealizationRequest(
     reqInfo: RequestInfo,
-    targetRealizationData: ChartDataItem[]
+    targetRealizationData: ChartDataItem<MonthlyTargetData>[]
   ) {
-    console.log('=== TARGET REALIZATION HANDLER ===');
-    const company = reqInfo.query.get('company')?.[0];
-    const branch = reqInfo.query.get('branch')?.[0];
-
-    console.log('Filter params:', { company, branch });
-    console.log('Total target realization data:', targetRealizationData.length);
-
-    let filteredData = targetRealizationData.filter(
-      (item) => item.company === company
-    );
-    console.log('After company filter:', filteredData.length);
-
-    if (branch && branch !== 'all-branch') {
-      filteredData = filteredData.filter((item) => item.branch === branch);
-      console.log('After branch filter:', filteredData.length);
-    }
-
-    // Aggregate data if multiple branches
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
-    ];
-    const aggregatedData: MonthlyTargetData[] = months.map((month) => {
-      const monthData = filteredData
-        .map((item) => item.data as MonthlyTargetData[])
-        .flat()
-        .filter((data) => data.month === month);
-
-      return {
-        month,
-        target: monthData.reduce((sum, data) => sum + data.target, 0),
-        realization: monthData.reduce((sum, data) => sum + data.realization, 0),
-      };
-    });
-
-    console.log('Final aggregated data:', aggregatedData);
-
-    return reqInfo.utils.createResponse$(() => ({
-      body: aggregatedData,
-      status: 200,
-    }));
+    const filtered   = this.filterByQuery(reqInfo, targetRealizationData);
+    const aggregated = this.aggregateMonthly(filtered, ['target', 'realization'] as const);
+    return reqInfo.utils.createResponse$(() => ({ body: aggregated, status: 200 }));
   }
 
+  /** Non-bulanan: Sales vs After Sales (ambil entry all-branch + all-category) */
   static handleSalesAfterSalesRequest(
     reqInfo: RequestInfo,
-    salesAfterSalesData: ChartDataItem[]
+    salesAfterSalesData: ChartDataItem<MonthlySalesData>[] // tipe data sesuai dataset Anda
   ) {
     const company = reqInfo.query.get('company')?.[0];
-
-    const filteredData = salesAfterSalesData.filter(
-      (item) =>
-        item.company === company &&
-        item.branch === 'all-branch' &&
-        item.category === 'all-category'
-    );
-
-    const result = filteredData.length > 0 ? filteredData[0].data : [];
-
-    return reqInfo.utils.createResponse$(() => ({
-      body: result,
-      status: 200,
-    }));
+    const result = salesAfterSalesData.find(
+      (i) =>
+        i.company === company &&
+        i.branch === 'all-branch' &&
+        i.category === 'all-category'
+    )?.data ?? [];
+    return reqInfo.utils.createResponse$(() => ({ body: result, status: 200 }));
   }
 
+  /** Non-bulanan: Branch Performance (list cabang per company) */
   static handleBranchPerformanceRequest(
     reqInfo: RequestInfo,
-    branchPerformanceData: any[]
+    branchPerformanceData: ChartDataItem<BranchPerformanceData>[]
   ) {
     const company = reqInfo.query.get('company')?.[0];
-
-    const filteredData = branchPerformanceData.filter(
-      (item) => item.company === company
-    );
-
-    const result = filteredData.length > 0 ? filteredData[0].data : [];
-
-    return reqInfo.utils.createResponse$(() => ({
-      body: result,
-      status: 200,
-    }));
+    const result = branchPerformanceData.find((i) => i.company === company)?.data ?? [];
+    return reqInfo.utils.createResponse$(() => ({ body: result, status: 200 }));
   }
 }

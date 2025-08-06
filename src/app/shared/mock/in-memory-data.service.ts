@@ -4,17 +4,26 @@ import { InMemoryDbService, RequestInfo } from 'angular-in-memory-web-api';
 import { COMPANIES, CATEGORIES } from './master-data';
 import { DataGenerators } from './data-generators';
 import { RequestHandlers } from './request-handlers';
-import { KpiDataItem, ChartDataItem } from './interfaces';
+import {
+  KpiDataItem,
+  ChartDataItem,
+  MonthlyData,
+  MonthlyTargetData,
+  MonthlySalesData,
+  BranchPerformanceData,
+} from './interfaces';
 
 @Injectable({
   providedIn: 'root',
 })
 export class InMemoryDataService implements InMemoryDbService {
   private kpiData: KpiDataItem[] = [];
-  private revenueExpenseData: ChartDataItem[] = [];
-  private targetRealizationData: ChartDataItem[] = [];
-  private salesAfterSalesData: ChartDataItem[] = [];
-  private branchPerformanceData: any[] = [];
+
+  // ✅ Beri type argument untuk generic ChartDataItem<TData>
+  private revenueExpenseData: ChartDataItem<MonthlyData>[] = [];
+  private targetRealizationData: ChartDataItem<MonthlyTargetData>[] = [];
+  private salesAfterSalesData: ChartDataItem<MonthlySalesData>[] = [];
+  private branchPerformanceData: ChartDataItem<BranchPerformanceData>[] = [];
 
   constructor() {
     this.generateAllData();
@@ -51,114 +60,99 @@ export class InMemoryDataService implements InMemoryDbService {
   }
 
   private generateChartData() {
-    // Generate Revenue vs Expense data for all combinations
+    // Revenue vs Expense (bulanan) untuk semua kombinasi
     COMPANIES.forEach((comp) => {
       comp.branches.forEach((branch) => {
-        ['sales', 'after-sales', 'all-category'].forEach((category) => {
+        (['sales', 'after-sales', 'all-category'] as const).forEach((category) => {
           this.revenueExpenseData.push({
             company: comp.company,
-            branch: branch,
-            category: category,
+            branch,
+            category,
+            // Pastikan fungsi generator mengembalikan MonthlyData[]
             data: DataGenerators.generateRevenueExpenseData(
               comp.company,
               branch,
               category
-            ),
+            ) as MonthlyData[],
           });
         });
       });
     });
 
+    // Sales vs After Sales (non-agregasi per bulan tapi tetap bentuk bulanan sesuai interface Anda)
     COMPANIES.forEach((comp) => {
       this.salesAfterSalesData.push({
         company: comp.company,
         branch: 'all-branch',
         category: 'all-category',
+        // Pastikan fungsi generator mengembalikan MonthlySalesData[]
         data: DataGenerators.generateSalesAfterSalesData(
           comp.company,
           'all-branch'
-        ),
+        ) as MonthlySalesData[],
       });
     });
 
-    // Generate Branch Performance data (only for all-branch)
+    // Branch Performance (non-bulanan, list per cabang)
     COMPANIES.forEach((comp) => {
       this.branchPerformanceData.push({
         company: comp.company,
         branch: 'all-branch',
         category: 'all-category',
-        data: DataGenerators.generateBranchPerformanceData(comp.company),
+        // Pastikan fungsi generator mengembalikan BranchPerformanceData[]
+        data: DataGenerators.generateBranchPerformanceData(
+          comp.company
+        ) as BranchPerformanceData[],
       });
     });
 
-    // Generate Target vs Realization data (only for after-sales)
+    // Target vs Realization (bulanan, khusus after-sales)
     COMPANIES.forEach((comp) => {
       comp.branches.forEach((branch) => {
         this.targetRealizationData.push({
           company: comp.company,
-          branch: branch,
+          branch,
           category: 'after-sales',
+          // Pastikan fungsi generator mengembalikan MonthlyTargetData[]
           data: DataGenerators.generateTargetRealizationData(
             comp.company,
             branch
-          ),
+          ) as MonthlyTargetData[],
         });
       });
     });
   }
 
   get(reqInfo: RequestInfo) {
-    console.log('=== IN-MEMORY API REQUEST ===');
-    console.log('Collection:', reqInfo.collectionName);
-    console.log('Query params:', reqInfo.query);
-    console.log('URL:', reqInfo.url);
-    console.log('Available collections:', Object.keys(this.createDb()));
-
     switch (reqInfo.collectionName) {
       case 'kpi':
-        console.log('Handling KPI request...');
         return RequestHandlers.handleKpiRequest(reqInfo, this.kpiData);
 
       case 'revenueExpense':
-        console.log('Handling Revenue Expense request...');
-        console.log(
-          'Revenue Expense Data count:',
-          this.revenueExpenseData.length
-        );
         return RequestHandlers.handleRevenueExpenseRequest(
           reqInfo,
           this.revenueExpenseData
         );
 
       case 'targetRealization':
-        console.log('Handling Target Realization request...');
-        console.log(
-          'Target Realization Data count:',
-          this.targetRealizationData.length
-        );
         return RequestHandlers.handleTargetRealizationRequest(
           reqInfo,
           this.targetRealizationData
         );
+
       case 'salesAfterSales':
-        console.log('Handling Sales After Sales request...');
         return RequestHandlers.handleSalesAfterSalesRequest(
           reqInfo,
           this.salesAfterSalesData
         );
 
       case 'branchPerformance':
-        console.log('Handling Branch Performance request...');
         return RequestHandlers.handleBranchPerformanceRequest(
           reqInfo,
           this.branchPerformanceData
         );
 
       default:
-        console.warn('Unknown collection:', reqInfo.collectionName);
-        console.log(
-          'Expected collections: kpi, revenueExpense, targetRealization'
-        );
         return undefined;
     }
   }

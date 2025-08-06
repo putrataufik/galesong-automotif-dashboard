@@ -51,9 +51,11 @@ export interface KpiDataItem {
   };
 }
 
-export interface ChartDataItem {
+// ----- Item pembungkus dataset per company/branch/category -----
+// Jadikan generik agar 'data' selalu tepat tipe untuk handler terkait.
+export interface ChartDataItem<TData> {
   company: string;
-  branch: string;
-  category: string;
-  data: MonthlyData[] | MonthlyTargetData[] | MonthlySalesData[] | BranchPerformanceData[];
+  branch?: string;
+  category?: string;
+  data: TData[];
 }

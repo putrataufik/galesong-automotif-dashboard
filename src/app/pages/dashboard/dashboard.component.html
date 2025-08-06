@@ -38,51 +38,45 @@
       </div>
     </div>
 
-    <!-- Charts Section - Simplified Grid -->
     <div *ngIf="!loading && hasAnyChartData()" class="row g-4 mb-4">
       <div class="col-12">
         <h5 class="fw-semibold text-dark mb-3">Analytics Charts</h5>
-
-        <!-- Simple Grid: Auto-arrange all charts in 2-column layout -->
+    
         <div class="row g-4">
-          <!-- Revenue vs Expense Chart -->
-          <div *ngIf="revenueExpenseData.length > 0" class="col-12 col-lg-6">
-            <app-revenue-expense-barchart
-              [data]="revenueExpenseData"
-              title="pendapatan vs pengeluaran"
-            >
-            </app-revenue-expense-barchart>
-          </div>
-
-          <!-- Target vs Realization Chart -->
-          <div *ngIf="targetRealizationData.length > 0" class="col-12 col-lg-6">
-            <app-target-realization-barchart
-              [data]="targetRealizationData"
-              [title]="'Target vs Realisasi After Sales'"
-            >
-            </app-target-realization-barchart>
-          </div>
-
-          <!-- Sales vs After Sales Line Chart -->
-          <div *ngIf="salesAfterSalesData.length > 0" class="col-12 col-lg-6">
-            <app-sales-aftersales-linechart
-              [data]="salesAfterSalesData"
-              [title]="'Omzet Sales vs Omzet After Sales'"
-            >
-            </app-sales-aftersales-linechart>
-          </div>
-
-          <!-- Branch Performance Horizontal Bar Chart -->
-          <div *ngIf="branchPerformanceData.length > 0" class="col-12 col-lg-6">
-            <app-branch-performance-barchart
-              [data]="branchPerformanceData"
-              [title]="'Performa Cabang Berdasarkan Omzet'"
-            >
-            </app-branch-performance-barchart>
-          </div>
+          <ng-container *ngFor="let chart of chartConfigs">
+            <div *ngIf="hasData(chart.key)" class="col-12 col-lg-6">
+              <ng-container [ngSwitch]="chart.component">
+                <app-revenue-expense-barchart
+                  *ngSwitchCase="'app-revenue-expense-barchart'"
+                  [data]="getData(chart.key)"
+                  [title]="chart.title">
+                </app-revenue-expense-barchart>
+    
+                <app-target-realization-barchart
+                  *ngSwitchCase="'app-target-realization-barchart'"
+                  [data]="getData(chart.key)"
+                  [title]="chart.title">
+                </app-target-realization-barchart>
+    
+                <app-sales-aftersales-linechart
+                  *ngSwitchCase="'app-sales-aftersales-linechart'"
+                  [data]="getData(chart.key)"
+                  [title]="chart.title">
+                </app-sales-aftersales-linechart>
+    
+                <app-branch-performance-barchart
+                  *ngSwitchCase="'app-branch-performance-barchart'"
+                  [data]="getData(chart.key)"
+                  [title]="chart.title">
+                </app-branch-performance-barchart>
+              </ng-container>
+            </div>
+          </ng-container>
         </div>
       </div>
     </div>
+    
+
 
     <!-- Placeholder jika belum ada data -->
     <div *ngIf="!loading && kpiData.length === 0" class="row g-4">
