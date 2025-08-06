@@ -240,7 +240,7 @@ export class RequestHandlers {
     const salesItems = salesData.filter(
       (i) => i.company === company && i.category === 'sales'
     );
-    
+
     const monthlyData: { [key: string]: { month: string; salesOmzet: number; afterSalesOmzet: number } } = {};
     salesItems.forEach(item => {
       item.data.forEach(d => {
@@ -250,13 +250,12 @@ export class RequestHandlers {
         monthlyData[d.month].salesOmzet += d.salesOmzet;
       });
     });
-    
+
     const result = Object.values(monthlyData);
-    console.log('Sales Only Results:', result);
     return reqInfo.utils.createResponse$(() => ({ body: result, status: 200 }));
   }
 
-static handleAfterSalesOnlyRequest(
+  static handleAfterSalesOnlyRequest(
     reqInfo: RequestInfo,
     afterSalesData: ChartDataItem<MonthlySalesData>[]
   ) {
@@ -264,7 +263,7 @@ static handleAfterSalesOnlyRequest(
     const afterSalesItems = afterSalesData.filter(
       (i) => i.company === company && i.category === 'after-sales'
     );
-    
+
     const monthlyData: { [key: string]: { month: string; salesOmzet: number; afterSalesOmzet: number } } = {};
     afterSalesItems.forEach(item => {
       item.data.forEach(d => {
@@ -274,14 +273,12 @@ static handleAfterSalesOnlyRequest(
         monthlyData[d.month].afterSalesOmzet += d.afterSalesOmzet;
       });
     });
-    
+
     const result = Object.values(monthlyData);
-    console.log('After Sales Only Results:', result);
     return reqInfo.utils.createResponse$(() => ({ body: result, status: 200 }));
-  
   }
 
- 
+
   /** Non-bulanan: Branch Performance (list cabang per company) */
   static handleBranchPerformanceRequest(
     reqInfo: RequestInfo,
