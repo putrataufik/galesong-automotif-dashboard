@@ -23,7 +23,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler, // ✅ TAMBAHKAN INI - penting untuk area chart
+  Filler, 
 } from 'chart.js';
 
 Chart.register(
@@ -35,7 +35,7 @@ Chart.register(
   Title,
   Tooltip,
   Legend,
-  Filler // ✅ REGISTER FILLER - wajib untuk area chart
+  Filler
 );
 
 @Component({
@@ -117,8 +117,8 @@ export class LineChartCardComponent
             backgroundColor: this.backgroundColor || 'rgba(59, 130, 246, 0.1)', // Default light blue
             pointBackgroundColor:
               this.pointBackgroundColor || this.borderColor || '#0047aaff',
-            pointBorderColor: this.pointBorderColor || '#ffffffff',
-            pointRadius: 2,
+            pointBorderColor: this.pointBorderColor || '#0047aaff',
+            pointRadius: 3,
             pointHoverRadius: 4,
             borderWidth: 3,
           },

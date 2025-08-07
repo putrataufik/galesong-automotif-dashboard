@@ -53,14 +53,15 @@ export class PieChartCardComponent
   @Input() height = 300;
   @Input() showLegend = true;
   @Input() colors: string[] = [
-  'rgba(13, 110, 253, 1.0)',  // 100%
-  'rgba(0, 23, 58, 1)', // 85%
-  'rgba(0, 37, 92, 1)',  // 70%
-  'rgba(0, 58, 146, 1)', // 55%
-  'rgba(0, 87, 218, 1)',  // 40%
-  'rgba(65, 141, 255, 1)', // 25%
-  'rgba(161, 199, 255, 1)', // 15%
+  '#001244ff',  // Biru Tua - 100%
+  '#30529bff',  // Biru - 85%
+  '#60A5FA',  // Biru Muda - 70%
+  '#93C5FD',  // Biru Sangat Muda - 55%
+  '#CBD5E1',  // Abu-abu Muda - 40%
+  '#E5E7EB',  // Abu-abu Sangat Muda - 25%
+  '#F9FAFB',  // Hampir putih - 15%
 ];
+
 
 
   @ViewChild('canvasRef', { static: false })

@@ -69,13 +69,12 @@ export class BarChartCardComponent
 
   // Chart color palette - Blue gradient
   private readonly CHART_COLORS = [
-    'rgba(13, 110, 253, 1.0)', 
-    'rgba(0, 23, 58, 1)',
-    'rgba(0, 37, 92, 1)', 
-    'rgba(0, 58, 146, 1)', 
-    'rgba(0, 87, 218, 1)', 
-    'rgba(65, 141, 255, 1)', 
-    'rgba(161, 199, 255, 1)', 
+    '#001244ff', // Biru Tua - 100%
+    '#30529bff', // Biru - 85%
+    '#60A5FA', // Biru Muda - 70%
+    '#B08D57', // Biru Sangat Muda - 55%
+    '#E6BE8A', // Abu-abu Muda - 40%
+    '#D4AF37', // Abu-abu Sangat Muda - 25%
   ] as const;
 
   @ViewChild('canvasRef', { static: false })
