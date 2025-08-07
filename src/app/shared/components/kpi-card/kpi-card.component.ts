@@ -12,8 +12,8 @@ import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 export class KpiCardComponent {
   @Input() title = 'KPI';
   @Input() value: string | number = '—';
-  @Input() unit?: string;           // contoh: 'unit'
-  @Input() subtitle?: string;       // keterangan kecil di bawah
+  @Input() unit?: string;      
+  @Input() subtitle?: string;       
   @Input() icon = 'bi-graph-up'; 
-  @Input() iconBgClass = 'bg-light';   // Bootstrap Icon class
+  @Input() iconBgClass = 'bg-light';   
 }

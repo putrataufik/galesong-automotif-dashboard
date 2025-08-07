@@ -1,40 +1,69 @@
 @if (showAlert) {
-  <div class="position-fixed bottom-0 start-50 translate-middle-x mb-3" style="z-index:1050; width:90%; max-width:500px">
-    <div class="alert alert-{{ alertType }} alert-dismissible fade show shadow" role="alert">
-      <i class="bi {{ alertType === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill' }} me-2"></i>
-      {{ alertMessage }}
-      <button type="button" class="btn-close" (click)="hideAlert()"></button>
-    </div>
+<div
+  class="position-fixed bottom-0 start-50 translate-middle-x mb-3"
+  style="z-index: 1050; width: 90%; max-width: 500px"
+>
+  <div
+    class="alert alert-{{ alertType }} alert-dismissible fade show shadow"
+    role="alert"
+  >
+    <i
+      class="bi {{
+        alertType === 'success'
+          ? 'bi-check-circle-fill'
+          : 'bi-exclamation-triangle-fill'
+      }} me-2"
+    ></i>
+    {{ alertMessage }}
+    <button type="button" class="btn-close" (click)="hideAlert()"></button>
   </div>
+</div>
 }
 
 <!-- FILTER -->
 <div class="bg-white shadow-sm rounded-3 p-3">
   <div class="row justify-content-center align-items-end g-3 mb-3">
     <div class="col-md-4">
-      <label for="company" class="form-label small text-muted">Perusahaan</label>
-      <select id="company" class="form-select" [(ngModel)]="company" (change)="onFilterChange()">
+      <label for="company" class="form-label small text-muted"
+        >Perusahaan</label
+      >
+      <select
+        id="company"
+        class="form-select"
+        [(ngModel)]="company"
+        (change)="onFilterChange()"
+      >
         <option value="">Pilih Perusahaan</option>
         @for (c of companies; track c.value) {
-          <option [value]="c.value">{{ c.name }}</option>
+        <option [value]="c.value">{{ c.name }}</option>
         }
       </select>
     </div>
 
     <div class="col-md-4">
       <label for="category" class="form-label small text-muted">Kategori</label>
-      <select id="category" class="form-select" [(ngModel)]="category" (change)="onFilterChange()">
+      <select
+        id="category"
+        class="form-select"
+        [(ngModel)]="category"
+        (change)="onFilterChange()"
+      >
         @for (k of categories; track k.value) {
-          <option [value]="k.value">{{ k.name }}</option>
+        <option [value]="k.value">{{ k.name }}</option>
         }
       </select>
     </div>
 
     <div class="col-md-4">
       <label for="period" class="form-label small text-muted">Periode</label>
-      <select id="period" class="form-select" [(ngModel)]="period" (change)="onFilterChange()">
+      <select
+        id="period"
+        class="form-select"
+        [(ngModel)]="period"
+        (change)="onFilterChange()"
+      >
         @for (p of periods; track p.value) {
-          <option [value]="p.value">{{ p.name }}</option>
+        <option [value]="p.value">{{ p.name }}</option>
         }
       </select>
     </div>
@@ -42,7 +71,12 @@
 
   <div class="row justify-content-center">
     <div class="col-md-4 d-flex justify-content-center">
-      <button type="button" class="btn btn-primary px-5 py-2" (click)="onSearchClick()" [disabled]="loading">
+      <button
+        type="button"
+        class="btn btn-primary px-5 py-2"
+        (click)="onSearchClick()"
+        [disabled]="loading"
+      >
         <i class="bi bi-search me-1"></i> Cari
       </button>
     </div>

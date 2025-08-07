@@ -61,15 +61,54 @@
 
   <!-- Placeholder untuk chart (nanti) -->
   <div class="row g-4 mt-3">
+    <!-- Line Chart -->
+    @if (lineMonthly()) {
+    <div class="col-12 col-md-6">
+      <app-line-chart-card
+        [label]="'Unit Terjual'"
+        [title]="'Trend Penjualan Unit per Bulan'"
+        [labels]="lineMonthly()!.labels"
+        [data]="lineMonthly()!.data"
+        [height]="300"
+        [showLegend]="false"
+        [borderColor]="'#0d6efd'"
+        [backgroundColor]="'rgba(13, 110, 253, 0.2)'"
+        [pointBackgroundColor]="'#0d6efd'"
+        [fill]="true"
+      />
+    </div>
+    }
+
+    <!-- Line Chart Tambahan (misalnya dari kategori after-sales) -->
+    @if (lineMonthly()) {
+    <div class="col-12 col-md-6">
+      <app-line-chart-card
+        [title]="'Trend After Sales per Bulan'"
+        [labels]="lineMonthly()!.labels"
+        [data]="lineMonthly()!.data"
+        [label]="'Service Masuk'"
+        [height]="300"
+        [showLegend]="false"
+        [borderColor]="'#198754'"
+        [backgroundColor]="'rgba(25, 135, 84, 0.2)'"
+        [pointBackgroundColor]="'#198754'"
+        [fill]="true"
+      />
+    </div>
+    }
+
+    <!-- Fallback if no chart -->
+    @if (!lineMonthly() && !lineMonthly()) {
     <div class="col-12">
       <div class="card border-0 shadow-sm">
         <div class="card-body text-center p-5 bg-light rounded-3">
-          <p class="h5 text-muted">Area untuk Chart dan Visualisasi Data</p>
-          <small class="text-muted"
-            >Implementasi Chart.js akan ditambahkan di sini.</small
-          >
+          <p class="h6 text-muted mb-0">
+            Belum ada data untuk ditampilkan. Silakan pilih filter dan klik
+            cari.
+          </p>
         </div>
       </div>
     </div>
+    }
   </div>
 </div>
