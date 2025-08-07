@@ -3,20 +3,25 @@ export interface SalesFilterInfo {
   category: 'SALES' | 'AFTER_SALES' | 'ALL';
   companyName: string;
 }
+// Interfaces
+export interface ChartData {
+  labels: string[];
+  data: number[];
+}
 
 export interface SalesMonthlyItem {
-  month: string;      // "1".."12"
-  unit_sold: string;  // angka string
+  month: string;
+  unit_sold: string;
 }
 
 export interface SalesUnitsItem {
-  unit_code: string;  // kode internal
-  unit_name: string;  // model (CRETA, STARGAZER, ...)
+  unit_code: string;
+  unit_name: string;
   unit_sold: string;
 }
 
 export interface SalesBranchItem {
-  branch: string;     // kode cabang
+  branch: string; // kode cabang
   unit_sold: string;
 }
 

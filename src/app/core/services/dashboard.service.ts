@@ -4,49 +4,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-
-interface ApiResponse<T> {
-  status: 'success' | 'error';
-  message: string;
-  data: T;
-}
-
-interface SalesMonthlyItem {
-  month: string;
-  unit_sold: string;
-}
-interface SalesUnitsItem {
-  unit_code: string;
-  unit_name: string;
-  unit_sold: string;
-}
-interface SalesBranchItem {
-  branch: string;
-  unit_sold: string;
-}
-
-export interface SalesMonthlyResponse {
-  filterInfo: { year: string; category: string; companyName: string };
-  sales: SalesMonthlyItem[];
-}
-export interface SalesUnitsResponse {
-  filterInfo: { year: string; category: string; companyName: string };
-  sales: SalesUnitsItem[];
-}
-export interface SalesBranchResponse {
-  filterInfo: { year: string; category: string; companyName: string };
-  sales: SalesBranchItem[];
-}
-
-type EndpointKey =
-  | 'salesMonthly'
-  | 'salesUnits'
-  | 'salesBranch'
-  | 'masterBranch';
-
-type EndpointDef = string | ((args: { year: string }) => string);
-
-type ParamsBuilder = (args: { year: string }) => Record<string, string>;
+import {
+  ApiResponse,
+  SalesBranchResponse,
+  SalesMonthlyResponse,
+  SalesUnitsResponse,
+} from '../../types/sales.model';
 
 interface CompanyApiConfig {
   baseUrl: string;
@@ -54,6 +17,11 @@ interface CompanyApiConfig {
   endpoints: Partial<Record<EndpointKey, EndpointDef>>;
   params?: Partial<Record<EndpointKey, ParamsBuilder>>;
 }
+type EndpointKey = 'salesMonthly' | 'salesUnits' | 'salesBranch';
+
+type EndpointDef = string | ((args: { year: string }) => string);
+
+type ParamsBuilder = (args: { year: string }) => Record<string, string>;
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
@@ -88,7 +56,6 @@ export class DashboardService {
         salesMonthly: 'getSalesSummaryReportMonthly',
         salesUnits: 'getSalesSummaryReportUnits',
         salesBranch: 'getSalesSummaryReportBranch',
-        masterBranch: 'getMasterCabang',
       },
       params: {
         salesMonthly: ({ year }) => ({ periode: year }),

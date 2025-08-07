@@ -18,8 +18,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 // Chart.js imports untuk Bar Chart
 import {
   Chart,
-  BarController,      // ← Bar chart controller
-  BarElement,         // ← Bar elements
+  BarController, // ← Bar chart controller
+  BarElement, // ← Bar elements
   CategoryScale,
   LinearScale,
   Title,
@@ -54,7 +54,9 @@ Chart.register(
   styleUrls: ['./bar-chart-card.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BarChartCardComponent implements AfterViewInit, OnChanges, OnDestroy {
+export class BarChartCardComponent
+  implements AfterViewInit, OnChanges, OnDestroy
+{
   @Input() title = 'Bar Chart';
   @Input() labels: string[] = [];
   @Input() data: number[] = [];
@@ -67,13 +69,13 @@ export class BarChartCardComponent implements AfterViewInit, OnChanges, OnDestro
 
   // Chart color palette - Blue gradient
   private readonly CHART_COLORS = [
-    'rgba(13, 110, 253, 1.0)',   // 100% - Primary blue
-    'rgba(0, 23, 58, 1)',        // 85% - Dark blue
-    'rgba(0, 37, 92, 1)',        // 70% - Medium dark blue
-    'rgba(0, 58, 146, 1)',       // 55% - Medium blue
-    'rgba(0, 87, 218, 1)',       // 40% - Light medium blue
-    'rgba(65, 141, 255, 1)',     // 25% - Light blue
-    'rgba(161, 199, 255, 1)',    // 15% - Very light blue
+    'rgba(13, 110, 253, 1.0)', 
+    'rgba(0, 23, 58, 1)',
+    'rgba(0, 37, 92, 1)', 
+    'rgba(0, 58, 146, 1)', 
+    'rgba(0, 87, 218, 1)', 
+    'rgba(65, 141, 255, 1)', 
+    'rgba(161, 199, 255, 1)', 
   ] as const;
 
   @ViewChild('canvasRef', { static: false })
@@ -99,8 +101,8 @@ export class BarChartCardComponent implements AfterViewInit, OnChanges, OnDestro
       if (this.chart) {
         this.chart.data.labels = this.labels;
         this.chart.data.datasets[0].data = this.data;
-        this.chart.data.datasets[0].backgroundColor = this.getBackgroundColors();
-        this.chart.data.datasets[0].borderColor = this.getBorderColors();
+        this.chart.data.datasets[0].backgroundColor =
+          this.getBackgroundColors();
         this.chart.update();
       }
     }
@@ -125,31 +127,8 @@ export class BarChartCardComponent implements AfterViewInit, OnChanges, OnDestro
       return Array(this.data.length).fill(this.backgroundColor);
     }
     // Use chart colors cycling through the palette
-    return this.data.map((_, index) => 
-      this.CHART_COLORS[index % this.CHART_COLORS.length]
-    );
-  }
-
-  private getBorderColors(): string[] {
-    if (Array.isArray(this.borderColor)) {
-      return this.borderColor;
-    }
-    if (this.borderColor) {
-      return Array(this.data.length).fill(this.borderColor);
-    }
-    // Use slightly darker versions of background colors for blue gradient
-    const borderColorMap: Record<string, string> = {
-      'rgba(13, 110, 253, 1.0)': 'rgba(10, 88, 202, 1.0)',   // Darker primary
-      'rgba(0, 23, 58, 1)': 'rgba(0, 18, 46, 1)',            // Darker dark blue
-      'rgba(0, 37, 92, 1)': 'rgba(0, 30, 74, 1)',            // Darker medium dark
-      'rgba(0, 58, 146, 1)': 'rgba(0, 46, 117, 1)',          // Darker medium
-      'rgba(0, 87, 218, 1)': 'rgba(0, 70, 174, 1)',          // Darker light medium
-      'rgba(65, 141, 255, 1)': 'rgba(52, 113, 204, 1)',      // Darker light
-      'rgba(161, 199, 255, 1)': 'rgba(129, 159, 204, 1)',    // Darker very light
-    };
-    
-    return this.getBackgroundColors().map(color => 
-      borderColorMap[color] || color
+    return this.data.map(
+      (_, index) => this.CHART_COLORS[index % this.CHART_COLORS.length]
     );
   }
 
@@ -165,7 +144,6 @@ export class BarChartCardComponent implements AfterViewInit, OnChanges, OnDestro
             label: this.label,
             data: this.data,
             backgroundColor: this.getBackgroundColors(),
-            borderColor: this.getBorderColors(),
             borderWidth: 1,
             borderRadius: 4,
             borderSkipped: false,
@@ -219,13 +197,15 @@ export class BarChartCardComponent implements AfterViewInit, OnChanges, OnDestro
               display: this.horizontal ? false : true,
               color: 'rgba(0,0,0,0.05)',
             },
-            ticks: this.horizontal ? {
-              // For horizontal bars, y-axis shows labels
-              maxRotation: 0,
-              minRotation: 0,
-            } : {
-              precision: 0,
-            },
+            ticks: this.horizontal
+              ? {
+                  // For horizontal bars, y-axis shows labels
+                  maxRotation: 0,
+                  minRotation: 0,
+                }
+              : {
+                  precision: 0,
+                },
           },
         },
         elements: {
@@ -239,11 +219,11 @@ export class BarChartCardComponent implements AfterViewInit, OnChanges, OnDestro
 
   private setupResizeObserver(): void {
     if (!this.canvasRef?.nativeElement?.parentElement) return;
-    
+
     this.ro = new ResizeObserver(() => {
       this.chart?.resize();
     });
-    
+
     this.ro.observe(this.canvasRef.nativeElement.parentElement);
   }
 }
