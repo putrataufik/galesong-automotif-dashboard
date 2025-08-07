@@ -7,6 +7,7 @@ import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.comp
 import { FilterComponent } from '../../shared/components/filter/filter.component';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
+import { BarChartCardComponent } from '../../shared/components/bar-chart-card/bar-chart-card.component';
 
 // Services
 import { DashboardService } from '../../core/services/dashboard.service';
@@ -36,6 +37,7 @@ interface ApiResponse {
     FilterComponent,
     LineChartCardComponent,
     PieChartCardComponent,
+    BarChartCardComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
@@ -206,8 +208,12 @@ export class DashboardComponent implements OnInit {
     try {
       this.processLineChartData(response.monthly);
       this.processKpiData(response.units, response.branch);
-      this.processBarChartData(response.branch);
+      console.log('🥧 Processing pie chart data:', response.units);
       this.processPieChartData(response.units);
+
+      // Bar chart
+      console.log('📊 Processing bar chart data:', response.branch);
+      this.processBarChartData(response.branch);
     } catch (error) {
       console.error('Error processing API response:', error);
       this.error.set('Gagal memproses data. Silakan coba lagi.');
@@ -258,7 +264,7 @@ export class DashboardComponent implements OnInit {
       topBranch,
     });
   }
-   private processBarChartData(branchData: any): void {
+  private processBarChartData(branchData: any): void {
     const sales = branchData?.sales ?? [];
     const cabangMap = this.api.getCabangNameMap();
 

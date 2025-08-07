@@ -16,105 +16,131 @@
 
   <!-- Error Alert -->
   @if (error() && !loading()) {
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="alert alert-danger border-0 rounded-3" role="alert">
-          <i class="bi bi-exclamation-triangle-fill me-2"></i>
-          <strong>Error:</strong> {{ error() }}
-        </div>
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="alert alert-danger border-0 rounded-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Error:</strong> {{ error() }}
       </div>
     </div>
+  </div>
   }
 
   <!-- Global Loading Spinner -->
   @if (loading()) {
-    <div class="row">
-      <div class="col-12">
-        <div class="d-flex justify-content-center align-items-center p-5" style="min-height: 400px;">
-          <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-            <span class="visually-hidden">Memuat dashboard...</span>
-          </div>
+  <div class="row">
+    <div class="col-12">
+      <div
+        class="d-flex justify-content-center align-items-center p-5"
+        style="min-height: 400px"
+      >
+        <div
+          class="spinner-border text-primary"
+          style="width: 3rem; height: 3rem"
+          role="status"
+        >
+          <span class="visually-hidden">Memuat dashboard...</span>
         </div>
       </div>
     </div>
+  </div>
   }
 
   <!-- KPI & Charts -->
   @if (hasData) {
-    <!-- KPI Section -->
-    <div class="row g-4 mb-4">
-      <!-- Total Unit Sales -->
-      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-        <app-kpi-card
-          [title]="'Total Unit Sales'"
-          [value]="kpiTotalUnitSales()"
-          unit="unit"
-          [subtitle]="'Akumulasi penjualan per tahun'"
-          icon="icons/car.png"
-          iconBgClass="bg-primary bg-opacity-10"
-        />
-      </div>
-
-      <!-- Model Favorit -->
-      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-        <app-kpi-card
-          [title]="'Model Favorit'"
-          [value]="kpiTopModel()?.name || '—'"
-          [subtitle]="
-            kpiTopModel()
-              ? kpiTopModel()!.unit + ' unit terjual'
-              : 'Belum ada data'
-          "
-          icon="icons/wedding-car.png"
-          iconBgClass="bg-warning bg-opacity-10"
-        />
-      </div>
-
-      <!-- Cabang Penjualan Tertinggi -->
-      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-        <app-kpi-card
-          [title]="'Cabang Penjualan Tertinggi'"
-          [value]="kpiTopBranch()?.code || '—'"
-          [subtitle]="
-            kpiTopBranch()
-              ? kpiTopBranch()!.unit + ' unit terjual'
-              : 'Belum ada data'
-          "
-          icon="icons/winner.png"
-          iconBgClass="bg-success bg-opacity-10"
-        />
-      </div>
+  <!-- KPI Section -->
+  <div class="row g-4 mb-4">
+    <!-- Total Unit Sales -->
+    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+      <app-kpi-card
+        [title]="'Total Unit Sales'"
+        [value]="kpiTotalUnitSales()"
+        unit="unit"
+        [subtitle]="'Akumulasi penjualan per tahun'"
+        icon="icons/car.png"
+        iconBgClass="bg-primary bg-opacity-10"
+      />
     </div>
 
-    <!-- Charts Section -->
-    <div class="row g-4">
-      <!-- Line Chart -->
-      <div class="col-12 col-lg-6">
-        <app-line-chart-card
-          [label]="'Unit Terjual'"
-          [title]="'Trend Penjualan Unit per Bulan'"
-          [labels]="lineMonthly()!.labels"
-          [data]="lineMonthly()!.data"
-          [height]="300"
-          [showLegend]="false"
-          [borderColor]="'#0d6efd'"
-          [backgroundColor]="'rgba(13, 110, 253, 0.2)'"
-          [pointBackgroundColor]="'#0d6efd'"
-          [fill]="true"
-        />
-      </div>
-
-      <!-- Pie Chart -->
-      <div class="col-12 col-lg-3">
-        <app-pie-chart-card
-          [title]="'Proporsi Penjualan per Model Unit'"
-          [labels]="modelDistribution()!.labels"
-          [data]="modelDistribution()!.data"
-          [height]="300"
-          [showLegend]="true"
-        />
-      </div>
+    <!-- Model Favorit -->
+    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+      <app-kpi-card
+        [title]="'Model Favorit'"
+        [value]="kpiTopModel()?.name || '—'"
+        [subtitle]="
+          kpiTopModel()
+            ? kpiTopModel()!.unit + ' unit terjual'
+            : 'Belum ada data'
+        "
+        icon="icons/wedding-car.png"
+        iconBgClass="bg-warning bg-opacity-10"
+      />
     </div>
+
+    <!-- Cabang Penjualan Tertinggi -->
+    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+      <app-kpi-card
+        [title]="'Cabang Penjualan Tertinggi'"
+        [value]="kpiTopBranch()?.code || '—'"
+        [subtitle]="
+          kpiTopBranch()
+            ? kpiTopBranch()!.unit + ' unit terjual'
+            : 'Belum ada data'
+        "
+        icon="icons/winner.png"
+        iconBgClass="bg-success bg-opacity-10"
+      />
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="row g-4">
+    <!-- Line Chart - Monthly Trend -->
+    @if (lineMonthly()) {
+    <div class="col-12 col-lg-6">
+      <app-line-chart-card
+        [label]="'Unit Terjual'"
+        [title]="'Trend Penjualan Unit per Bulan'"
+        [labels]="lineMonthly()!.labels"
+        [data]="lineMonthly()!.data"
+        [height]="300"
+        [showLegend]="false"
+        [borderColor]="'#0d6efd'"
+        [backgroundColor]="'rgba(13, 110, 253, 0.2)'"
+        [pointBackgroundColor]="'#0d6efd'"
+        [fill]="true"
+      />
+    </div>
+    }
+
+    <!-- Bar Chart - Branch Performance -->
+    @if (branchPerformance()) {
+    <div class="col-12 col-lg-6">
+      <app-bar-chart-card
+        [title]="'Performa Penjualan per Cabang'"
+        [labels]="branchPerformance()!.labels"
+        [data]="branchPerformance()!.data"
+        [height]="300"
+        [horizontal]="true"
+        [showLegend]="false"
+        [label]="'Unit Terjual'"
+      />
+    </div>
+    }
+
+    <!-- Pie Chart - Model Distribution -->
+    @if (modelDistribution()) {
+    <div class="col-12 col-lg-3">
+      <app-pie-chart-card
+        [title]="'Proporsi Penjualan per Model Unit'"
+        [labels]="modelDistribution()!.labels"
+        [data]="modelDistribution()!.data"
+        [height]="300"
+        [showLegend]="true"
+      />
+    </div>
+    }
+  </div>
   }
 
   <!-- Empty State -->
@@ -123,17 +149,58 @@
     <div class="col-12">
       <div class="text-center py-5">
         @if (error()) {
-          <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3"></i>
-          <h6 class="text-muted mb-0">{{ error() }}</h6>
+        <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3"></i>
+        <h6 class="text-muted mb-0">{{ error() }}</h6>
         } @else {
-          <i class="bi bi-bar-chart text-muted fs-1 mb-3"></i>
-          <h6 class="text-muted mb-0">
-            Belum ada data untuk ditampilkan. Silakan pilih filter dan klik cari.
-          </h6>
+        <i class="bi bi-bar-chart text-muted fs-1 mb-3"></i>
+        <h6 class="text-muted mb-0">
+          Belum ada data untuk ditampilkan. Silakan pilih filter dan klik cari.
+        </h6>
         }
       </div>
     </div>
   </div>
-}
-
+  }
 </div>
+
+<!-- Additional CSS for better responsive behavior -->
+<style>
+  /* Mobile optimization */
+  @media (max-width: 991.98px) {
+    .col-lg-3,
+    .col-lg-6 {
+      margin-bottom: 1rem;
+    }
+  }
+
+  /* Ensure equal height cards */
+  .row.g-4 .card {
+    height: 100%;
+  }
+
+  /* Loading skeleton animation */
+  .placeholder {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+  }
+
+  @keyframes skeleton-loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Smooth transitions */
+  .card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  }
+</style>
