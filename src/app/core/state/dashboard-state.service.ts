@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import type { AppFilter } from '../../pages/dashboard/dashboard.component';
+import { AppFilter } from '../../types/filter.model';
 
 // === INTERFACE: KPI ===
 export interface KpiSnapshot {
@@ -70,17 +70,6 @@ export class DashboardStateService {
     return this.lineMonthly();
   }
 
-  // === CHART: DONUT (Proporsi Unit Terjual per Model) ===
-  readonly unitProportion = signal<ChartDataset | null>(null);
-
-  saveUnitProportion(data: ChartDataset) {
-    this.unitProportion.set(data);
-  }
-
-  getUnitProportion(): ChartDataset | null {
-    return this.unitProportion();
-  }
-
   // === CHART: BAR (Performa Penjualan per Cabang) ===
   readonly branchPerformance = signal<ChartDataset | null>(null);
 
@@ -99,7 +88,6 @@ export class DashboardStateService {
     this.topModel.set(null);
     this.topBranch.set(null);
     this.lineMonthly.set(null);
-    this.unitProportion.set(null);
     this.branchPerformance.set(null);
   }
 }

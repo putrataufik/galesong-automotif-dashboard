@@ -82,7 +82,6 @@ export class DashboardService {
         salesBranch:  ({ year }) => ({ periode: year }),
       },
     },
-
     // Contoh perusahaan lain (ganti sesuai backend nyata jika tersedia)
     'sinar-galesong-mandiri': {
       baseUrl: 'https://webservice.sinargalesong.net/SUMMARY/toyota',
