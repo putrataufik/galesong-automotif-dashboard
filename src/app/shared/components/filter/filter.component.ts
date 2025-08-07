@@ -1,11 +1,23 @@
 // =============================
 // src/app/shared/components/filter/filter.component.ts
 // =============================
-import { Component, EventEmitter, Output, Input, SimpleChanges, OnInit, OnChanges, OnDestroy } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Output,
+  Input,
+  SimpleChanges,
+  OnInit,
+  OnChanges,
+  OnDestroy,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppFilter, CategoryFilter } from '../../../types/filter.model';
 
-interface Option { value: string; name: string; }
+interface Option {
+  value: string;
+  name: string;
+}
 
 @Component({
   selector: 'app-filter',
@@ -20,16 +32,16 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
   @Output() search = new EventEmitter<AppFilter>();
 
   companies: Option[] = [
-    { value: 'sinar-galesong-mandiri',   name: 'Sinar Galesong Mandiri' },
-    { value: 'sinar-galesong-prima',     name: 'Sinar Galesong Prima' },
+    { value: 'sinar-galesong-mandiri', name: 'Sinar Galesong Mandiri' },
+    { value: 'sinar-galesong-prima', name: 'Sinar Galesong Prima' },
     { value: 'sinar-galesong-automobil', name: 'Sinar Galesong Automobil' },
     { value: 'sinar-galesong-mobilindo', name: 'Sinar Galesong Mobilindo' },
   ];
 
   categories: Option[] = [
     { value: 'all-category', name: 'Semua Kategori' },
-    { value: 'sales',        name: 'Sales' },
-    { value: 'after-sales',  name: 'After Sales' },
+    { value: 'sales', name: 'Sales' },
+    { value: 'after-sales', name: 'After Sales' },
   ];
 
   periods: Option[] = this.generateYearPeriods();
@@ -65,16 +77,25 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
     this.company = filter.company ?? this.company;
     this.category = (filter.category ?? this.category) as CategoryFilter;
 
-    if (filter.period && !this.periods.find(p => p.value === filter.period)) {
-      this.periods = [{ value: filter.period, name: filter.period }, ...this.periods];
+    if (filter.period && !this.periods.find((p) => p.value === filter.period)) {
+      this.periods = [
+        { value: filter.period, name: filter.period },
+        ...this.periods,
+      ];
     }
     this.period = filter.period ?? this.period;
   }
 
   private generateYearPeriods(): Option[] {
     const currentYear = new Date().getFullYear();
-    const list: Option[] = [{ value: String(currentYear), name: `Tahun Ini (${currentYear})` }];
-    for (let i = 1; i <= 5; i++) list.push({ value: String(currentYear - i), name: String(currentYear - i) });
+    const list: Option[] = [
+      { value: String(currentYear), name: `Tahun Ini (${currentYear})` },
+    ];
+
+    for (let y = currentYear - 1; y >= 2022; y--) {
+      list.push({ value: String(y), name: String(y) });
+    }
+
     return list;
   }
 
@@ -92,11 +113,17 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    this.search.emit({ company: this.company, category: this.category, period: this.period });
+    this.search.emit({
+      company: this.company,
+      category: this.category,
+      period: this.period,
+    });
     this.show('Pencarian berhasil! Data sedang dimuat…', 'success');
   }
 
-  hideAlert() { this.showAlert = false; }
+  hideAlert() {
+    this.showAlert = false;
+  }
 
   private show(msg: string, type: 'success' | 'danger') {
     this.alertMessage = msg;

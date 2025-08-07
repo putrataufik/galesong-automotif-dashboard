@@ -1,43 +1,130 @@
+/* KPI Card Styles */
 .kpi-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: default;
+  border: 1px solid #f0f0f0;
 }
 
 .kpi-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
 }
 
-.kpi-card.loading {
-  opacity: 0.7;
+.kpi-card-large {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: default;
+  border: 1px solid #f0f0f0;
+  min-height: 120px;
 }
 
+.kpi-card-large:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Icon container backgrounds - matching the design */
+.icon-bg-blue {
+  background-color: #e3f2fd;
+}
+
+.icon-bg-purple {
+  background-color: #f3e5f5;
+}
+
+.icon-bg-green {
+  background-color: #e8f5e8;
+}
+
+.icon-bg-red {
+  background-color: #ffebee;
+}
+
+.icon-bg-orange {
+  background-color: #fff3e0;
+}
+
+.icon-bg-yellow {
+  background-color: #fffde7;
+}
+
+/* Icon container styling */
+.icon-container {
+  flex-shrink: 0;
+}
+
+/* Content container */
+.content-container {
+  min-width: 0; /* Prevents flex item from overflowing */
+}
+
+/* Typography adjustments */
 .kpi-title {
-  font-size: 0.8rem;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  color: #666;
+  letter-spacing: 0.25px;
 }
 
 .kpi-value {
-  font-size: 1.5rem;
-  line-height: 1.2;
+  color: #1a1a1a;
+  font-weight: 700;
 }
 
-.kpi-trend {
-  font-size: 0.75rem;
+.kpi-unit {
+  color: #999;
+  margin-left: 0.25rem;
 }
 
-.icon-wrapper {
-  flex-shrink: 0;
+.kpi-subtitle {
+  color: #777;
+}
+
+.kpi-highlight-value {
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.kpi-highlight-name {
+  color: #333;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .kpi-value {
-    font-size: 1.25rem;
+    font-size: 1.25rem !important;
   }
   
-  .card-body {
+  .kpi-highlight-value {
+    font-size: 1.5rem !important;
+  }
+  
+  .icon-container {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  .icon-container img {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  .kpi-card {
     padding: 1rem !important;
   }
+}
+
+/* Loading state */
+.kpi-card.loading {
+  opacity: 0.7;
+}
+
+.kpi-card.loading .kpi-value {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+  color: transparent;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

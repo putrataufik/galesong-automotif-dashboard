@@ -14,6 +14,20 @@ export class KpiCardComponent {
   @Input() value: string | number = '—';
   @Input() unit?: string;      
   @Input() subtitle?: string;       
-  @Input() icon = 'bi-graph-up'; 
-  @Input() iconBgClass = 'bg-light';   
+  @Input() icon = 'icons/default.png';
+  @Input() iconBgClass = 'icon-bg-blue';
+  @Input() loading = false;
+  
+  // For large/highlighted cards
+  @Input() isLarge = false;
+  @Input() highlightLabel?: string;
+  @Input() highlightValue?: string;
+
+  formatValue(val: string | number): string {
+    if (typeof val === 'number') {
+      // Format large numbers with comma separators
+      return val.toLocaleString('id-ID');
+    }
+    return val.toString();
+  }
 }

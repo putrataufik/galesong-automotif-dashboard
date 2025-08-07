@@ -1,4 +1,5 @@
 <div class="container-fluid p-4">
+  <!-- Header dan Filter -->
   <div class="row mb-4">
     <div class="col-12">
       <h2 class="fw-bold text-dark mb-3">
@@ -13,60 +14,82 @@
     </div>
   </div>
 
-  <!-- KPI Section -->
-  <div class="row g-3">
-    <div class="col-12 col-md-4">
-      <app-kpi-card
-        [title]="'Total Unit Sales'"
-        [value]="kpiTotalUnitSales()"
-        unit="unit"
-        [subtitle]="loading() ? 'Memuat...' : 'Akumulasi penjualan per tahun'"
-        icon="bi-box-seam"
-        iconBgClass="bg-primary bg-opacity-10"
-      />
+  <!-- Error Alert -->
+  @if (error() && !loading()) {
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="alert alert-danger border-0 rounded-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <strong>Error:</strong> {{ error() }}
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Global Loading Spinner -->
+  @if (loading()) {
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-center align-items-center p-5" style="min-height: 400px;">
+          <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Memuat dashboard...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- KPI & Charts -->
+  @if (hasData) {
+    <!-- KPI Section -->
+    <div class="row g-4 mb-4">
+      <!-- Total Unit Sales -->
+      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+        <app-kpi-card
+          [title]="'Total Unit Sales'"
+          [value]="kpiTotalUnitSales()"
+          unit="unit"
+          [subtitle]="'Akumulasi penjualan per tahun'"
+          icon="icons/car.png"
+          iconBgClass="bg-primary bg-opacity-10"
+        />
+      </div>
+
+      <!-- Model Favorit -->
+      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+        <app-kpi-card
+          [title]="'Model Favorit'"
+          [value]="kpiTopModel()?.name || '—'"
+          [subtitle]="
+            kpiTopModel()
+              ? kpiTopModel()!.unit + ' unit terjual'
+              : 'Belum ada data'
+          "
+          icon="icons/wedding-car.png"
+          iconBgClass="bg-warning bg-opacity-10"
+        />
+      </div>
+
+      <!-- Cabang Penjualan Tertinggi -->
+      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+        <app-kpi-card
+          [title]="'Cabang Penjualan Tertinggi'"
+          [value]="kpiTopBranch()?.code || '—'"
+          [subtitle]="
+            kpiTopBranch()
+              ? kpiTopBranch()!.unit + ' unit terjual'
+              : 'Belum ada data'
+          "
+          icon="icons/winner.png"
+          iconBgClass="bg-success bg-opacity-10"
+        />
+      </div>
     </div>
 
-    <div class="col-12 col-md-4">
-      <app-kpi-card
-        [title]="'Model Favorit'"
-        [value]="kpiTopModel()?.name || '—'"
-        [subtitle]="
-          kpiTopModel()
-            ? kpiTopModel()!.unit + ' unit terjual'
-            : loading()
-            ? 'Memuat...'
-            : 'Belum ada data'
-        "
-        icon="bi-star-fill"
-        iconBgClass="bg-warning bg-opacity-10"
-      />
-    </div>
-
-    <div class="col-12 col-md-4">
-      <app-kpi-card
-        [title]="'Cabang Penjualan Tertinggi'"
-        [value]="kpiTopBranch()?.code || '—'"
-        [subtitle]="
-          kpiTopBranch()
-            ? kpiTopBranch()!.unit + ' unit terjual'
-            : loading()
-            ? 'Memuat...'
-            : 'Belum ada data'
-        "
-        icon="bi-building"
-        iconBgClass="bg-success bg-opacity-10"
-      />
-    </div>
-  </div>
-
-  <!-- Placeholder untuk chart (nanti) -->
-  <div class="row g-4 mt-3">
-    <!-- Line Chart -->
-    <!-- Bagian Chart -->
-    @if (lineMonthly()) {
-    <div class="row g-4 align-items-stretch">
-      <!-- Line Chart: col-12 di mobile, col-md-8 di desktop -->
-      <div class="col-12 col-md-6">
+    <!-- Charts Section -->
+    <div class="row g-4">
+      <!-- Line Chart -->
+      <div class="col-12 col-lg-6">
         <app-line-chart-card
           [label]="'Unit Terjual'"
           [title]="'Trend Penjualan Unit per Bulan'"
@@ -81,22 +104,36 @@
         />
       </div>
 
-   
-    </div>
-    }
-
-    <!-- Fallback if no chart -->
-    @if (!lineMonthly() && !lineMonthly()) {
-    <div class="col-12">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body text-center p-5 bg-light rounded-3">
-          <p class="h6 text-muted mb-0">
-            Belum ada data untuk ditampilkan. Silakan pilih filter dan klik
-            cari.
-          </p>
-        </div>
+      <!-- Pie Chart -->
+      <div class="col-12 col-lg-3">
+        <app-pie-chart-card
+          [title]="'Proporsi Penjualan per Model Unit'"
+          [labels]="modelDistribution()!.labels"
+          [data]="modelDistribution()!.data"
+          [height]="300"
+          [showLegend]="true"
+        />
       </div>
     </div>
-    }
+  }
+
+  <!-- Empty State -->
+  @if (!hasData && !loading()) {
+  <div class="row">
+    <div class="col-12">
+      <div class="text-center py-5">
+        @if (error()) {
+          <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3"></i>
+          <h6 class="text-muted mb-0">{{ error() }}</h6>
+        } @else {
+          <i class="bi bi-bar-chart text-muted fs-1 mb-3"></i>
+          <h6 class="text-muted mb-0">
+            Belum ada data untuk ditampilkan. Silakan pilih filter dan klik cari.
+          </h6>
+        }
+      </div>
+    </div>
   </div>
+}
+
 </div>

@@ -1,0 +1,10 @@
+/* src/app/shared/components/pie-chart-card/pie-chart-card.component.css */
+.chart-container {
+  position: relative;
+  width: 100%;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}

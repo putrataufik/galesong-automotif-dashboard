@@ -23,7 +23,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler  // ✅ TAMBAHKAN INI - penting untuk area chart
+  Filler, // ✅ TAMBAHKAN INI - penting untuk area chart
 } from 'chart.js';
 
 Chart.register(
@@ -35,7 +35,7 @@ Chart.register(
   Title,
   Tooltip,
   Legend,
-  Filler  // ✅ REGISTER FILLER - wajib untuk area chart
+  Filler // ✅ REGISTER FILLER - wajib untuk area chart
 );
 
 @Component({
@@ -115,7 +115,8 @@ export class LineChartCardComponent
             fill: this.fill, // Ini akan bekerja setelah Filler diregister
             borderColor: this.borderColor || '#3b82f6', // Default blue
             backgroundColor: this.backgroundColor || 'rgba(59, 130, 246, 0.1)', // Default light blue
-            pointBackgroundColor: this.pointBackgroundColor || this.borderColor || '#3b82f6',
+            pointBackgroundColor:
+              this.pointBackgroundColor || this.borderColor || '#3b82f6',
             pointBorderColor: this.pointBorderColor || '#000',
             pointRadius: 2,
             pointHoverRadius: 4,
@@ -128,14 +129,23 @@ export class LineChartCardComponent
         maintainAspectRatio: false,
         plugins: {
           legend: { display: this.showLegend },
-          title: { display: !!this.title, text: this.title },
+          title: {
+            display: !!this.title,
+            text: this.title,
+            color: '#000000', // hitam
+            font: {
+              size: 14,
+              weight: 'bold',
+            },
+          },
+
           tooltip: {
             mode: 'index',
             intersect: false,
           },
           filler: {
-            propagate: false
-          }
+            propagate: false,
+          },
         },
         interaction: {
           mode: 'index',
@@ -152,16 +162,16 @@ export class LineChartCardComponent
               precision: 0,
             },
             grid: {
-              color: 'rgba(0,0,0,0.05)'
-            }
+              color: 'rgba(0,0,0,0.05)',
+            },
           },
         },
         elements: {
           point: {
             hoverRadius: 6,
-            hoverBorderWidth: 2
-          }
-        }
+            hoverBorderWidth: 2,
+          },
+        },
       },
     });
   }

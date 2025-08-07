@@ -11,24 +11,38 @@ interface ApiResponse<T> {
   data: T;
 }
 
-interface SalesMonthlyItem { month: string; unit_sold: string; }
-interface SalesUnitsItem { unit_code: string; unit_name: string; unit_sold: string; }
-interface SalesBranchItem { branch: string; unit_sold: string; }
+interface SalesMonthlyItem {
+  month: string;
+  unit_sold: string;
+}
+interface SalesUnitsItem {
+  unit_code: string;
+  unit_name: string;
+  unit_sold: string;
+}
+interface SalesBranchItem {
+  branch: string;
+  unit_sold: string;
+}
 
 export interface SalesMonthlyResponse {
-  filterInfo: { year: string; category: string; companyName: string; };
+  filterInfo: { year: string; category: string; companyName: string };
   sales: SalesMonthlyItem[];
 }
 export interface SalesUnitsResponse {
-  filterInfo: { year: string; category: string; companyName: string; };
+  filterInfo: { year: string; category: string; companyName: string };
   sales: SalesUnitsItem[];
 }
 export interface SalesBranchResponse {
-  filterInfo: { year: string; category: string; companyName: string; };
+  filterInfo: { year: string; category: string; companyName: string };
   sales: SalesBranchItem[];
 }
 
-type EndpointKey = 'salesMonthly' | 'salesUnits' | 'salesBranch' | 'masterBranch';
+type EndpointKey =
+  | 'salesMonthly'
+  | 'salesUnits'
+  | 'salesBranch'
+  | 'masterBranch';
 
 type EndpointDef = string | ((args: { year: string }) => string);
 
@@ -72,14 +86,14 @@ export class DashboardService {
       headers: new HttpHeaders({ authentication: 'rifqymuskar' }),
       endpoints: {
         salesMonthly: 'getSalesSummaryReportMonthly',
-        salesUnits:   'getSalesSummaryReportUnits',
-        salesBranch:  'getSalesSummaryReportBranch',
+        salesUnits: 'getSalesSummaryReportUnits',
+        salesBranch: 'getSalesSummaryReportBranch',
         masterBranch: 'getMasterCabang',
       },
       params: {
         salesMonthly: ({ year }) => ({ periode: year }),
-        salesUnits:   ({ year }) => ({ periode: year }),
-        salesBranch:  ({ year }) => ({ periode: year }),
+        salesUnits: ({ year }) => ({ periode: year }),
+        salesBranch: ({ year }) => ({ periode: year }),
       },
     },
     // Contoh perusahaan lain (ganti sesuai backend nyata jika tersedia)
@@ -93,8 +107,8 @@ export class DashboardService {
       },
       params: {
         salesMonthly: () => ({}),
-        salesUnits:   ({ year }) => ({ year }),
-        salesBranch:  ({ year }) => ({ year }),
+        salesUnits: ({ year }) => ({ year }),
+        salesBranch: ({ year }) => ({ year }),
       },
     },
 
@@ -103,13 +117,13 @@ export class DashboardService {
       headers: new HttpHeaders({ authentication: 'rifqymuskar' }),
       endpoints: {
         salesMonthly: 'summary/monthly',
-        salesUnits:   'summary/units',
-        salesBranch:  'summary/branches',
+        salesUnits: 'summary/units',
+        salesBranch: 'summary/branches',
       },
       params: {
         salesMonthly: ({ year }) => ({ periode: year }),
-        salesUnits:   ({ year }) => ({ periode: year }),
-        salesBranch:  ({ year }) => ({ periode: year }),
+        salesUnits: ({ year }) => ({ periode: year }),
+        salesBranch: ({ year }) => ({ periode: year }),
       },
     },
 
@@ -118,13 +132,13 @@ export class DashboardService {
       headers: new HttpHeaders({ authentication: 'rifqymuskar' }),
       endpoints: {
         salesMonthly: 'getSalesMonthly',
-        salesUnits:   'getSalesByUnits',
-        salesBranch:  'getSalesByBranch',
+        salesUnits: 'getSalesByUnits',
+        salesBranch: 'getSalesByBranch',
       },
       params: {
         salesMonthly: ({ year }) => ({ y: year }),
-        salesUnits:   ({ year }) => ({ y: year }),
-        salesBranch:  ({ year }) => ({ y: year }),
+        salesUnits: ({ year }) => ({ y: year }),
+        salesBranch: ({ year }) => ({ y: year }),
       },
     },
   };
@@ -135,10 +149,17 @@ export class DashboardService {
     return cfg;
   }
 
-  private buildUrl(company: string, key: EndpointKey, year: string): { url: string; params: Record<string, string>; headers?: HttpHeaders } {
+  private buildUrl(
+    company: string,
+    key: EndpointKey,
+    year: string
+  ): { url: string; params: Record<string, string>; headers?: HttpHeaders } {
     const cfg = this.getConfig(company);
     const def = cfg.endpoints[key];
-    if (!def) throw new Error(`Endpoint '${key}' belum dikonfigurasi untuk perusahaan '${company}'`);
+    if (!def)
+      throw new Error(
+        `Endpoint '${key}' belum dikonfigurasi untuk perusahaan '${company}'`
+      );
     const path = typeof def === 'function' ? def({ year }) : def;
     const url = `${cfg.baseUrl}/${path}`;
     const paramsBuilder = cfg.params?.[key];
@@ -146,18 +167,38 @@ export class DashboardService {
     return { url, params, headers: cfg.headers };
   }
 
-  getSalesMonthly(company: string, year: string): Observable<SalesMonthlyResponse> {
-    const { url, params, headers } = this.buildUrl(company, 'salesMonthly', year);
-    return this.http.get<ApiResponse<SalesMonthlyResponse>>(url, { params, headers }).pipe(map(r => r.data));
+  getSalesMonthly(
+    company: string,
+    year: string
+  ): Observable<SalesMonthlyResponse> {
+    const { url, params, headers } = this.buildUrl(
+      company,
+      'salesMonthly',
+      year
+    );
+    return this.http
+      .get<ApiResponse<SalesMonthlyResponse>>(url, { params, headers })
+      .pipe(map((r) => r.data));
   }
 
   getSalesUnits(company: string, year: string): Observable<SalesUnitsResponse> {
     const { url, params, headers } = this.buildUrl(company, 'salesUnits', year);
-    return this.http.get<ApiResponse<SalesUnitsResponse>>(url, { params, headers }).pipe(map(r => r.data));
+    return this.http
+      .get<ApiResponse<SalesUnitsResponse>>(url, { params, headers })
+      .pipe(map((r) => r.data));
   }
 
-  getSalesBranch(company: string, year: string): Observable<SalesBranchResponse> {
-    const { url, params, headers } = this.buildUrl(company, 'salesBranch', year);
-    return this.http.get<ApiResponse<SalesBranchResponse>>(url, { params, headers }).pipe(map(r => r.data));
+  getSalesBranch(
+    company: string,
+    year: string
+  ): Observable<SalesBranchResponse> {
+    const { url, params, headers } = this.buildUrl(
+      company,
+      'salesBranch',
+      year
+    );
+    return this.http
+      .get<ApiResponse<SalesBranchResponse>>(url, { params, headers })
+      .pipe(map((r) => r.data));
   }
 }

@@ -6,6 +6,7 @@ import { forkJoin } from 'rxjs';
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
 import { FilterComponent } from '../../shared/components/filter/filter.component';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
+import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
 
 // Services
 import { DashboardService } from '../../core/services/dashboard.service';
@@ -18,12 +19,6 @@ import { AppFilter } from '../../types/filter.model';
 interface ChartData {
   labels: string[];
   data: number[];
-}
-
-interface KpiData {
-  totalUnitSales: number;
-  topModel: { name: string; unit: number } | null;
-  topBranch: { code: string; unit: number } | null;
 }
 
 interface ApiResponse {
@@ -40,19 +35,38 @@ interface ApiResponse {
     KpiCardComponent,
     FilterComponent,
     LineChartCardComponent,
+    PieChartCardComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit {
   private readonly MONTH_LABELS = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ] as const;
 
   private readonly CHART_COLORS = [
-    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-    '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6b7280',
+    '#3b82f6',
+    '#10b981',
+    '#f59e0b',
+    '#ef4444',
+    '#8b5cf6',
+    '#06b6d4',
+    '#84cc16',
+    '#f97316',
+    '#ec4899',
+    '#6b7280',
   ] as const;
 
   private api = inject(DashboardService);
@@ -70,6 +84,7 @@ export class DashboardComponent implements OnInit {
   // Chart signals
   lineMonthly = signal<ChartData | null>(null);
   branchPerformance = signal<ChartData | null>(null);
+  modelDistribution = signal<{ labels: string[]; data: number[] } | null>(null);
 
   // Filter
   prefilledFilter: AppFilter | null = null;
@@ -78,7 +93,8 @@ export class DashboardComponent implements OnInit {
   get hasData(): boolean {
     return !!(
       this.lineMonthly() ||
-      this.branchPerformance()
+      this.branchPerformance() ||
+      this.modelDistribution()
     );
   }
 
@@ -131,6 +147,11 @@ export class DashboardComponent implements OnInit {
     if (savedBranchPerformance) {
       this.branchPerformance.set(savedBranchPerformance);
     }
+    // Pie Chart Data
+    const savedModelDistribution = this.state.getModelDistribution();
+    if (savedModelDistribution) {
+      this.modelDistribution.set(savedModelDistribution);
+    }
   }
 
   private loadPersistedKpiData(): void {
@@ -158,6 +179,7 @@ export class DashboardComponent implements OnInit {
     this.kpiTopBranch.set(null);
     this.lineMonthly.set(null);
     this.branchPerformance.set(null);
+    this.modelDistribution.set(null);
   }
 
   private executeSearch(filter: AppFilter): void {
@@ -185,27 +207,11 @@ export class DashboardComponent implements OnInit {
       this.processLineChartData(response.monthly);
       this.processKpiData(response.units, response.branch);
       this.processBarChartData(response.branch);
+      this.processPieChartData(response.units);
     } catch (error) {
       console.error('Error processing API response:', error);
       this.error.set('Gagal memproses data. Silakan coba lagi.');
     }
-  }
-
-  private processLineChartData(monthlyData: any): void {
-    const sales = monthlyData?.sales ?? [];
-    if (!sales.length) return;
-
-    const sortedMonths = [...sales]
-      .sort((a, b) => Number(a.month) - Number(b.month));
-
-    const labels = sortedMonths.map(month => 
-      this.getMonthLabel(month.month)
-    );
-    const data = sortedMonths.map(month => Number(month.unit_sold));
-
-    const lineChart = { labels, data };
-    this.lineMonthly.set(lineChart);
-    this.state.saveLineMonthly(lineChart);
   }
 
   private getMonthLabel(monthNumber: string): string {
@@ -213,12 +219,28 @@ export class DashboardComponent implements OnInit {
     return this.MONTH_LABELS[monthIndex];
   }
 
+  private processLineChartData(monthlyData: any): void {
+    const sales = monthlyData?.sales ?? [];
+    if (!sales.length) return;
+
+    const sortedMonths = [...sales].sort(
+      (a, b) => Number(a.month) - Number(b.month)
+    );
+
+    const labels = sortedMonths.map((month) => this.getMonthLabel(month.month));
+    const data = sortedMonths.map((month) => Number(month.unit_sold));
+
+    const lineChart = { labels, data };
+    this.lineMonthly.set(lineChart);
+    this.state.saveLineMonthly(lineChart);
+  }
+
   private processKpiData(unitsData: any, branchData: any): void {
     const sales = unitsData?.sales ?? [];
     const branches = branchData?.sales ?? [];
 
     // Calculate total unit sales
-    const totalUnitSales = this.calculateTotalUnitSales(sales);
+    const totalUnitSales = this.TotalUnitSales(sales);
     this.kpiTotalUnitSales.set(totalUnitSales);
 
     // Find top model
@@ -236,10 +258,42 @@ export class DashboardComponent implements OnInit {
       topBranch,
     });
   }
+   private processBarChartData(branchData: any): void {
+    const sales = branchData?.sales ?? [];
+    const cabangMap = this.api.getCabangNameMap();
 
-  private calculateTotalUnitSales(sales: any[]): number {
+    const branchChart: ChartData = {
+      labels: sales.map(
+        (branch: any) => cabangMap[branch.branch] || branch.branch
+      ),
+      data: sales.map((branch: any) => Number(branch.unit_sold)),
+    };
+
+    this.branchPerformance.set(branchChart);
+    this.state.saveBranchPerformance(branchChart);
+  }
+
+  private processPieChartData(unitsData: any): void {
+    const sales = unitsData?.sales ?? [];
+    if (!sales.length) return;
+
+    // Sort berdasarkan unit_sold descending untuk tampilan yang lebih baik
+    const sortedSales = [...sales]
+      .sort((a, b) => Number(b.unit_sold) - Number(a.unit_sold))
+      .slice(0, 8); // Batasi maksimal 8 model untuk readability
+
+    const pieChart = {
+      labels: sortedSales.map((unit: any) => unit.unit_name),
+      data: sortedSales.map((unit: any) => Number(unit.unit_sold)),
+    };
+
+    this.modelDistribution.set(pieChart);
+    this.state.saveModelDistribution(pieChart);
+  }
+
+  private TotalUnitSales(sales: any[]): number {
     return sales
-      .map(unit => Number(unit.unit_sold))
+      .map((unit) => Number(unit.unit_sold))
       .reduce((total, current) => total + current, 0);
   }
 
@@ -247,7 +301,7 @@ export class DashboardComponent implements OnInit {
     if (!sales.length) return null;
 
     const topModel = sales.reduce(
-      (best, current) => 
+      (best, current) =>
         Number(current.unit_sold) > best.unit
           ? { name: current.unit_name, unit: Number(current.unit_sold) }
           : best,
@@ -257,11 +311,13 @@ export class DashboardComponent implements OnInit {
     return topModel.unit >= 0 ? topModel : null;
   }
 
-  private findTopBranch(branches: any[]): { code: string; unit: number } | null {
+  private findTopBranch(
+    branches: any[]
+  ): { code: string; unit: number } | null {
     if (!branches.length) return null;
 
     const topBranch = branches.reduce(
-      (best, current) => 
+      (best, current) =>
         Number(current.unit_sold) > best.unit
           ? { code: current.branch, unit: Number(current.unit_sold) }
           : best,
@@ -274,21 +330,6 @@ export class DashboardComponent implements OnInit {
       code: this.api.getCabangName(topBranch.code),
       unit: topBranch.unit,
     };
-  }
-
-  private processBarChartData(branchData: any): void {
-    const sales = branchData?.sales ?? [];
-    const cabangMap = this.api.getCabangNameMap();
-
-    const branchChart: ChartData = {
-      labels: sales.map((branch: any) => 
-        cabangMap[branch.branch] || branch.branch
-      ),
-      data: sales.map((branch: any) => Number(branch.unit_sold)),
-    };
-
-    this.branchPerformance.set(branchChart);
-    this.state.saveBranchPerformance(branchChart);
   }
 
   private handleApiError(error: any): void {

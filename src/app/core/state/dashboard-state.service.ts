@@ -19,6 +19,12 @@ export interface ChartDataset {
   data: number[];
 }
 
+export interface PieChartData {
+  labels: string[];
+  data: number[];
+  colors?: string[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class DashboardStateService {
   // === FILTER ===
@@ -81,6 +87,18 @@ export class DashboardStateService {
     return this.branchPerformance();
   }
 
+
+  // === CHART: PIE  CHART (Distribusi Model Paling Laku)
+
+  readonly modelDistribution = signal<PieChartData | null>(null);
+
+  saveModelDistribution(data: PieChartData) {
+    this.modelDistribution.set(data);
+  }
+
+   getModelDistribution(): PieChartData | null {
+    return this.modelDistribution();
+  }
   // === RESET STATE ===
   clear() {
     this.filter.set(null);
@@ -89,5 +107,6 @@ export class DashboardStateService {
     this.topBranch.set(null);
     this.lineMonthly.set(null);
     this.branchPerformance.set(null);
+    this.modelDistribution.set(null);
   }
 }
