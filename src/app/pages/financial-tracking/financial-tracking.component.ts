@@ -9,5 +9,7 @@ import { FilterComponent } from '../../shared/components/filter/filter.component
   styleUrl: './financial-tracking.component.css'
 })
 export class FinancialTrackingComponent {
-  
+  OnSearch(event: any) {
+    console.log('Search initiated');
+  }
 }

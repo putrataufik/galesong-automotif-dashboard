@@ -45,11 +45,13 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
 
   // Periode tahun (generate dinamis)
   periods: Option[] = this.generateYearPeriods();
+  months: Option[] = this.generateMonths();
 
   // State untuk form filter (ngModel)
   company = '';
   category: CategoryFilter = 'all-category';
   period = String(new Date().getFullYear());
+  month = 'all-month';
 
   // State alert notifikasi
   showAlert = false;
@@ -90,6 +92,7 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     this.period = filter.period ?? this.period;
+    this.month = filter.month ?? this.month;
   }
 
   // Buat daftar tahun (2022 - sekarang)
@@ -104,6 +107,16 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     return list;
+  }
+
+  private generateMonths(): Option[] {
+    const names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const opts: Option[] = [{ value: 'all-month', name: 'Semua Bulan' }];
+    for (let i = 0; i < 12; i++) {
+      const v = String(i + 1).padStart(2, '0');
+      opts.push({ value: v, name: names[i] });
+    }
+    return opts;
   }
 
   // Saat salah satu filter diubah → reset alert
@@ -128,6 +141,7 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
       company: this.company,
       category: this.category,
       period: this.period,
+      month: this.month,
     });
 
     // Tampilkan notifikasi
