@@ -1,8 +1,5 @@
-export interface SalesFilterInfo {
-  year: string;
-  category: 'SALES' | 'AFTER_SALES' | 'ALL';
-  companyName: string;
-}
+import { FilterInfo } from "./filter.model";
+
 // Interfaces
 export interface ChartData {
   labels: string[];
@@ -32,16 +29,16 @@ export interface ApiResponse<T> {
 }
 
 export interface SalesMonthlyResponse {
-  filterInfo: SalesFilterInfo;
+  filterInfo: FilterInfo[];
   sales: SalesMonthlyItem[];
 }
 
 export interface SalesUnitsResponse {
-  filterInfo: SalesFilterInfo;
+  filterInfo: FilterInfo[];
   sales: SalesUnitsItem[];
 }
 
 export interface SalesBranchResponse {
-  filterInfo: SalesFilterInfo;
+  filterInfo: FilterInfo[];
   sales: SalesBranchItem[];
 }

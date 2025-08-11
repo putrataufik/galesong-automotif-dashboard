@@ -11,22 +11,25 @@ import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 })
 export class KpiCardComponent {
   @Input() title = 'KPI';
-  @Input() value: string | number = '—';
-  @Input() unit?: string;      
-  @Input() subtitle?: string;       
+
+  // IZINKAN null di sini
+  @Input() value: string | number | null = null;
+
+  @Input() unit?: string;
+  @Input() subtitle?: string;
   @Input() icon = 'icons/default.png';
   @Input() iconBgClass = 'icon-bg-blue';
   @Input() loading = false;
-  
-  // For large/highlighted cards
+
+  // (opsional) samakan juga tipe ini jika dipakai
   @Input() isLarge = false;
   @Input() highlightLabel?: string;
-  @Input() highlightValue?: string;
+  @Input() highlightValue?: string | number | null;
 
-  formatValue(val: string | number): string {
+  formatValue(val: string | number | null): string {
+    if (val === null || val === undefined || val === '') return '—';
     if (typeof val === 'number') {
-      // Format large numbers with comma separators
-      return val.toLocaleString('id-ID');
+      return val.toLocaleString('id-ID'); // format angka default
     }
     return val.toString();
   }

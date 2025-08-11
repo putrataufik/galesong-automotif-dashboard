@@ -10,6 +10,7 @@ import {
   SalesMonthlyResponse,
   SalesUnitsResponse,
 } from '../../types/sales.model';
+import { AfterSalesResponse } from '../../types/aftersales.model';
 
 interface CompanyApiConfig {
   baseUrl: string;
@@ -17,7 +18,7 @@ interface CompanyApiConfig {
   endpoints: Partial<Record<EndpointKey, EndpointDef>>;
   params?: Partial<Record<EndpointKey, ParamsBuilder>>;
 }
-type EndpointKey = 'salesMonthly' | 'salesUnits' | 'salesBranch';
+type EndpointKey = 'salesMonthly' | 'salesUnits' | 'salesBranch' | 'afterSalesMonthly';
 
 type EndpointDef = string | ((args: { year: string }) => string);
 
@@ -56,11 +57,13 @@ export class DashboardService {
         salesMonthly: 'getSalesSummaryReportMonthly',
         salesUnits: 'getSalesSummaryReportUnits',
         salesBranch: 'getSalesSummaryReportBranch',
+        afterSalesMonthly: 'getAfterSalesSummaryReportMonthly',
       },
       params: {
         salesMonthly: ({ year }) => ({ periode: year }),
         salesUnits: ({ year }) => ({ periode: year }),
         salesBranch: ({ year }) => ({ periode: year }),
+        afterSalesMonthly: ({year}) => ({periode: year})
       },
     },
     // Contoh perusahaan lain (ganti sesuai backend nyata jika tersedia)
@@ -166,6 +169,20 @@ export class DashboardService {
     );
     return this.http
       .get<ApiResponse<SalesBranchResponse>>(url, { params, headers })
+      .pipe(map((r) => r.data));
+  }
+  
+  getAfterSalesMonthly(
+    company: string,
+    year: string
+  ): Observable<AfterSalesResponse> {
+    const { url, params, headers } = this.buildUrl(
+      company,
+      'afterSalesMonthly',
+      year
+    );
+    return this.http
+      .get<ApiResponse<AfterSalesResponse>>(url, { params, headers })
       .pipe(map((r) => r.data));
   }
 }
