@@ -6,3 +6,8 @@ export interface AppFilter {
   period: string;      
   month: string; 
 }
+export interface FilterInfo {
+  year: string;
+  category: 'SALES' | 'AFTER_SALES' | 'ALL';
+  companyName: string;
+}

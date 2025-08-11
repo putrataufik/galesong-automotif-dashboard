@@ -41,6 +41,7 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
   categories: Option[] = [
     { value: 'all-category', name: 'Semua Kategori' },
     { value: 'sales', name: 'Sales' },
+    { value: 'after-sales', name: 'After Sales' },
   ];
 
   // Periode tahun (generate dinamis)
