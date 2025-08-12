@@ -156,6 +156,26 @@ export class DashboardStateService {
   getModelDistribution(): PieChartData | null {
     return this.modelDistribution();
   }
+
+  // === AFTER SALES REALISASI VS TARGET ===
+  readonly afterSalesRealisasiVsTarget = signal<ChartDataset | null>(null);
+  saveAfterSalesRealisasiVsTarget(data: ChartDataset) {
+    this.afterSalesRealisasiVsTarget.set(data);
+  }
+  getAfterSalesRealisasiVsTarget(): ChartDataset | null {
+    return this.afterSalesRealisasiVsTarget();
+  }
+
+  // === AFTER SALES PROFIT BY BRANCH ===
+  readonly afterSalesProfitByBranch = signal<ChartDataset | null>(null);
+  
+  saveAfterSalesProfitByBranch(data: ChartDataset) {
+    this.afterSalesProfitByBranch.set(data);
+  }
+  getAfterSalesProfitByBranch(): ChartDataset | null {
+    const data = this.afterSalesProfitByBranch();
+  return data;
+  }
   // === RESET STATE ===
   clear() {
     this.filter.set(null);
@@ -174,5 +194,7 @@ export class DashboardStateService {
     this.afterSalesRealisasi.set(null);
     this.unitEntryRealisasi.set(null);
     this.sparepartTunaiRealisasi.set(null);
+    this.afterSalesRealisasiVsTarget.set(null);
+    this.afterSalesProfitByBranch.set(null);
   }
 }

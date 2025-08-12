@@ -4,6 +4,14 @@ import { FilterInfo } from "./filter.model";
 export interface ChartData {
   labels: string[];
   data: number[];
+  targetData?: number[];
+  datasets?: Array<{    // ← Tambah ini
+    label: string;
+    data: number[];
+    backgroundColor: string;
+    borderColor: string;
+    borderWidth?: number;
+  }>;
 }
 
 export interface SalesMonthlyItem {

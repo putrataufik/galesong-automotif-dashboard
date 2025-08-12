@@ -178,9 +178,25 @@ export class LineChartCardComponent
 
   private setupResizeObserver(): void {
     if (!this.canvasRef?.nativeElement?.parentElement) return;
-    this.ro = new ResizeObserver(() => {
-      this.chart?.resize();
+    
+    let resizeTimeout: any;
+    
+    this.ro = new ResizeObserver((entries) => {
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
+      
+      resizeTimeout = setTimeout(() => {
+        if (this.chart && !this.chart.canvas?.isConnected === false) {
+          try {
+            this.chart.resize();
+          } catch (error) {
+            console.debug('Chart resize warning (safe to ignore):', error);
+          }
+        }
+      }, 50);
     });
+    
     this.ro.observe(this.canvasRef.nativeElement.parentElement);
   }
 }
