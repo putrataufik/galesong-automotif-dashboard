@@ -23,6 +23,8 @@ import {
   processLineChartData,
   processBarChartData,
   processPieChartData,
+  processAfterSalesRealisasiVsTargetData,
+  processAfterSalesProfitByBranchData
 } from '../../shared/utils/dashboard-chart.utils';
 
 import {
@@ -80,6 +82,9 @@ export class DashboardComponent implements OnInit {
   lineMonthly = signal<ChartData | null>(null);
   branchPerformance = signal<ChartData | null>(null);
   modelDistribution = signal<ChartData | null>(null);
+  afterSalesRealisasiVsTarget = signal<ChartData | null>(null);
+  afterSalesProfitByBranch = signal<ChartData | null>(null);
+
 
   // Filter
   prefilledFilter: AppFilter | null = null;
@@ -90,7 +95,9 @@ export class DashboardComponent implements OnInit {
       this.lineMonthly() ||
       this.branchPerformance() ||
       this.modelDistribution() ||
-      this.afterSalesKpi()
+      this.afterSalesKpi() ||
+      this.afterSalesRealisasiVsTarget() ||
+      this.afterSalesProfitByBranch()
     );
   }
 
@@ -119,6 +126,7 @@ export class DashboardComponent implements OnInit {
     this.loadPersistedChartData();
     this.loadPersistedKpiData();
     this.loadPersistedAfterSalesKpiData();
+    this.loadPersistedAfterSalesChartData();
   }
 
   private loadPersistedFilter(): void {
@@ -127,7 +135,6 @@ export class DashboardComponent implements OnInit {
       this.prefilledFilter = savedFilter;
     }
   }
-
 
   private loadPersistedChartData(): void {
     const savedLine = this.state.getLineMonthly();
@@ -153,13 +160,21 @@ export class DashboardComponent implements OnInit {
     if (!this.state.hasAfterSalesKpi()) return;
 
     const savedAfterSalesKpi = this.state.getAfterSalesKpi();
-    this.afterSalesKpi.set(savedAfterSalesKpi); // ← Simplified karena sudah tidak ada null
+    this.afterSalesKpi.set(savedAfterSalesKpi);
+  }
+
+  private loadPersistedAfterSalesChartData(): void {
+    const savedRealisasiVsTarget = this.state.getAfterSalesRealisasiVsTarget();
+    this.afterSalesRealisasiVsTarget.set(savedRealisasiVsTarget);
+
+    const savedProfitByBranch = this.state.getAfterSalesProfitByBranch();
+    this.afterSalesProfitByBranch.set(savedProfitByBranch);
   }
 
   private isValidCategory(category: string): boolean {
     return category === 'sales' ||
       category === 'all-category' ||
-      category === 'after-sales'; // ← TAMBAH INI
+      category === 'after-sales';
   }
 
   private prepareForNewSearch(filter: AppFilter): void {
@@ -175,7 +190,9 @@ export class DashboardComponent implements OnInit {
     this.lineMonthly.set(null);
     this.branchPerformance.set(null);
     this.modelDistribution.set(null);
-    this.afterSalesKpi.set(null); // ← TAMBAH INI
+    this.afterSalesKpi.set(null);
+    this.afterSalesRealisasiVsTarget.set(null);
+    this.afterSalesProfitByBranch.set(null);
   }
 
   private executeSearch(filter: AppFilter): void {
@@ -252,10 +269,6 @@ export class DashboardComponent implements OnInit {
       if (response.aftersales) {
         const aftersalesData = response.aftersales?.aftersales ?? [];
         const afterSalesKpiData = calculateAfterSalesKpi(aftersalesData);
-        console.log('totalRevenueRealisasi response:', afterSalesKpiData.totalRevenueRealisasi);
-        console.log('Total Profit response:', afterSalesKpiData.totalProfit);
-        console.log('coba format compact revenue: ', formatCompactNumber(afterSalesKpiData.totalRevenueRealisasi));
-        console.log('coba format compact profit : ', formatCompactNumber(afterSalesKpiData.totalProfit));
         this.afterSalesKpi.set(afterSalesKpiData);
         this.state.saveAfterSalesKpi({
           totalRevenueRealisasi: afterSalesKpiData.totalRevenueRealisasi,
@@ -267,6 +280,21 @@ export class DashboardComponent implements OnInit {
           unitEntryRealisasi: afterSalesKpiData.unitEntryRealisasi,
           sparepartTunaiRealisasi: afterSalesKpiData.sparepartTunaiRealisasi,
         });
+
+        // Process Realisasi vs Target Chart
+        const realisasiVsTarget = processAfterSalesRealisasiVsTargetData(response.aftersales);
+        if (realisasiVsTarget) {
+          this.afterSalesRealisasiVsTarget.set(realisasiVsTarget);
+          this.state.saveAfterSalesRealisasiVsTarget(realisasiVsTarget);
+        }
+
+        // Process Profit by Branch Chart
+        const cabangMap = this.api.getCabangNameMap();
+        const profitByBranch = processAfterSalesProfitByBranchData(response.aftersales, cabangMap);
+        if (profitByBranch) {
+          this.afterSalesProfitByBranch.set(profitByBranch);
+          this.state.saveAfterSalesProfitByBranch(profitByBranch);
+        }
       }
 
     } catch (error) {

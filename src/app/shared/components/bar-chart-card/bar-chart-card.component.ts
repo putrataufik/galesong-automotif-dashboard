@@ -26,6 +26,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { ChartData } from '../../../types/sales.model';
 
 // Register Chart.js components
 Chart.register(
@@ -55,8 +56,7 @@ Chart.register(
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BarChartCardComponent
-  implements AfterViewInit, OnChanges, OnDestroy
-{
+  implements AfterViewInit, OnChanges, OnDestroy {
   @Input() title = 'Bar Chart';
   @Input() labels: string[] = [];
   @Input() data: number[] = [];
@@ -66,6 +66,17 @@ export class BarChartCardComponent
   @Input() borderColor?: string | string[];
   @Input() label = 'Data';
   @Input() horizontal = true; // ← Default horizontal
+  @Input() chartType: 'sales' | 'currency' | 'unit' = 'unit';
+  // Tambahkan setelah existing @Input properties
+  @Input() datasets?: Array<{
+    label: string;
+    data: number[];
+    backgroundColor: string;
+    borderColor: string;
+    borderWidth?: number;
+  }>; // ← Untuk multi-dataset
+  @Input() isMultiDataset = false; // ← Flag untuk multi-dataset mode
+  @Input() chartData?: ChartData;
 
   // Chart color palette - Blue gradient
   private readonly CHART_COLORS = [
@@ -133,10 +144,25 @@ export class BarChartCardComponent
 
   private buildChart(): void {
     if (!this.canvasRef?.nativeElement) return;
-
-    this.chart = new Chart(this.canvasRef.nativeElement, {
-      type: this.horizontal ? 'bar' : 'bar', // Chart.js uses 'bar' with indexAxis for horizontal
-      data: {
+  
+    // Determine chart data structure based on available inputs
+    let chartData: any;
+  
+    if (this.chartData?.datasets) {
+      // Use ChartData with datasets
+      chartData = {
+        labels: this.chartData.labels,
+        datasets: this.chartData.datasets
+      };
+    } else if (this.isMultiDataset && this.datasets) {
+      // Use standalone datasets input
+      chartData = {
+        labels: this.labels,
+        datasets: this.datasets
+      };
+    } else {
+      // Use single dataset mode
+      chartData = {
         labels: this.labels,
         datasets: [
           {
@@ -147,15 +173,21 @@ export class BarChartCardComponent
             borderRadius: 4,
             borderSkipped: false,
           },
-        ],
-      },
+        ]
+      };
+    }
+  
+    this.chart = new Chart(this.canvasRef.nativeElement, {
+      type: this.horizontal ? 'bar' : 'bar',
+      data: chartData,
       options: {
-        indexAxis: this.horizontal ? 'y' : 'x', // ← This makes it horizontal
+        // ... rest of your existing options
+        indexAxis: this.horizontal ? 'y' : 'x',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            display: this.showLegend,
+            display: this.isMultiDataset || this.chartData?.datasets ? true : this.showLegend,
             position: 'top',
           },
           title: {
@@ -173,8 +205,21 @@ export class BarChartCardComponent
             callbacks: {
               label: (context) => {
                 const label = context.dataset.label || '';
-                const value = context.parsed.x || context.parsed.y; // Handle both orientations
-                return `${label}: ${value} unit`;
+                
+                let value: number;
+                if (this.horizontal) {
+                  value = context.parsed.x;
+                } else {
+                  value = context.parsed.y;
+                }
+                
+                // Fix: Gunakan chartType untuk menentukan format
+                if (this.chartType === 'currency' || this.isMultiDataset || this.chartData?.datasets) {
+                  const formattedValue = new Intl.NumberFormat('id-ID').format(value);
+                  return `${label}: Rp ${formattedValue}`;
+                } else {
+                  return `${label}: ${value} unit`;
+                }
               },
             },
           },
@@ -198,7 +243,6 @@ export class BarChartCardComponent
             },
             ticks: this.horizontal
               ? {
-                  // For horizontal bars, y-axis shows labels
                   maxRotation: 0,
                   minRotation: 0,
                 }
@@ -215,14 +259,33 @@ export class BarChartCardComponent
       },
     });
   }
+  
 
   private setupResizeObserver(): void {
     if (!this.canvasRef?.nativeElement?.parentElement) return;
-
-    this.ro = new ResizeObserver(() => {
-      this.chart?.resize();
+  
+    // Debounce resize untuk menghindari ResizeObserver loop
+    let resizeTimeout: any;
+    
+    this.ro = new ResizeObserver((entries) => {
+      // Clear previous timeout
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
+      
+      // Debounce resize operation
+      resizeTimeout = setTimeout(() => {
+        if (this.chart && !this.chart.canvas?.isConnected === false) {
+          try {
+            this.chart.resize();
+          } catch (error) {
+            // Silently handle resize errors
+            console.debug('Chart resize warning (safe to ignore):', error);
+          }
+        }
+      }, 50); // 50ms debounce
     });
-
+  
     this.ro.observe(this.canvasRef.nativeElement.parentElement);
   }
 }

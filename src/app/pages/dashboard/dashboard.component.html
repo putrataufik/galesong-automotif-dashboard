@@ -35,12 +35,19 @@
   </div>
   }
 
-  <!-- KPI & Charts -->
+  <!-- SALES SECTION -->
+  @if (prefilledFilter?.category === 'sales' || prefilledFilter?.category === 'all-category') {
   @if (hasData) {
-  <!-- KPI Section -->
+  
+  <!-- Sales KPI Section -->
   <div class="row g-4 mb-4">
-    <!-- Sales KPI Cards - tampil jika kategori Sales -->
-    @if (prefilledFilter?.category === 'sales' || prefilledFilter?.category === 'all-category') {
+    <div class="col-12">
+      <div class="d-flex align-items-center mb-3">
+        <i class="bi bi-speedometer2 text-primary me-2 fs-4"></i>
+        <h4 class="mb-0 fw-bold text-dark">Sales Performance</h4>
+      </div>
+    </div>
+
     <!-- Total Unit Sales -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
       <app-kpi-card [title]="'Total Unit Sales'" [value]="kpiTotalUnitSales() || 0" unit="unit"
@@ -64,16 +71,60 @@
               : 'Belum ada data'
           " icon="icons/winner.png" iconBgClass="bg-success bg-opacity-10" />
     </div>
+  </div>
+
+  <!-- Sales Charts Section -->
+  @if (lineMonthly() || branchPerformance() || modelDistribution()) {
+  <div class="row g-4 mb-5">
+    <!-- Line Chart - Monthly Trend -->
+    @if (lineMonthly()) {
+    <div class="col-12 col-lg-6">
+      <app-line-chart-card [label]="'Unit Terjual'" [title]="'Trend Penjualan Unit per Bulan'"
+        [labels]="lineMonthly()!.labels" [data]="lineMonthly()!.data" [height]="300" [showLegend]="false"
+        [borderColor]="'#0d6efd'" [backgroundColor]="'rgba(13, 110, 253, 0.2)'" [pointBackgroundColor]="'#0d6efd'"
+        [fill]="true" />
+    </div>
     }
 
-    <!-- After Sales KPI Cards - tampil jika kategori After Sales -->
-    @if (prefilledFilter?.category === 'after-sales' || prefilledFilter?.category === 'all-category') {
-    @if (afterSalesKpi(); as kpi) {
+    <!-- Bar Chart - Branch Performance -->
+    @if (branchPerformance()) {
+    <div class="col-12 col-lg-6">
+      <app-bar-chart-card [title]="'Performa Penjualan per Cabang'" [labels]="branchPerformance()!.labels"
+        [data]="branchPerformance()!.data" [height]="300" [horizontal]="true" [showLegend]="false"
+        [label]="'Unit Terjual'" />
+    </div>
+    }
+
+    <!-- Pie Chart - Model Distribution -->
+    @if (modelDistribution()) {
+    <div class="col-12 col-lg-3">
+      <app-pie-chart-card [title]="'Proporsi Penjualan per Model Unit'" [labels]="modelDistribution()!.labels"
+        [data]="modelDistribution()!.data" [height]="300" [showLegend]="true" />
+    </div>
+    }
+  </div>
+  }
+  }
+  }
+
+  <!-- AFTER SALES SECTION -->
+  @if (prefilledFilter?.category === 'after-sales' || prefilledFilter?.category === 'all-category') {
+  @if (hasData) {
+
+  <!-- After Sales KPI Section -->
+  @if (afterSalesKpi(); as kpi) {
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="d-flex align-items-center mb-3">
+        <i class="bi bi-tools text-success me-2 fs-4"></i>
+        <h4 class="mb-0 fw-bold text-dark">After Sales Performance</h4>
+      </div>
+    </div>
+
     <!-- Total Revenue Realisasi -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
       <app-kpi-card [title]="'Total Revenue Realisasi'" [value]="formatCompactNumber(kpi.totalRevenueRealisasi)"
         [subtitle]="'Total pendapatan realisasi'" icon="icons/increase.png" iconBgClass="bg-success bg-opacity-10"/>
-
     </div>
 
     <!-- Total Biaya Usaha (BEP) -->
@@ -118,41 +169,43 @@
         unit="" [subtitle]="'Penjualan sparepart cash'" icon="icons/spare-parts.png"
         iconBgClass="bg-primary bg-opacity-10" />
     </div>
-    }
-    }
   </div>
+  }
 
-  <!-- Charts Section - hanya tampil untuk Sales -->
-  @if ((prefilledFilter?.category === 'sales' || prefilledFilter?.category === 'all-category') && (lineMonthly() ||
-  branchPerformance() || modelDistribution())) {
-  <div class="row g-4">
-    <!-- Line Chart - Monthly Trend -->
-    @if (lineMonthly()) {
-    <div class="col-12 col-lg-6">
-      <app-line-chart-card [label]="'Unit Terjual'" [title]="'Trend Penjualan Unit per Bulan'"
-        [labels]="lineMonthly()!.labels" [data]="lineMonthly()!.data" [height]="300" [showLegend]="false"
-        [borderColor]="'#0d6efd'" [backgroundColor]="'rgba(13, 110, 253, 0.2)'" [pointBackgroundColor]="'#0d6efd'"
-        [fill]="true" />
-    </div>
-    }
-
-    <!-- Bar Chart - Branch Performance -->
-    @if (branchPerformance()) {
-    <div class="col-12 col-lg-6">
-      <app-bar-chart-card [title]="'Performa Penjualan per Cabang'" [labels]="branchPerformance()!.labels"
-        [data]="branchPerformance()!.data" [height]="300" [horizontal]="true" [showLegend]="false"
-        [label]="'Unit Terjual'" />
-    </div>
-    }
-
-    <!-- Pie Chart - Model Distribution -->
-    @if (modelDistribution()) {
-    <div class="col-12 col-lg-3">
-      <app-pie-chart-card [title]="'Proporsi Penjualan per Model Unit'" [labels]="modelDistribution()!.labels"
-        [data]="modelDistribution()!.data" [height]="300" [showLegend]="true" />
-    </div>
-    }
+  <!-- After Sales Charts Section -->
+  @if (afterSalesRealisasiVsTarget() || afterSalesProfitByBranch()) {
+  <div class="row g-4 mb-5">
+    <!-- After Sales Realisasi vs Target Chart -->
+@if (afterSalesRealisasiVsTarget()) {
+  <div class="col-12 col-lg-6">
+    <app-bar-chart-card 
+      [title]="'After Sales Realisasi vs Target per Bulan'"
+      [chartData]="afterSalesRealisasiVsTarget()!"
+      [height]="300" 
+      [horizontal]="false"
+      [showLegend]="true"
+      [isMultiDataset]="true" />
   </div>
+  }
+  
+    <!-- Profit by Branch Chart -->
+@if (afterSalesProfitByBranch()) {
+  <div class="col-12 col-lg-6">
+    <app-bar-chart-card 
+      [title]="'Profit per Cabang (After Sales)'"
+      [labels]="afterSalesProfitByBranch()!.labels" 
+      [data]="afterSalesProfitByBranch()!.data"
+      [height]="300" 
+      [horizontal]="true"
+      [showLegend]="false"
+      [label]="'Profit'"
+      [chartType]="'currency'"
+      [backgroundColor]="'#ffc107'"
+      [borderColor]="'#ffc107'" />
+  </div>
+  }
+  </div>
+  }
   }
   }
 
