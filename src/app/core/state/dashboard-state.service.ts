@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { AppFilter } from '../../types/filter.model';
+import { AfterSalesFilter, AppFilter } from '../../types/filter.model';
 
 // === INTERFACE: KPI ===
 export interface KpiSnapshot {
@@ -10,14 +10,14 @@ export interface KpiSnapshot {
 }
 
 // === INTERFACE: AFTER SALES KPI ===
-// === INTERFACE: AFTER SALES KPI ===
 export interface AfterSalesKpiSnapshot {
   totalRevenueRealisasi: number;  // ← Hapus | null
   totalBiayaUsaha: number;       // ← Hapus | null
   totalProfit: number;           // ← Hapus | null
   totalHariKerja: number;        // ← Hapus | null
   serviceCabang: number;         // ← Hapus | null
-  afterSalesRealisasi: number;   // ← Hapus | null
+  afterSalesRealisasi: number;
+  afterSalesTarget: number;  // ← Hapus | null
   unitEntryRealisasi: number;    // ← Hapus | null
   sparepartTunaiRealisasi: number; // ← Hapus | null
 }
@@ -43,7 +43,6 @@ export interface PieChartData {
 export class DashboardStateService {
   // === FILTER ===
   readonly filter = signal<AppFilter | null>(null);
-
   saveFilter(f: AppFilter) {
     this.filter.set(f);
   }
@@ -51,6 +50,10 @@ export class DashboardStateService {
   getFilter(): AppFilter | null {
     return this.filter();
   }
+  // After Sales dashboard (pisah!)
+  private afterSalesFilter = signal<AfterSalesFilter | null>(null);
+  saveFilterAfterSales(f: AfterSalesFilter) { this.afterSalesFilter.set(f); }
+  getFilterAfterSales(): AfterSalesFilter | null { return this.afterSalesFilter(); }
 
   // === Sales KPI ===
   readonly totalUnitSales = signal<number | null>(null);
@@ -86,6 +89,7 @@ export class DashboardStateService {
   readonly totalHariKerja = signal<number | null>(null);
   readonly serviceCabang = signal<number | null>(null);
   readonly afterSalesRealisasi = signal<number | null>(null);
+  readonly afterSalesTarget = signal<number | null>(null);
   readonly unitEntryRealisasi = signal<number | null>(null);
   readonly sparepartTunaiRealisasi = signal<number | null>(null);
 
@@ -96,8 +100,10 @@ export class DashboardStateService {
     this.totalHariKerja.set(snapshot.totalHariKerja);
     this.serviceCabang.set(snapshot.serviceCabang);
     this.afterSalesRealisasi.set(snapshot.afterSalesRealisasi);
+    this.afterSalesTarget.set(snapshot.afterSalesTarget);
     this.unitEntryRealisasi.set(snapshot.unitEntryRealisasi);
     this.sparepartTunaiRealisasi.set(snapshot.sparepartTunaiRealisasi);
+
   }
 
   hasAfterSalesKpi(): boolean {
@@ -105,7 +111,8 @@ export class DashboardStateService {
       this.totalRevenueRealisasi() !== null ||
       this.totalBiayaUsaha() !== null ||
       this.totalProfit() !== null ||
-      this.afterSalesRealisasi() !== null
+      this.afterSalesRealisasi() !== null ||
+      this.afterSalesTarget() !== null
     );
   }
 
@@ -117,6 +124,7 @@ export class DashboardStateService {
       totalHariKerja: this.totalHariKerja() ?? 0,
       serviceCabang: this.serviceCabang() ?? 0,
       afterSalesRealisasi: this.afterSalesRealisasi() ?? 0,
+      afterSalesTarget: this.afterSalesTarget() ?? 0,
       unitEntryRealisasi: this.unitEntryRealisasi() ?? 0,
       sparepartTunaiRealisasi: this.sparepartTunaiRealisasi() ?? 0,
     };
@@ -168,13 +176,13 @@ export class DashboardStateService {
 
   // === AFTER SALES PROFIT BY BRANCH ===
   readonly afterSalesProfitByBranch = signal<ChartDataset | null>(null);
-  
+
   saveAfterSalesProfitByBranch(data: ChartDataset) {
     this.afterSalesProfitByBranch.set(data);
   }
   getAfterSalesProfitByBranch(): ChartDataset | null {
     const data = this.afterSalesProfitByBranch();
-  return data;
+    return data;
   }
   // === RESET STATE ===
   clear() {

@@ -7,6 +7,7 @@ export interface AfterSalesKpiData {
   totalHariKerja: number;
   serviceCabang: number;
   afterSalesRealisasi: number;
+  afterSalesTarget: number;
   unitEntryRealisasi: number;
   sparepartTunaiRealisasi: number;
 }
@@ -20,6 +21,7 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
       totalHariKerja: 0,
       serviceCabang: 0,
       afterSalesRealisasi: 0,
+      afterSalesTarget: 0,
       unitEntryRealisasi: 0,
       sparepartTunaiRealisasi: 0,
     };
@@ -42,6 +44,10 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
     .map(item => Number(item.after_sales_realisasi))
     .reduce((total, current) => total + current, 0);
 
+  const afterSalesTarget = aftersales
+    .map(item => Number(item.after_sales_target)).
+    reduce((total, current) => total + current, 0);
+
   const sparepartTunaiRealisasi = aftersales
     .map(item => Number(item.part_tunai_realisasi))
     .reduce((total, current) => total + current, 0);
@@ -60,6 +66,7 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
 
   return {
     totalRevenueRealisasi,
+    afterSalesTarget,
     totalBiayaUsaha,
     totalProfit,
     totalHariKerja,
@@ -75,7 +82,7 @@ export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
-    minimumFractionDigits: 0,
+    minimumFractionDigits: 5,
   }).format(value);
 }
 
@@ -98,7 +105,7 @@ export function formatNumber(value: number): string {
  */
 export function formatCompactNumber(
   value: number | string | null | undefined,
-  fractionDigits = 2 // default 2 angka di belakang koma
+  fractionDigits = 5 // default 2 angka di belakang koma
 ): string {
   const num = Number(value ?? 0);
   if (!isFinite(num)) return '0';
@@ -108,7 +115,7 @@ export function formatCompactNumber(
 
   // ≥ 1 Triliun
   if (abs >= 1_000_000_000_000) {
-    return `${sign}${(abs / 1_000_000_000_000).toLocaleString('id-ID', {
+    return `Rp. ${sign}${(abs / 1_000_000_000_000).toLocaleString('id-ID', {
       minimumFractionDigits: fractionDigits,
       maximumFractionDigits: fractionDigits,
     })} T`;
@@ -124,14 +131,14 @@ export function formatCompactNumber(
 
   // ≥ 1 Juta
   if (abs >= 1_000_000) {
-    return `${sign}${(abs / 1_000_000).toLocaleString('id-ID', {
+    return `Rp. ${sign}${(abs / 1_000_000).toLocaleString('id-ID', {
       minimumFractionDigits: fractionDigits,
       maximumFractionDigits: fractionDigits,
     })} Juta`;
   }
 
   // < 1 Juta
-  return `${sign}${abs.toLocaleString('id-ID', {
+  return `Rp. ${sign}${abs.toLocaleString('id-ID', {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   })}`;

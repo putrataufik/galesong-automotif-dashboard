@@ -1,6 +1,6 @@
-<!-- kpi-card-as.component.html -->
+<!-- src/app/shared/components/kpi-card-as/kpi-card-as.component.html -->
 <div class="kpi-card-as compact shadow-soft rounded-4 position-relative">
-    <!-- Header pill (tetap tinggi, judul boleh 2 baris) -->
+    <!-- Header pill -->
     <div class="header-chip-wrapper">
         <div class="header-chip" [style.background]="headerColor">
             <div class="chip-title">{{ title }}</div>
@@ -10,45 +10,51 @@
 
     <!-- Body -->
     <div class="content-section">
-        <!-- % -->
+        <!-- Percentage Display -->
         <div class="text-center mb-3">
             <div class="percentage-display">{{ formatPercentage(percentage) }}</div>
 
             <div class="progress rounded-pill">
-                <div class="progress-bar rounded-pill" role="progressbar" [attr.aria-valuenow]="clampedPercent"
-                    aria-valuemin="0" aria-valuemax="100" [style.width.%]="clampedPercent">
+                <div class="progress-bar rounded-pill" role="progressbar" 
+                     [attr.aria-valuenow]="clampedPercent"
+                     aria-valuemin="0" aria-valuemax="100" 
+                     [style.width.%]="clampedPercent">
                 </div>
 
                 <div class="progress-text">
                     {{ formatCurrency(realisasi) }} / {{ formatCurrency(target) }}
                 </div>
             </div>
-
-
-
         </div>
 
-        <!-- Detail -->
+        <!-- Detail Rows -->
         <div class="details">
             <div class="detail-row">
                 <span>Grand Total</span>
-                <span class="fw-bold" [ngClass]="getValueColor(grandTotal)">{{ formatCurrency(grandTotal) }}</span>
+                <span class="fw-bold" [ngClass]="getValueColor(grandTotal)">
+                    {{ formatCurrency(grandTotal) }}
+                </span>
             </div>
             <div class="detail-row">
                 <span>Rata - Rata</span>
-                <span class="fw-bold" [ngClass]="getValueColor(rataRata)">{{ formatCurrency(rataRata) }}</span>
+                <span class="fw-bold" [ngClass]="getValueColor(rataRata)">
+                    {{ formatCurrency(rataRata) }}
+                </span>
             </div>
             <div class="detail-row">
                 <span>Harapan Target</span>
-                <span class="fw-bold" [ngClass]="getValueColor(harapanTarget)">{{ formatCurrency(harapanTarget) }} /
-                    Hari</span>
+                <span class="fw-bold" [ngClass]="getValueColor(harapanTarget)">
+                    {{ formatCurrency(harapanTarget) }}{{ getUnitSuffix() }} / Hari
+                </span>
             </div>
         </div>
     </div>
 
     @if (loading) {
-    <div class="loading-overlay d-flex align-items-center justify-content-center">
-        <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
-    </div>
+        <div class="loading-overlay d-flex align-items-center justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
     }
 </div>

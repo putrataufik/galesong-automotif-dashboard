@@ -1,3 +1,4 @@
+// src/app/shared/components/filter-main-dashboard/filter-main-dashboard.component.ts
 import {
   Component,
   EventEmitter,
@@ -111,7 +112,7 @@ export class FilterMainDashboardComponent implements OnInit, OnChanges, OnDestro
   }
 
   private generateMonths(): Option[] {
-    const names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     const opts: Option[] = [{ value: 'all-month', name: 'Semua Bulan' }];
     for (let i = 0; i < 12; i++) {
       const v = String(i + 1).padStart(2, '0');

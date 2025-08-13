@@ -1,58 +1,93 @@
 <!-- src/app/pages/after-sales-dashboard/after-sales-dashboard.component.html -->
 <div class="container-fluid p-4">
-    <!-- Header dan Filter -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="fw-bold text-dark mb-3">
-                After Sales <span class="text-success">Dashboard</span>
-            </h2>
+  <!-- Header dan Filter -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2 class="fw-bold text-dark mb-3">
+        After Sales <span class="text-success">Dashboard</span>
+      </h2>
 
-            <!-- Filter Component -->
-            <app-filter-main-dashboard (search)="onSearch($event)"></app-filter-main-dashboard>
+      <!-- After Sales Filter Component (No Category, With Branch) -->
+      <app-filter-after-sales [initialFilter]="prefilledFilter" [loading]="loading()" (search)="onSearch($event)">
+      </app-filter-after-sales>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  @if (error() && !loading()) {
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="alert alert-danger border-0 rounded-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Error:</strong> {{ error() }}
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-center align-items-center p-5" style="min-height: 400px">
+        <div class="spinner-border text-success" style="width: 3rem; height: 3rem" role="status">
+          <span class="visually-hidden">Memuat after sales dashboard...</span>
         </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Day Selector -->
+  @if (hasData && !loading()) {
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="d-flex flex-column align-items-end mb-3">
+        <p class="mb-2">Pilih Sisa Hari untuk Menampilkan Harapan Target</p>
+        <select class="form-select" style="width: 200px;" [value]="selectedDay() || ''" (change)="onDayChange($event)">
+          <option value="">Pilih Hari (1-31)</option>
+          @for (day of dayOptions; track day) {
+          <option [value]="day">{{ day }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- KPI Cards -->
+  @if (hasData && !loading()) {
+  <div class="row g-3 mb-5">
+    <div class="col-12">
+      <h4 class="fw-bold text-success mb-3">
+        <i class="bi bi-speedometer2 me-2"></i>
+        Pencapaian {{ getBranchDisplayName() }} After Sales
+      </h4>
     </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <div class="d-flex flex-column align-items-end mb-3">
-                <p class="mb-2">Pilih Sisa Hari untuk Menampilkan Harapan Target</p>
-                <select class="form-select" style="width: 200px;" [value]="selectedDay() || ''"
-                    (change)="onDayChange($event)">
-                    <option value="">Pilih Hari (1-31)</option>
-                    @for (day of dayOptions; track day) {
-                    <option [value]="day">{{ day }}</option>
-                    }
-                </select>
-            </div>
-        </div>
+    <!-- Updated template usage -->
+    @for (kpi of kpiCards(); track kpi.title) {
+    <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+      <app-kpi-card-as class="compact" [title]="kpi.title" [percentage]="kpi.percentage" [realisasi]="kpi.realisasi"
+        [target]="kpi.target" [grandTotal]="kpi.grandTotal" [rataRata]="kpi.rataRata"
+        [harapanTarget]="kpi.harapanTarget" [headerColor]="kpi.headerColor" [isRupiah]="kpi.isRupiah">
+        <!-- ← NEW: Pass isRupiah flag -->
+      </app-kpi-card-as>
     </div>
-    <div class="row g-3">
-        <h4>Pencapaian Cabang</h4>
-        <div class="col-12 col-md-6 col-lg-3">
-            <app-kpi-card-as class="compact" [title]="'AFTER SALES REALISASI vs TARGET'"
-                [percentage]="afterSalesData.percentage" [realisasi]="afterSalesData.realisasi"
-                [target]="afterSalesData.target" [grandTotal]="afterSalesData.grandTotal"
-                [rataRata]="afterSalesData.rataRata" [harapanTarget]="afterSalesData.harapanTarget"
-                headerColor="#2563EB">
-            </app-kpi-card-as>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3">
-            <app-kpi-card-as class="compact" [title]="'SERVICE CABANG REALISASI vs TARGET'"
-                [percentage]="serviceCabangData.percentage" [realisasi]="serviceCabangData.realisasi"
-                [target]="serviceCabangData.target" [grandTotal]="serviceCabangData.grandTotal"
-                [rataRata]="serviceCabangData.rataRata" [harapanTarget]="serviceCabangData.harapanTarget"
-                headerColor="#3B00A0">
-            </app-kpi-card-as>
-        </div>
-
-        <div class="col-12 col-md-6 col-lg-3">
-            <app-kpi-card-as class="compact" [title]="'AFTER SALES REALISASI vs TARGET'"
-                [percentage]="afterSalesData.percentage" [realisasi]="afterSalesData.realisasi"
-                [target]="afterSalesData.target" [grandTotal]="afterSalesData.grandTotal"
-                [rataRata]="afterSalesData.rataRata" [harapanTarget]="afterSalesData.harapanTarget"
-                headerColor="#588000">
-            </app-kpi-card-as>
-        </div>
-
-        <!-- Tambahkan KPI lain, otomatis pindah baris kalau lebih dari 4 -->
+    }
+  </div>
+  }
+  <!-- Empty State -->
+  @if (!hasData && !loading()) {
+  <div class="row">
+    <div class="col-12">
+      <div class="text-center py-5">
+        <i class="bi bi-tools text-muted fs-1 mb-3"></i>
+        <h6 class="text-muted mb-0">
+          Belum ada data after sales. Pilih perusahaan dan tahun, lalu klik cari.
+        </h6>
+      </div>
     </div>
+  </div>
+  }
+</div>

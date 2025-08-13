@@ -1,0 +1,112 @@
+<!-- src/app/shared/components/filter-after-sales/filter-after-sales.component.html -->
+@if (showAlert) {
+    <div
+      class="position-fixed bottom-0 start-50 translate-middle-x mb-3"
+      style="z-index: 1050; width: 90%; max-width: 500px"
+    >
+      <div
+        class="alert alert-{{ alertType }} alert-dismissible fade show shadow"
+        role="alert"
+      >
+        <i
+          class="bi {{
+            alertType === 'success'
+              ? 'bi-check-circle-fill'
+              : 'bi-exclamation-triangle-fill'
+          }} me-2"
+        ></i>
+        {{ alertMessage }}
+        <button type="button" class="btn-close" (click)="hideAlert()"></button>
+      </div>
+    </div>
+  }
+  
+  <!-- AFTER SALES FILTER (No Category, With Branch) -->
+  <div class="bg-white shadow-sm rounded-3 p-3">
+    <div class="row justify-content-center align-items-end g-3 mb-3">
+      
+      <!-- Perusahaan -->
+      <div class="col-md-3">
+        <label for="company" class="form-label small text-muted">Perusahaan</label>
+        <select
+          id="company"
+          class="form-select"
+          [(ngModel)]="company"
+          (change)="onCompanyChange()"
+        >
+          <option value="">Pilih Perusahaan</option>
+          @for (c of companies; track c.value) {
+            <option [value]="c.value">{{ c.name }}</option>
+          }
+        </select>
+      </div>
+  
+      <!-- Cabang (dependent on company) -->
+      <div class="col-md-3">
+        <label for="branch" class="form-label small text-muted">Cabang</label>
+        <select
+          id="branch"
+          class="form-select"
+          [(ngModel)]="branch"
+          [disabled]="!company || loadingBranches()"
+          (change)="onFilterChange()"
+        >
+          <option value="">Semua Cabang</option>
+          @if (loadingBranches()) {
+            <option disabled>Loading cabang...</option>
+          }
+          @for (b of branches(); track b.value) {
+            <option [value]="b.value">{{ b.name }}</option>
+          }
+        </select>
+      </div>
+  
+      <!-- Tahun -->
+      <div class="col-md-3">
+        <label for="period" class="form-label small text-muted">Tahun</label>
+        <select
+          id="period"
+          class="form-select"
+          [(ngModel)]="period"
+          (change)="onFilterChange()"
+        >
+          @for (p of periods; track p.value) {
+            <option [value]="p.value">{{ p.name }}</option>
+          }
+        </select>
+      </div>
+  
+      <!-- Bulan -->
+      <div class="col-md-3">
+        <label for="month" class="form-label small text-muted">Bulan</label>
+        <select
+          id="month"
+          class="form-select"
+          [(ngModel)]="month"
+          (change)="onFilterChange()"
+        >
+          @for (m of months; track m.value) {
+            <option [value]="m.value">{{ m.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  
+    <div class="row justify-content-center">
+      <div class="col-md-4 d-flex justify-content-center">
+        <button
+          type="button"
+          class="btn btn-success px-5 py-2"
+          (click)="onSearchClick()"
+          [disabled]="loading || loadingBranches()"
+        >
+          <i class="bi bi-search me-1"></i> 
+          @if (loadingBranches()) {
+            Loading...
+          } @else {
+            Cari Data After Sales
+          }
+        </button>
+      </div>
+    </div>
+  </div>

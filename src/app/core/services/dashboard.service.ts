@@ -1,6 +1,4 @@
-// =============================
-// src/app/core/services/dashboard.service.ts
-// =============================
+// src/app/core/services/dashboard.service.ts - FIXED VERSION
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
@@ -22,7 +20,7 @@ type EndpointKey = 'salesMonthly' | 'salesUnits' | 'salesBranch' | 'afterSalesMo
 
 type EndpointDef = string | ((args: { year: string }) => string);
 
-type ParamsBuilder = (args: { year: string }) => Record<string, string>;
+type ParamsBuilder = (args: { year: string; month?: string; branch?: string }) => Record<string, string>;
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
@@ -43,7 +41,6 @@ export class DashboardService {
   }
 
   getCabangNameMap(): Record<string, string> {
-    // Kembalikan salinan ringan untuk menghindari mutasi eksternal
     return { ...this.cabangNameMap };
   }
 
@@ -60,10 +57,31 @@ export class DashboardService {
         afterSalesMonthly: 'getAfterSalesSummaryReportMonthly',
       },
       params: {
-        salesMonthly: ({ year }) => ({ periode: year }),
-        salesUnits: ({ year }) => ({ periode: year }),
-        salesBranch: ({ year }) => ({ periode: year }),
-        afterSalesMonthly: ({year}) => ({periode: year})
+        salesMonthly: ({ year, month, branch }) => {
+          const params: Record<string, string> = { periode: year };
+          // ✅ FIX: Use bracket notation instead of dot notation
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['cabang_id'] = branch;
+          return params;
+        },
+        salesUnits: ({ year, month, branch }) => {
+          const params: Record<string, string> = { periode: year };
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['cabang_id'] = branch;
+          return params;
+        },
+        salesBranch: ({ year, month, branch }) => {
+          const params: Record<string, string> = { periode: year };
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['cabang_id'] = branch;
+          return params;
+        },
+        afterSalesMonthly: ({ year, month, branch }) => {
+          const params: Record<string, string> = { periode: year };
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['cabang_id'] = branch;
+          return params;
+        }
       },
     },
     // Contoh perusahaan lain (ganti sesuai backend nyata jika tersedia)
@@ -74,11 +92,33 @@ export class DashboardService {
         salesMonthly: (a) => `reports/monthly/${a.year}`,
         salesUnits: 'reports/units',
         salesBranch: 'reports/branch',
+        afterSalesMonthly: 'aftersales/monthly',
       },
       params: {
-        salesMonthly: () => ({}),
-        salesUnits: ({ year }) => ({ year }),
-        salesBranch: ({ year }) => ({ year }),
+        salesMonthly: ({ month, branch }) => {
+          const params: Record<string, string> = {};
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['branch_code'] = branch;
+          return params;
+        },
+        salesUnits: ({ year, month, branch }) => {
+          const params: Record<string, string> = { year };
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['branch_code'] = branch;
+          return params;
+        },
+        salesBranch: ({ year, month, branch }) => {
+          const params: Record<string, string> = { year };
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['branch_code'] = branch;
+          return params;
+        },
+        afterSalesMonthly: ({ year, month, branch }) => {
+          const params: Record<string, string> = { year };
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['branch_code'] = branch;
+          return params;
+        }
       },
     },
 
@@ -89,11 +129,33 @@ export class DashboardService {
         salesMonthly: 'summary/monthly',
         salesUnits: 'summary/units',
         salesBranch: 'summary/branches',
+        afterSalesMonthly: 'summary/aftersales',
       },
       params: {
-        salesMonthly: ({ year }) => ({ periode: year }),
-        salesUnits: ({ year }) => ({ periode: year }),
-        salesBranch: ({ year }) => ({ periode: year }),
+        salesMonthly: ({ year, month, branch }) => {
+          const params: Record<string, string> = { periode: year };
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['cabang_id'] = branch;
+          return params;
+        },
+        salesUnits: ({ year, month, branch }) => {
+          const params: Record<string, string> = { periode: year };
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['cabang_id'] = branch;
+          return params;
+        },
+        salesBranch: ({ year, month, branch }) => {
+          const params: Record<string, string> = { periode: year };
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['cabang_id'] = branch;
+          return params;
+        },
+        afterSalesMonthly: ({ year, month, branch }) => {
+          const params: Record<string, string> = { periode: year };
+          if (month && month !== 'all-month') params['month'] = month;
+          if (branch) params['cabang_id'] = branch;
+          return params;
+        }
       },
     },
 
@@ -104,11 +166,33 @@ export class DashboardService {
         salesMonthly: 'getSalesMonthly',
         salesUnits: 'getSalesByUnits',
         salesBranch: 'getSalesByBranch',
+        afterSalesMonthly: 'getAfterSalesMonthly',
       },
       params: {
-        salesMonthly: ({ year }) => ({ y: year }),
-        salesUnits: ({ year }) => ({ y: year }),
-        salesBranch: ({ year }) => ({ y: year }),
+        salesMonthly: ({ year, month, branch }) => {
+          const params: Record<string, string> = { y: year };
+          if (month && month !== 'all-month') params['m'] = month;
+          if (branch) params['b'] = branch;
+          return params;
+        },
+        salesUnits: ({ year, month, branch }) => {
+          const params: Record<string, string> = { y: year };
+          if (month && month !== 'all-month') params['m'] = month;
+          if (branch) params['b'] = branch;
+          return params;
+        },
+        salesBranch: ({ year, month, branch }) => {
+          const params: Record<string, string> = { y: year };
+          if (month && month !== 'all-month') params['m'] = month;
+          if (branch) params['b'] = branch;
+          return params;
+        },
+        afterSalesMonthly: ({ year, month, branch }) => {
+          const params: Record<string, string> = { y: year };
+          if (month && month !== 'all-month') params['m'] = month;
+          if (branch) params['b'] = branch;
+          return params;
+        }
       },
     },
   };
@@ -122,7 +206,7 @@ export class DashboardService {
   private buildUrl(
     company: string,
     key: EndpointKey,
-    year: string
+    args: { year: string; month?: string; branch?: string }
   ): { url: string; params: Record<string, string>; headers?: HttpHeaders } {
     const cfg = this.getConfig(company);
     const def = cfg.endpoints[key];
@@ -130,13 +214,14 @@ export class DashboardService {
       throw new Error(
         `Endpoint '${key}' belum dikonfigurasi untuk perusahaan '${company}'`
       );
-    const path = typeof def === 'function' ? def({ year }) : def;
+    const path = typeof def === 'function' ? def({ year: args.year }) : def;
     const url = `${cfg.baseUrl}/${path}`;
     const paramsBuilder = cfg.params?.[key];
-    const params = paramsBuilder ? paramsBuilder({ year }) : {};
+    const params = paramsBuilder ? paramsBuilder(args) : {};
     return { url, params, headers: cfg.headers };
   }
 
+  // ✅ SIMPLE: Keep original methods for backward compatibility
   getSalesMonthly(
     company: string,
     year: string
@@ -144,7 +229,7 @@ export class DashboardService {
     const { url, params, headers } = this.buildUrl(
       company,
       'salesMonthly',
-      year
+      { year }
     );
     return this.http
       .get<ApiResponse<SalesMonthlyResponse>>(url, { params, headers })
@@ -152,7 +237,7 @@ export class DashboardService {
   }
 
   getSalesUnits(company: string, year: string): Observable<SalesUnitsResponse> {
-    const { url, params, headers } = this.buildUrl(company, 'salesUnits', year);
+    const { url, params, headers } = this.buildUrl(company, 'salesUnits', { year });
     return this.http
       .get<ApiResponse<SalesUnitsResponse>>(url, { params, headers })
       .pipe(map((r) => r.data));
@@ -165,24 +250,38 @@ export class DashboardService {
     const { url, params, headers } = this.buildUrl(
       company,
       'salesBranch',
-      year
+      { year }
     );
     return this.http
       .get<ApiResponse<SalesBranchResponse>>(url, { params, headers })
       .pipe(map((r) => r.data));
   }
   
+  // ✅ ENHANCED: After Sales dengan optional branch parameter  
   getAfterSalesMonthly(
     company: string,
-    year: string
+    year: string,
+    branch?: string
   ): Observable<AfterSalesResponse> {
     const { url, params, headers } = this.buildUrl(
       company,
       'afterSalesMonthly',
-      year
+      { year, branch }
     );
     return this.http
       .get<ApiResponse<AfterSalesResponse>>(url, { params, headers })
-      .pipe(map((r) => r.data));
+      .pipe(
+        map((r) => r.data),
+        // ✅ SIMPLE: Client-side filtering jika backend belum support branch
+        map((data) => branch ? this.filterByBranch(data, branch) : data)
+      );
+  }
+
+  // ✅ SIMPLE: Helper method untuk filter di client-side
+  private filterByBranch(data: AfterSalesResponse, branchId: string): AfterSalesResponse {
+    return {
+      ...data,
+      aftersales: data.aftersales.filter(item => item.cabang_id === branchId)
+    };
   }
 }

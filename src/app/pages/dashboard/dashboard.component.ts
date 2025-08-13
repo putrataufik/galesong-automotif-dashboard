@@ -277,6 +277,7 @@ export class DashboardComponent implements OnInit {
           totalHariKerja: afterSalesKpiData.totalHariKerja,
           serviceCabang: afterSalesKpiData.serviceCabang,
           afterSalesRealisasi: afterSalesKpiData.afterSalesRealisasi,
+          afterSalesTarget: afterSalesKpiData.afterSalesTarget,
           unitEntryRealisasi: afterSalesKpiData.unitEntryRealisasi,
           sparepartTunaiRealisasi: afterSalesKpiData.sparepartTunaiRealisasi,
         });

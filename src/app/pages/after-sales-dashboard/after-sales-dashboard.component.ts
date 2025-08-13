@@ -1,75 +1,294 @@
 // src/app/pages/after-sales-dashboard/after-sales-dashboard.component.ts
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FilterMainDashboardComponent } from '../../shared/components/filter-main-dashboard/filter-main-dashboard.component';
-import { AppFilter } from '../../types/filter.model';
+
+// Components
+import { FilterAfterSalesComponent } from '../../shared/components/filter-after-sales/filter-after-sales.component';
 import { KpiCardAsComponent } from '../../shared/components/kpi-card-as/kpi-card-as.component';
+
+// Services & State
+import { DashboardService } from '../../core/services/dashboard.service';
+import { DashboardStateService } from '../../core/state/dashboard-state.service';
+
+// Utils & Types
+import {
+  calculateAfterSalesKpi,
+  AfterSalesKpiData,
+  formatCompactNumber,
+} from '../../shared/utils/dashboard-aftersales-kpi.utils';
+import {
+  processAfterSalesRealisasiVsTargetData,
+  processAfterSalesProfitByBranchData,
+} from '../../shared/utils/dashboard-chart.utils';
+import { ChartData } from '../../types/sales.model';
+import { AfterSalesFilter } from '../../types/filter.model';
+
+// ✅ Default filter saat pertama kali load / setelah refresh
+const DEFAULT_AFTERSALES_FILTER: AfterSalesFilter = {
+  company: '',                // biarkan user pilih
+  branch: '',                 // '' = semua cabang
+  period: String(new Date().getFullYear()), // Tahun ini
+  month: 'all-month',         // Konsisten dengan FilterAfterSalesComponent
+};
 
 @Component({
   selector: 'app-after-sales-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, FilterMainDashboardComponent, KpiCardAsComponent],
+  imports: [CommonModule, FormsModule, FilterAfterSalesComponent, KpiCardAsComponent],
   templateUrl: './after-sales-dashboard.component.html',
   styleUrls: ['./after-sales-dashboard.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AfterSalesDashboardComponent {
+export class AfterSalesDashboardComponent implements OnInit {
+  private api = inject(DashboardService);
+  private state = inject(DashboardStateService);
 
-  // State management dengan Angular signals
+  // Expose utils
+  formatCompactNumber = formatCompactNumber;
+
+  // UI state
   loading = signal(false);
-  hasData = signal(false);
   error = signal<string | null>(null);
-  currentFilter = signal<AppFilter | null>(null);
-  // Property untuk generate options 1-31
+
+  // Filter state (dioper ke child sebagai initialFilter)
+  prefilledFilter: AfterSalesFilter | null = null;
+
+  // Day selector (untuk "harapan target")
   dayOptions: number[] = Array.from({ length: 31 }, (_, i) => i + 1);
   selectedDay = signal<number | null>(null);
 
-  afterSalesData = {
-    percentage: 33,
-    realisasi: 100000000,  // Rp. 100 Juta
-    target: 300000000,     // Rp. 300 Juta
-    grandTotal: -306658819,
-    rataRata: 2294248,
-    harapanTarget: -12777451
-  };
-  serviceCabangData = {
-    percentage: 75,
-    realisasi: 225000000,  // Rp. 100 Juta
-    target: 300000000,     // Rp. 300 Juta
-    grandTotal: 306658819,
-    rataRata: 55354435,
-    harapanTarget: -1232312
-  };
+  // Data signals
+  afterSalesKpi = signal<AfterSalesKpiData | null>(null);
+  kpiCards = signal<any[]>([]);
+  realisasiVsTargetChart = signal<ChartData | null>(null);
+  profitByBranchChart = signal<ChartData | null>(null);
 
-  // Method untuk handle selection
+  // Getter ala DashboardComponent
+  get hasData(): boolean {
+    return !!(
+      this.afterSalesKpi() ||
+      this.realisasiVsTargetChart() ||
+      this.profitByBranchChart() ||
+      (this.kpiCards()?.length ?? 0) > 0
+    );
+  }
+  get isDataEmpty(): boolean {
+    return !this.hasData && !this.loading();
+  }
+
+  // ❌ Hapus load di constructor; jangan melempar error di ngOnInit
+  ngOnInit(): void {
+    this.loadPersistedData();
+  }
+
+  /* =================== Load Persisted =================== */
+  private loadPersistedData(): void {
+    // Filter
+    const savedFilter = this.state.getFilterAfterSales?.();
+    if (savedFilter) {
+      this.prefilledFilter = savedFilter;
+    } else {
+      // → kalau belum ada, pakai default dan simpan agar konsisten saat refresh berikutnya
+      this.prefilledFilter = DEFAULT_AFTERSALES_FILTER;
+      this.state.saveFilterAfterSales?.(DEFAULT_AFTERSALES_FILTER);
+    }
+
+    // KPI
+    const savedKpi = this.state.getAfterSalesKpi?.();
+    if (savedKpi) {
+      this.afterSalesKpi.set(savedKpi);
+      this.kpiCards.set(this.buildKpiCards(savedKpi, this.selectedDay()));
+    }
+
+    // Charts
+    const savedRealisasiVsTarget = this.state.getAfterSalesRealisasiVsTarget?.();
+    if (savedRealisasiVsTarget) this.realisasiVsTargetChart.set(savedRealisasiVsTarget);
+
+    const savedProfitByBranch = this.state.getAfterSalesProfitByBranch?.();
+    if (savedProfitByBranch) this.profitByBranchChart.set(savedProfitByBranch);
+  }
+
+  /* =================== Search Flow =================== */
+  onSearch(filter: AfterSalesFilter): void {
+    this.error.set(null);
+    this.prepareForNewSearch(filter);
+
+    // Validasi minimum: butuh company & period untuk panggil API
+    if (!filter.company || !filter.period) {
+      this.error.set('Silakan pilih perusahaan (company) dan periode (period) terlebih dahulu.');
+      return; // Jangan panggil API kalau belum lengkap
+    }
+
+    this.executeSearch(filter);
+  }
+
+  private prepareForNewSearch(filter: AfterSalesFilter): void {
+    // Persist filter khusus after-sales
+    this.state.saveFilterAfterSales?.(filter);
+
+    // Update local
+    this.prefilledFilter = filter;
+
+    // Clear data dashboard
+    this.afterSalesKpi.set(null);
+    this.kpiCards.set([]);
+    this.realisasiVsTargetChart.set(null);
+    this.profitByBranchChart.set(null);
+  }
+
+  private executeSearch(filter: AfterSalesFilter): void {
+    this.loading.set(true);
+
+    // branch kosong => undefined (semua cabang)
+    const branchParam = filter.branch ? filter.branch : undefined;
+
+    this.api
+      .getAfterSalesMonthly(filter.company, filter.period, branchParam)
+      .subscribe({
+        next: (response) => this.processApiResponse(response),
+        error: (err) => this.handleError(err),
+        complete: () => this.loading.set(false),
+      });
+  }
+
+  /* =================== Process Response =================== */
+  private processApiResponse(response: any): void {
+    try {
+      const aftersalesData = response?.aftersales ?? [];
+
+      if (!Array.isArray(aftersalesData) || aftersalesData.length === 0) {
+        this.error.set('Tidak ada data after sales untuk filter yang dipilih.');
+        return;
+      }
+
+      // KPI
+      const kpi = calculateAfterSalesKpi(aftersalesData);
+      this.afterSalesKpi.set(kpi);
+      this.state.saveAfterSalesKpi?.({
+        totalRevenueRealisasi: kpi.totalRevenueRealisasi,
+        totalBiayaUsaha: kpi.totalBiayaUsaha,
+        totalProfit: kpi.totalProfit,
+        totalHariKerja: kpi.totalHariKerja,
+        serviceCabang: kpi.serviceCabang,
+        afterSalesRealisasi: kpi.afterSalesRealisasi,
+        afterSalesTarget: kpi.afterSalesTarget,
+        unitEntryRealisasi: kpi.unitEntryRealisasi,
+        sparepartTunaiRealisasi: kpi.sparepartTunaiRealisasi,
+      });
+
+      // KPI Cards
+      this.kpiCards.set(this.buildKpiCards(kpi, this.selectedDay()));
+
+      // Charts
+      const cabangMap = this.api.getCabangNameMap();
+
+      const realisasiVsTarget = processAfterSalesRealisasiVsTargetData({ aftersales: aftersalesData });
+      if (realisasiVsTarget) {
+        this.realisasiVsTargetChart.set(realisasiVsTarget);
+        this.state.saveAfterSalesRealisasiVsTarget?.(realisasiVsTarget);
+      }
+
+      const profitByBranch = processAfterSalesProfitByBranchData({ aftersales: aftersalesData }, cabangMap);
+      if (profitByBranch) {
+        this.profitByBranchChart.set(profitByBranch);
+        this.state.saveAfterSalesProfitByBranch?.(profitByBranch);
+      }
+    } catch (e) {
+      console.error('Error processing After Sales response:', e);
+      this.error.set('Gagal memproses data. Silakan coba lagi.');
+    }
+  }
+
+  /* =================== KPI Builder =================== */
+  private buildKpiCards(kpi: AfterSalesKpiData, selectedDay: number | null): any[] {
+    const pct = (num: number, den: number) => (!den ? 0 : Math.round((num / den) * 100));
+    const afterSalesSelisih = (kpi.afterSalesRealisasi ?? 0) - (kpi.afterSalesTarget ?? 0);
+
+    return [
+      {
+        title: 'AFTER SALES REALISASI vs TARGET',
+        percentage: pct(kpi.afterSalesRealisasi ?? 0, kpi.afterSalesTarget ?? 0),
+        realisasi: kpi.afterSalesRealisasi ?? 0,
+        target: kpi.afterSalesTarget ?? 0,
+        grandTotal: afterSalesSelisih,
+        rataRata: Math.round((kpi.afterSalesRealisasi ?? 0) / 12),
+        harapanTarget: this.calculateHarapanTarget(afterSalesSelisih, selectedDay),
+        headerColor: '#2563EB',
+        isRupiah: true,
+      },
+      {
+        title: 'SERVICE CABANG REALISASI vs TARGET',
+        percentage: pct(kpi.serviceCabang ?? 0, (kpi.serviceCabang ?? 0) * 1.3),
+        realisasi: kpi.serviceCabang ?? 0,
+        target: (kpi.serviceCabang ?? 0) * 1.3,
+        grandTotal: kpi.serviceCabang ?? 0,
+        rataRata: Math.round((kpi.serviceCabang ?? 0) / 8),
+        harapanTarget: this.calculateHarapanTarget(kpi.serviceCabang ?? 0, selectedDay),
+        headerColor: '#3B00A0',
+        isRupiah: true,
+      },
+      {
+        title: 'UNIT ENTRY REALISASI vs TARGET',
+        percentage: pct(kpi.unitEntryRealisasi ?? 0, (kpi.unitEntryRealisasi ?? 0) * 1.2),
+        realisasi: kpi.unitEntryRealisasi ?? 0,
+        target: (kpi.unitEntryRealisasi ?? 0) * 1.2,
+        grandTotal: kpi.unitEntryRealisasi ?? 0,
+        rataRata: Math.round((kpi.unitEntryRealisasi ?? 0) / 12),
+        harapanTarget: this.calculateHarapanTarget(kpi.unitEntryRealisasi ?? 0, selectedDay),
+        headerColor: '#588000',
+        isRupiah: false,
+      },
+      {
+        title: 'SPAREPART TUNAI REALISASI vs TARGET',
+        percentage: pct(kpi.sparepartTunaiRealisasi ?? 0, (kpi.sparepartTunaiRealisasi ?? 0) * 1.1),
+        realisasi: kpi.sparepartTunaiRealisasi ?? 0,
+        target: (kpi.sparepartTunaiRealisasi ?? 0) * 1.1,
+        grandTotal: kpi.sparepartTunaiRealisasi ?? 0,
+        rataRata: Math.round((kpi.sparepartTunaiRealisasi ?? 0) / 12),
+        harapanTarget: this.calculateHarapanTarget(kpi.sparepartTunaiRealisasi ?? 0, selectedDay),
+        headerColor: '#DC2626',
+        isRupiah: true,
+      },
+    ];
+  }
+
+  /* =================== Helpers =================== */
+  private calculateHarapanTarget(grandTotal: number, sisaHariKerja: number | null): number {
+    if (!sisaHariKerja || sisaHariKerja <= 0) return 0;
+    return Math.round((grandTotal ?? 0) / sisaHariKerja);
+  }
+
   onDayChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
     const value = target.value === '' ? null : Number(target.value);
     this.selectedDay.set(value);
-  }
 
-  onSearch(filter: AppFilter): void {
-
-    // Reset error state
-    this.error.set(null);
-
-    // Validasi kategori filter
-    if (filter.category !== 'after-sales' && filter.category !== 'all-category') {
-      this.error.set('Silakan pilih kategori "After Sales" atau "Semua Kategori" untuk halaman ini');
-      return;
+    if ((this.kpiCards()?.length ?? 0) > 0) {
+      const updated = this.kpiCards().map((card) => ({
+        ...card,
+        harapanTarget: this.calculateHarapanTarget(card.grandTotal, value),
+      }));
+      this.kpiCards.set(updated);
     }
-
-    // Set loading state
-    this.loading.set(true);
-    this.currentFilter.set(filter);
-  }
-  // Method untuk reset dashboard
-  resetDashboard(): void {
-    this.hasData.set(false);
-    this.error.set(null);
-    this.currentFilter.set(null);
-    this.selectedDay.set(null);
   }
 
+  getBranchDisplayName(): string {
+    const filter = this.state.getFilterAfterSales?.();
+    if (!filter?.branch) return 'Semua Cabang';
+    const cabangMap = this.api.getCabangNameMap();
+    return cabangMap[filter.branch] || filter.branch;
+  }
+
+  getProfitChartTitle(): string {
+    const branchName = this.getBranchDisplayName();
+    return `Profit After Sales - ${branchName}`;
+  }
+
+  /* =================== Error Handling =================== */
+  private handleError(error: any): void {
+    console.error('After Sales API Error:', error);
+    this.error.set('Gagal memuat data after sales. Silakan coba lagi.');
+    this.loading.set(false);
+  }
 }

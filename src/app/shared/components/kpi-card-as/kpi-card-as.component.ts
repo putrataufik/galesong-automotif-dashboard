@@ -18,40 +18,50 @@ export class KpiCardAsComponent {
   @Input() grandTotal: number | null = null;
   @Input() rataRata: number | null = null;
   @Input() harapanTarget: number | null = null;
-  @Input() headerColor = '#4285f4'; // Default blue color
+  @Input() headerColor = '#4285f4';
   @Input() loading = false;
+  @Input() isRupiah = true; // ← NEW: Flag untuk menentukan format currency atau unit
 
-  // Format currency untuk tampilan
+  // ✅ FIXED: Format currency untuk tampilan dengan type checking
   formatCurrency(value: number | null): string {
     if (value === null || value === undefined) return '—';
 
-    // Format ke Rupiah dengan pembulatan
-    const absValue = Math.abs(value);
-    if (absValue >= 1_000_000_000) {
-      return `Rp. ${(value / 1_000_000_000).toFixed(1)}M`;
-    } else if (absValue >= 1_000_000) {
-      return `Rp. ${(value / 1_000_000).toFixed(1)}Jt`;
-    } else if (absValue >= 1_000) {
-      return `Rp. ${(value / 1_000).toFixed(0)}K`;
+    if (this.isRupiah) {
+      // Format as currency
+      const absValue = Math.abs(value);
+      if (absValue >= 1_000_000_000) {
+        return `Rp. ${(value / 1_000_000_000).toFixed(1)}M`;
+      } else if (absValue >= 1_000_000) {
+        return `Rp. ${(value / 1_000_000).toFixed(1)}Jt`;
+      } else if (absValue >= 1_000) {
+        return `Rp. ${(value / 1_000).toFixed(0)}K`;
+      }
+      return `Rp. ${value.toLocaleString('id-ID')}`;
+    } else {
+      // Format as unit (number only)
+      return value.toLocaleString('id-ID');
     }
-    return `Rp. ${value.toLocaleString('id-ID')}`;
   }
 
-  // Format number dengan tanda + atau -
+  // ✅ FIXED: Format number dengan tanda + atau - (hanya untuk number values)
   formatNumber(value: number | null): string {
     if (value === null || value === undefined) return '—';
-
+    
     const sign = value >= 0 ? '+' : '';
-    return `${sign}${value.toLocaleString('id-ID')}`;
+    if (this.isRupiah) {
+      return `${sign}${this.formatCurrency(Math.abs(value))}`;
+    } else {
+      return `${sign}${value.toLocaleString('id-ID')} unit`;
+    }
   }
-  // kpi-card-as.component.ts (tambahkan di dalam class)
+
+  // Clamp percentage
   get clampedPercent(): number {
     const v = this.percentage ?? 0;
     return Math.max(0, Math.min(100, v));
   }
 
-
-  // Get text color berdasarkan nilai positif/negatif
+  // ✅ FIXED: Get text color berdasarkan nilai positif/negatif (untuk number values)
   getValueColor(value: number | null): string {
     if (value === null || value === undefined) return 'text-muted';
     return value >= 0 ? 'text-success' : 'text-danger';
@@ -61,5 +71,10 @@ export class KpiCardAsComponent {
   formatPercentage(value: number | null): string {
     if (value === null || value === undefined) return '—';
     return `${value}%`;
+  }
+
+  // ✅ NEW: Format unit suffix
+  getUnitSuffix(): string {
+    return this.isRupiah ? '' : ' unit';
   }
 }
