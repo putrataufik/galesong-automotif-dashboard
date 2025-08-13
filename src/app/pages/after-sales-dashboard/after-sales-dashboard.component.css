@@ -1,0 +1,15 @@
+/* src/app/pages/after-sales-dashboard/after-sales-dashboard.component.css */
+/* Hanya styling yang tidak bisa dilakukan dengan Bootstrap */
+.card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  /* Custom success color variations for After Sales theme */
+  .text-success-light {
+    color: #20c997 !important;
+  }
+  
+  .bg-success-light {
+    background-color: rgba(32, 201, 151, 0.1) !important;
+  }

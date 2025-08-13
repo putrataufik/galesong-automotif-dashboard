@@ -1,0 +1,106 @@
+/* kpi-card-as.component.css */
+
+/* Card */
+.kpi-card-as {
+    background: #fff;
+    border: 0;
+    height: 100%;
+  }
+  .shadow-soft { box-shadow: 0 8px 26px rgba(0,0,0,.12); }
+  .rounded-4 { border-radius: 16px; }
+  
+  /* Compact spacing agar muat 4 per baris */
+  .kpi-card-as.compact .content-section { padding: 14px 16px 16px; }
+  .kpi-card-as .percentage-display {
+    font-weight: 800;
+    font-size: 32px;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  
+  /* Hilangkan padding atas & bawah header-chip-wrapper */
+.header-chip-wrapper {
+    padding: 0; /* hilangkan padding atas-bawah */
+    margin: 0;  /* pastikan nggak ada jarak */
+  }
+  
+  /* Header pill full width dan rounded sama seperti card */
+  .header-chip {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: 8px;
+    color: #fff;
+    border-radius: 16px 16px 0 0;
+    padding: 0 16px;
+    min-height: 46px; 
+    background: #4285f4; 
+  }
+  
+  .chip-title {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 1.25;
+    word-break: break-word;
+  }
+  
+  .chip-icon {
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  
+  /* Progress pill */
+.progress {
+    height: 35px;
+    background-color: #878787; /* warna dasar */
+    position: relative; /* untuk posisi teks di tengah */
+  }
+  
+  .progress-bar {
+    background-color: #00A4FF !important; /* warna progress */
+    font-size: 11px;
+    position: relative;
+    z-index: 1; /* biar di bawah teks */
+  }
+  
+  /* Teks di tengah progress */
+  .progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff; /* warna teks */
+    font-weight: 600;
+    font-size: 11px;
+    width: 100%;
+    text-align: center;
+    z-index: 2; /* di atas progress bar */
+    pointer-events: none; /* biar klik nggak kena teks */
+  }
+  
+  
+  /* Detail rows */
+  .details { margin-top: 12px; }
+  .detail-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid #F2F4F7; font-size: 13px;
+  }
+  .detail-row:last-child { border-bottom: 0; }
+  
+  .text-success { color: #16A34A !important; }
+  .text-danger  { color: #DC2626 !important; }
+  .loading-overlay {
+    position: absolute; inset: 0; background: rgba(255,255,255,.7); border-radius: 16px; z-index: 5;
+  }
+  
+  /* Responsif */
+  @media (min-width: 992px) {  /* desktop: tampilan padat */
+    .kpi-card-as .percentage-display { font-size: 36px; }
+  }
+  @media (max-width: 768px) {
+    .kpi-card-as .percentage-display { font-size: 28px; }
+    .detail-row { font-size: 12px; }
+  }
+  

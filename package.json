@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:galesong-automotif-dashboard": "node dist/galesong-automotif-dashboard/server/server.mjs"
+    "serve:ssr:galesong-automotif-dashboard": "node dist/galesong-automotif-dashboard/server/main.server.mjs"
   },
   "private": true,
   "dependencies": {
@@ -21,6 +21,7 @@
     "@angular/router": "^19.2.0",
     "@angular/ssr": "^19.2.15",
     "bootstrap": "^5.3.7",
+    "bootstrap-icons": "^1.13.1",
     "chart.js": "^4.5.0",
     "express": "^4.18.2",
     "primeicons": "^7.0.0",

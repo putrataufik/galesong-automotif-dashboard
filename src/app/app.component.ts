@@ -1,3 +1,4 @@
+// src/app/app.component.ts
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
@@ -34,8 +35,8 @@ export class AppComponent {
     }
 
     // Listen untuk route changes untuk update page title
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
+     this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.updatePageTitle(event.url);
     });
@@ -80,6 +81,9 @@ export class AppComponent {
         break;
       case '/financial-tracking':
         this._currentPageTitle.set('Financial Tracking');
+        break;
+      case '/after-sales-dashboard':
+        this._currentPageTitle.set('After Sales Dashboard');
         break;
       default:
         this._currentPageTitle.set('Dashboard');

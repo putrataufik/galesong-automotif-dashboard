@@ -59,11 +59,13 @@ interface ApiResponse {
     BarChartCardComponent,
   ],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css',
+  styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-  private api = inject(DashboardService);
-  private state = inject(DashboardStateService);
+  constructor(
+    private api: DashboardService,             // ⬅️ ganti dari private api = inject(DashboardService);
+    private state: DashboardStateService       // ⬅️ ganti dari private state = inject(DashboardStateService);
+  ) {}
 
   // expose util ke template
   formatCompactNumber = formatCompactNumber;
@@ -215,8 +217,6 @@ export class DashboardComponent implements OnInit {
       apiCalls.units = this.api.getSalesUnits(filter.company, filter.period);
       apiCalls.branch = this.api.getSalesBranch(filter.company, filter.period);
     }
-
-    // ← TAMBAH INI
     if (filter.category === 'after-sales' || filter.category === 'all-category') {
       apiCalls.aftersales = this.api.getAfterSalesMonthly(filter.company, filter.period);
     }
@@ -280,6 +280,7 @@ export class DashboardComponent implements OnInit {
           unitEntryRealisasi: afterSalesKpiData.unitEntryRealisasi,
           sparepartTunaiRealisasi: afterSalesKpiData.sparepartTunaiRealisasi,
         });
+        
 
         // Process Realisasi vs Target Chart
         const realisasiVsTarget = processAfterSalesRealisasiVsTargetData(response.aftersales);

@@ -1,0 +1,58 @@
+<!-- src/app/pages/after-sales-dashboard/after-sales-dashboard.component.html -->
+<div class="container-fluid p-4">
+    <!-- Header dan Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold text-dark mb-3">
+                After Sales <span class="text-success">Dashboard</span>
+            </h2>
+
+            <!-- Filter Component -->
+            <app-filter (search)="onSearch($event)"></app-filter>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="d-flex flex-column align-items-end mb-3">
+                <p class="mb-2">Pilih Sisa Hari untuk Menampilkan Harapan Target</p>
+                <select class="form-select" style="width: 200px;" [value]="selectedDay() || ''"
+                    (change)="onDayChange($event)">
+                    <option value="">Pilih Hari (1-31)</option>
+                    @for (day of dayOptions; track day) {
+                    <option [value]="day">{{ day }}</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3">
+        <h4>Pencapaian Cabang</h4>
+        <div class="col-12 col-md-6 col-lg-3">
+            <app-kpi-card-as class="compact" [title]="'AFTER SALES REALISASI vs TARGET'"
+                [percentage]="afterSalesData.percentage" [realisasi]="afterSalesData.realisasi"
+                [target]="afterSalesData.target" [grandTotal]="afterSalesData.grandTotal"
+                [rataRata]="afterSalesData.rataRata" [harapanTarget]="afterSalesData.harapanTarget"
+                headerColor="#2563EB">
+            </app-kpi-card-as>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <app-kpi-card-as class="compact" [title]="'SERVICE CABANG REALISASI vs TARGET'"
+                [percentage]="serviceCabangData.percentage" [realisasi]="serviceCabangData.realisasi"
+                [target]="serviceCabangData.target" [grandTotal]="serviceCabangData.grandTotal"
+                [rataRata]="serviceCabangData.rataRata" [harapanTarget]="serviceCabangData.harapanTarget"
+                headerColor="#3B00A0">
+            </app-kpi-card-as>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3">
+            <app-kpi-card-as class="compact" [title]="'AFTER SALES REALISASI vs TARGET'"
+                [percentage]="afterSalesData.percentage" [realisasi]="afterSalesData.realisasi"
+                [target]="afterSalesData.target" [grandTotal]="afterSalesData.grandTotal"
+                [rataRata]="afterSalesData.rataRata" [harapanTarget]="afterSalesData.harapanTarget"
+                headerColor="#588000">
+            </app-kpi-card-as>
+        </div>
+
+        <!-- Tambahkan KPI lain, otomatis pindah baris kalau lebih dari 4 -->
+    </div>

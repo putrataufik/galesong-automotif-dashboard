@@ -30,6 +30,11 @@ export class SidebarComponent {
       path: '/financial-tracking',
       label: 'Financial Tracker',
       icon: 'expense' // akan menjadi assets/icons/chart-line.png
+    },
+    {
+      path: '/after-sales-dashboard',
+      label: 'After Sales Dashboard',
+      icon: 'service-provider' // akan menjadi assets/icons/service-provider.png
     }
   ];
 
