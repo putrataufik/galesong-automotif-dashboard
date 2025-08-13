@@ -4,7 +4,7 @@ import { forkJoin } from 'rxjs';
 
 // Components
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
-import { FilterComponent } from '../../shared/components/filter/filter.component';
+import { FilterMainDashboardComponent } from '../../shared/components/filter-main-dashboard/filter-main-dashboard.component';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
 import { BarChartCardComponent } from '../../shared/components/bar-chart-card/bar-chart-card.component';
@@ -53,19 +53,17 @@ interface ApiResponse {
   imports: [
     CommonModule,
     KpiCardComponent,
-    FilterComponent,
+    FilterMainDashboardComponent,
     LineChartCardComponent,
     PieChartCardComponent,
     BarChartCardComponent,
   ],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit {
-  constructor(
-    private api: DashboardService,             // ⬅️ ganti dari private api = inject(DashboardService);
-    private state: DashboardStateService       // ⬅️ ganti dari private state = inject(DashboardStateService);
-  ) {}
+  private api = inject(DashboardService);
+  private state = inject(DashboardStateService);
 
   // expose util ke template
   formatCompactNumber = formatCompactNumber;
@@ -170,7 +168,7 @@ export class DashboardComponent implements OnInit {
     this.afterSalesRealisasiVsTarget.set(savedRealisasiVsTarget);
 
     const savedProfitByBranch = this.state.getAfterSalesProfitByBranch();
-    this.afterSalesProfitByBranch.set(savedProfitByBranch);
+    this.state.afterSalesProfitByBranch.set(savedProfitByBranch);
   }
 
   private isValidCategory(category: string): boolean {
@@ -217,6 +215,8 @@ export class DashboardComponent implements OnInit {
       apiCalls.units = this.api.getSalesUnits(filter.company, filter.period);
       apiCalls.branch = this.api.getSalesBranch(filter.company, filter.period);
     }
+
+    // ← TAMBAH INI
     if (filter.category === 'after-sales' || filter.category === 'all-category') {
       apiCalls.aftersales = this.api.getAfterSalesMonthly(filter.company, filter.period);
     }
@@ -280,7 +280,6 @@ export class DashboardComponent implements OnInit {
           unitEntryRealisasi: afterSalesKpiData.unitEntryRealisasi,
           sparepartTunaiRealisasi: afterSalesKpiData.sparepartTunaiRealisasi,
         });
-        
 
         // Process Realisasi vs Target Chart
         const realisasiVsTarget = processAfterSalesRealisasiVsTargetData(response.aftersales);

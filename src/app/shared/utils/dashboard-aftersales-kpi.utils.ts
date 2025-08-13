@@ -116,7 +116,7 @@ export function formatCompactNumber(
 
   // ≥ 1 Miliar
   if (abs >= 1_000_000_000) {
-    return `${sign}${(abs / 1_000_000_000).toLocaleString('id-ID', {
+    return `Rp. ${sign}${(abs / 1_000_000_000).toLocaleString('id-ID', {
       minimumFractionDigits: fractionDigits,
       maximumFractionDigits: fractionDigits,
     })} M`;

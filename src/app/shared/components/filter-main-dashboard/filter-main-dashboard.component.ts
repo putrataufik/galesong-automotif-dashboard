@@ -18,13 +18,13 @@ interface Option {
 }
 
 @Component({
-  selector: 'app-filter',
+  selector: 'app-filter-main-dashboard',
   standalone: true,
   imports: [FormsModule],
-  templateUrl: './filter.component.html',
-  styleUrl: './filter.component.css',
+  templateUrl: './filter-main-dashboard.component.html',
+  styleUrl: './filter-main-dashboard.component.css',
 })
-export class FilterComponent implements OnInit, OnChanges, OnDestroy {
+export class FilterMainDashboardComponent implements OnInit, OnChanges, OnDestroy {
   // Props dari parent
   @Input() initialFilter: AppFilter | null = null;
   @Input() loading = false;

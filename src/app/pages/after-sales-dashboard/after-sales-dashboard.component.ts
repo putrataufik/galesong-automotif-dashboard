@@ -2,14 +2,14 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FilterComponent } from '../../shared/components/filter/filter.component';
+import { FilterMainDashboardComponent } from '../../shared/components/filter-main-dashboard/filter-main-dashboard.component';
 import { AppFilter } from '../../types/filter.model';
 import { KpiCardAsComponent } from '../../shared/components/kpi-card-as/kpi-card-as.component';
 
 @Component({
   selector: 'app-after-sales-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, FilterComponent, KpiCardAsComponent],
+  imports: [CommonModule, FormsModule, FilterMainDashboardComponent, KpiCardAsComponent],
   templateUrl: './after-sales-dashboard.component.html',
   styleUrls: ['./after-sales-dashboard.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

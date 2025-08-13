@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FilterComponent } from '../../shared/components/filter/filter.component';
+import { FilterMainDashboardComponent } from '../../shared/components/filter-main-dashboard/filter-main-dashboard.component';
 @Component({
   selector: 'app-financial-tracking',
   standalone: true,
-  imports: [CommonModule, FilterComponent],
+  imports: [CommonModule, FilterMainDashboardComponent],
   templateUrl: './financial-tracking.component.html',
   styleUrl: './financial-tracking.component.css'
 })
