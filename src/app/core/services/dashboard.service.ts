@@ -1,188 +1,142 @@
-// =============================
 // src/app/core/services/dashboard.service.ts
-// =============================
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { forkJoin, map, Observable, of } from 'rxjs';
+
+import { SalesService } from './sales.service';
+import { AfterSalesService } from './aftersales.service';
+
 import {
-  ApiResponse,
-  SalesBranchResponse,
   SalesMonthlyResponse,
   SalesUnitsResponse,
+  SalesBranchResponse,
+  ChartData,
 } from '../../types/sales.model';
 import { AfterSalesResponse } from '../../types/aftersales.model';
+import { AfterSalesKpiData } from '../../shared/utils/dashboard-aftersales-kpi.utils';
+import { CompanyKey } from '../../types/company.model';
 
-interface CompanyApiConfig {
-  baseUrl: string;
-  headers?: HttpHeaders;
-  endpoints: Partial<Record<EndpointKey, EndpointDef>>;
-  params?: Partial<Record<EndpointKey, ParamsBuilder>>;
+import {
+  processLineChartData,
+  processBarChartData,
+  processPieChartData,
+  processAfterSalesRealisasiVsTargetData,
+  processAfterSalesProfitByBranchData,
+} from '../../shared/utils/dashboard-chart.utils';
+import {
+  calculateTotalUnitSales,
+  findTopModel,
+  findTopBranch,
+} from '../../shared/utils/dashboard-kpi.utils';
+import { calculateAfterSalesKpi } from '../../shared/utils/dashboard-aftersales-kpi.utils';
+
+export type Maybe<T> = T | null;
+export type Category = 'sales' | 'after-sales' | 'all-category';
+
+export interface DashboardOverviewDTO {
+  // Sales
+  salesTrend: Maybe<ChartData>;
+  salesByModel: Maybe<ChartData>;
+  salesByBranch: Maybe<ChartData>;
+  totalUnitSales: number;
+  topModel: { name: string; unit: number } | null;
+  topBranch: { code: string; unit: number } | null;
+  // After Sales
+  afterSalesKpi: Maybe<AfterSalesKpiData>;
+  afterSalesRealisasiVsTarget: Maybe<ChartData>;
+  afterSalesProfitByBranch: Maybe<ChartData>;
 }
-type EndpointKey = 'salesMonthly' | 'salesUnits' | 'salesBranch' | 'afterSalesMonthly';
-
-type EndpointDef = string | ((args: { year: string }) => string);
-
-type ParamsBuilder = (args: { year: string }) => Record<string, string>;
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private http = inject(HttpClient);
+  private sales = inject(SalesService);
+  private after = inject(AfterSalesService);
 
-  // Mapping cabang statis dipakai lintas KPI/Chart
-  private cabangNameMap: Record<string, string> = {
-    '0050': 'PETTARANI',
-    '0051': 'PALU',
-    '0052': 'KENDARI',
-    '0053': 'GORONTALO',
-    '0054': 'PALOPO',
-    '0055': 'SUNGGUMINASA',
-  };
-
-  getCabangName(id: string): string {
-    return this.cabangNameMap[id] || id;
+  // ------- Endpoint-level (kompatibel dgn komponen lama) -------
+  getSalesMonthly(company: CompanyKey, year: string): Observable<SalesMonthlyResponse> {
+    return this.sales.getSalesMonthly(company, year);
+  }
+  getSalesUnits(company: CompanyKey, year: string): Observable<SalesUnitsResponse> {
+    return this.sales.getSalesUnits(company, year);
+  }
+  getSalesBranch(company: CompanyKey, year: string): Observable<SalesBranchResponse> {
+    return this.sales.getSalesBranch(company, year);
+  }
+  getAfterSalesMonthly(company: CompanyKey, year: string): Observable<AfterSalesResponse> {
+    return this.after.getAfterSalesMonthly(company, year);
   }
 
-  getCabangNameMap(): Record<string, string> {
-    // Kembalikan salinan ringan untuk menghindari mutasi eksternal
-    return { ...this.cabangNameMap };
+  // Helpers cabang
+  getCabangNameMap() {
+    return this.sales.getCabangNameMap();
+  }
+  getCabangName(id: string) {
+    return this.sales.getCabangName(id);
   }
 
-  // === Konfigurasi per perusahaan (base URL, path, params, headers) ===
-  private companyApiConfig: Record<string, CompanyApiConfig> = {
-    // Mobilindo (Hyundai) — sesuai API yang sudah ada
-    'sinar-galesong-mobilindo': {
-      baseUrl: 'https://webservice.sinargalesong.net/SUMMARY/hyundai',
-      headers: new HttpHeaders({ authentication: 'rifqymuskar' }),
-      endpoints: {
-        salesMonthly: 'getSalesSummaryReportMonthly',
-        salesUnits: 'getSalesSummaryReportUnits',
-        salesBranch: 'getSalesSummaryReportBranch',
-        afterSalesMonthly: 'getAfterSalesSummaryReportMonthly',
-      },
-      params: {
-        salesMonthly: ({ year }) => ({ periode: year }),
-        salesUnits: ({ year }) => ({ periode: year }),
-        salesBranch: ({ year }) => ({ periode: year }),
-        afterSalesMonthly: ({year}) => ({periode: year})
-      },
-    },
-    // Contoh perusahaan lain (ganti sesuai backend nyata jika tersedia)
-    'sinar-galesong-mandiri': {
-      baseUrl: 'https://webservice.sinargalesong.net/SUMMARY/toyota',
-      headers: new HttpHeaders({ authentication: 'rifqymuskar' }),
-      endpoints: {
-        salesMonthly: (a) => `reports/monthly/${a.year}`,
-        salesUnits: 'reports/units',
-        salesBranch: 'reports/branch',
-      },
-      params: {
-        salesMonthly: () => ({}),
-        salesUnits: ({ year }) => ({ year }),
-        salesBranch: ({ year }) => ({ year }),
-      },
-    },
+  // ------- Facade: gabung Sales + After Sales untuk Main Dashboard -------
+  getDashboardOverview(company: CompanyKey, year: string, category: Category): Observable<DashboardOverviewDTO> {
+    const wantSales = category === 'sales' || category === 'all-category';
+    const wantAS    = category === 'after-sales' || category === 'all-category';
 
-    'sinar-galesong-prima': {
-      baseUrl: 'https://webservice.sinargalesong.net/SUMMARY/mitsubishi',
-      headers: new HttpHeaders({ authentication: 'rifqymuskar' }),
-      endpoints: {
-        salesMonthly: 'summary/monthly',
-        salesUnits: 'summary/units',
-        salesBranch: 'summary/branches',
-      },
-      params: {
-        salesMonthly: ({ year }) => ({ periode: year }),
-        salesUnits: ({ year }) => ({ periode: year }),
-        salesBranch: ({ year }) => ({ periode: year }),
-      },
-    },
+    // Bangun sources TANPA nilai undefined:
+    const sources: {
+      monthly?: Observable<SalesMonthlyResponse | null>;
+      units?: Observable<SalesUnitsResponse | null>;
+      branch?: Observable<SalesBranchResponse | null>;
+      aftersales?: Observable<AfterSalesResponse | null>;
+    } = {};
 
-    'sinar-galesong-automobil': {
-      baseUrl: 'https://webservice.sinargalesong.net/SUMMARY/honda',
-      headers: new HttpHeaders({ authentication: 'rifqymuskar' }),
-      endpoints: {
-        salesMonthly: 'getSalesMonthly',
-        salesUnits: 'getSalesByUnits',
-        salesBranch: 'getSalesByBranch',
-      },
-      params: {
-        salesMonthly: ({ year }) => ({ y: year }),
-        salesUnits: ({ year }) => ({ y: year }),
-        salesBranch: ({ year }) => ({ y: year }),
-      },
-    },
-  };
+    if (wantSales) {
+      sources.monthly = this.getSalesMonthly(company, year);
+      sources.units   = this.getSalesUnits(company, year);
+      sources.branch  = this.getSalesBranch(company, year);
+    } else {
+      // Placeholder null agar destructuring aman
+      sources.monthly = of(null);
+      sources.units   = of(null);
+      sources.branch  = of(null);
+    }
 
-  private getConfig(company: string): CompanyApiConfig {
-    const cfg = this.companyApiConfig[company];
-    if (!cfg) throw new Error(`Config perusahaan tidak ditemukan: ${company}`);
-    return cfg;
-  }
+    if (wantAS) {
+      sources.aftersales = this.getAfterSalesMonthly(company, year);
+    } else {
+      sources.aftersales = of(null);
+    }
 
-  private buildUrl(
-    company: string,
-    key: EndpointKey,
-    year: string
-  ): { url: string; params: Record<string, string>; headers?: HttpHeaders } {
-    const cfg = this.getConfig(company);
-    const def = cfg.endpoints[key];
-    if (!def)
-      throw new Error(
-        `Endpoint '${key}' belum dikonfigurasi untuk perusahaan '${company}'`
-      );
-    const path = typeof def === 'function' ? def({ year }) : def;
-    const url = `${cfg.baseUrl}/${path}`;
-    const paramsBuilder = cfg.params?.[key];
-    const params = paramsBuilder ? paramsBuilder({ year }) : {};
-    return { url, params, headers: cfg.headers };
-  }
+    const cabangMap = this.getCabangNameMap();
 
-  getSalesMonthly(
-    company: string,
-    year: string
-  ): Observable<SalesMonthlyResponse> {
-    const { url, params, headers } = this.buildUrl(
-      company,
-      'salesMonthly',
-      year
+    return forkJoin(sources).pipe(
+      map(({ monthly, units, branch, aftersales }) => {
+        // ===== SALES =====
+        const salesTrend     = monthly ? processLineChartData(monthly) : null;
+        const salesByModel   = units ? processPieChartData(units) : null;
+        const salesByBranch  = branch ? processBarChartData(branch, cabangMap) : null;
+
+        const salesRaw       = units?.sales ?? [];
+        const branchesRaw    = branch?.sales ?? [];
+        const totalUnitSales = calculateTotalUnitSales(salesRaw) || 0;
+        const topModel       = findTopModel(salesRaw);
+        const topBranch      = findTopBranch(branchesRaw, this.getCabangName.bind(this));
+
+        // ===== AFTER SALES =====
+        const list = aftersales?.aftersales ?? [];
+        const asKpi             = aftersales ? calculateAfterSalesKpi(list) : null;
+        const asRvT             = aftersales ? (processAfterSalesRealisasiVsTargetData(aftersales) ?? null) : null;
+        const asProfitByBranch  = aftersales ? (processAfterSalesProfitByBranchData(aftersales, cabangMap) ?? null) : null;
+
+        const dto: DashboardOverviewDTO = {
+          salesTrend,
+          salesByModel,
+          salesByBranch,
+          totalUnitSales,
+          topModel,
+          topBranch,
+          afterSalesKpi: asKpi,
+          afterSalesRealisasiVsTarget: asRvT,
+          afterSalesProfitByBranch: asProfitByBranch,
+        };
+        return dto;
+      })
     );
-    return this.http
-      .get<ApiResponse<SalesMonthlyResponse>>(url, { params, headers })
-      .pipe(map((r) => r.data));
-  }
-
-  getSalesUnits(company: string, year: string): Observable<SalesUnitsResponse> {
-    const { url, params, headers } = this.buildUrl(company, 'salesUnits', year);
-    return this.http
-      .get<ApiResponse<SalesUnitsResponse>>(url, { params, headers })
-      .pipe(map((r) => r.data));
-  }
-
-  getSalesBranch(
-    company: string,
-    year: string
-  ): Observable<SalesBranchResponse> {
-    const { url, params, headers } = this.buildUrl(
-      company,
-      'salesBranch',
-      year
-    );
-    return this.http
-      .get<ApiResponse<SalesBranchResponse>>(url, { params, headers })
-      .pipe(map((r) => r.data));
-  }
-  
-  getAfterSalesMonthly(
-    company: string,
-    year: string
-  ): Observable<AfterSalesResponse> {
-    const { url, params, headers } = this.buildUrl(
-      company,
-      'afterSalesMonthly',
-      year
-    );
-    return this.http
-      .get<ApiResponse<AfterSalesResponse>>(url, { params, headers })
-      .pipe(map((r) => r.data));
   }
 }

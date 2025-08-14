@@ -1,51 +1,21 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+// src/app/pages/dashboard/dashboard.component.ts
+import { Component, OnInit, inject, signal, DestroyRef, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs/operators';
 
-// Components
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
 import { FilterComponent } from '../../shared/components/filter/filter.component';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
 import { BarChartCardComponent } from '../../shared/components/bar-chart-card/bar-chart-card.component';
 
-// Services
-import { DashboardService } from '../../core/services/dashboard.service';
+import { DashboardOverviewDTO, DashboardService } from '../../core/services/dashboard.service';
 import { DashboardStateService } from '../../core/state/dashboard-state.service';
 
-// Types
 import { AppFilter } from '../../types/filter.model';
-import { ChartData } from '../../types/sales.model';
-import { AfterSalesResponse } from '../../types/aftersales.model';
-
-// Utils
-import {
-  processLineChartData,
-  processBarChartData,
-  processPieChartData,
-  processAfterSalesRealisasiVsTargetData,
-  processAfterSalesProfitByBranchData
-} from '../../shared/utils/dashboard-chart.utils';
-
-import {
-  calculateTotalUnitSales,
-  findTopModel,
-  findTopBranch,
-} from '../../shared/utils/dashboard-kpi.utils';
-
-import {
-  calculateAfterSalesKpi,
-  AfterSalesKpiData,
-  formatCompactNumber,
-} from '../../shared/utils/dashboard-aftersales-kpi.utils';
-
-// Interfaces
-interface ApiResponse {
-  monthly: any;
-  units: any;
-  branch: any;
-  aftersales?: any;
-}
+import { formatCompactNumber } from '../../shared/utils/dashboard-aftersales-kpi.utils';
+// 👉 Pindahkan DTO ke shared agar tidak duplikat:
 
 @Component({
   selector: 'app-dashboard',
@@ -64,11 +34,11 @@ interface ApiResponse {
 export class DashboardComponent implements OnInit {
   private api = inject(DashboardService);
   private state = inject(DashboardStateService);
+  private destroyRef = inject(DestroyRef);
 
-  // expose util ke template
   formatCompactNumber = formatCompactNumber;
 
-  // State signals
+  // UI state
   loading = signal(false);
   error = signal<string | null>(null);
 
@@ -76,114 +46,90 @@ export class DashboardComponent implements OnInit {
   kpiTotalUnitSales = signal<number>(0);
   kpiTopModel = signal<{ name: string; unit: number } | null>(null);
   kpiTopBranch = signal<{ code: string; unit: number } | null>(null);
-  afterSalesKpi = signal<AfterSalesKpiData | null>(null);
+  afterSalesKpi = signal<any | null>(null);
 
-  // Chart signals
-  lineMonthly = signal<ChartData | null>(null);
-  branchPerformance = signal<ChartData | null>(null);
-  modelDistribution = signal<ChartData | null>(null);
-  afterSalesRealisasiVsTarget = signal<ChartData | null>(null);
-  afterSalesProfitByBranch = signal<ChartData | null>(null);
+  // Charts
+  lineMonthly = signal<any | null>(null);
+  branchPerformance = signal<any | null>(null);
+  modelDistribution = signal<any | null>(null);
+  afterSalesRealisasiVsTarget = signal<any | null>(null);
+  afterSalesProfitByBranch = signal<any | null>(null);
 
-
-  // Filter
   prefilledFilter: AppFilter | null = null;
 
-  // Computed
-  get hasData(): boolean {
-    return !!(
-      this.lineMonthly() ||
-      this.branchPerformance() ||
-      this.modelDistribution() ||
-      this.afterSalesKpi() ||
-      this.afterSalesRealisasiVsTarget() ||
-      this.afterSalesProfitByBranch()
-    );
-  }
-
-  get isDataEmpty(): boolean {
-    return !this.hasData && !this.loading();
-  }
+  // ✅ computed signals (gantikan getter)
+  hasData = computed(() =>
+    !!(this.lineMonthly()
+      || this.branchPerformance()
+      || this.modelDistribution()
+      || this.afterSalesKpi()
+      || this.afterSalesRealisasiVsTarget()
+      || this.afterSalesProfitByBranch())
+  );
+  isDataEmpty = computed(() => !this.hasData() && !this.loading());
 
   ngOnInit(): void {
-    this.loadPersistedData();
+    this.hydrateFromState();
   }
 
   onSearch(filter: AppFilter): void {
     this.error.set(null);
 
-    if (!this.isValidCategory(filter.category)) {
-      this.error.set('Kategori after-sales belum tersedia');
+    if (!['sales', 'after-sales', 'all-category'].includes(filter.category)) {
+      this.error.set('Kategori belum didukung. Pilih Sales, After Sales, atau All Category.');
       return;
     }
 
-    this.prepareForNewSearch(filter);
-    this.executeSearch(filter);
-  }
-
-  private loadPersistedData(): void {
-    this.loadPersistedFilter();
-    this.loadPersistedChartData();
-    this.loadPersistedKpiData();
-    this.loadPersistedAfterSalesKpiData();
-    this.loadPersistedAfterSalesChartData();
-  }
-
-  private loadPersistedFilter(): void {
-    const savedFilter = this.state.getFilter();
-    if (savedFilter) {
-      this.prefilledFilter = savedFilter;
-    }
-  }
-
-  private loadPersistedChartData(): void {
-    const savedLine = this.state.getLineMonthly();
-    if (savedLine) this.lineMonthly.set(savedLine);
-
-    const savedBranch = this.state.getBranchPerformance();
-    if (savedBranch) this.branchPerformance.set(savedBranch);
-
-    const savedPie = this.state.getModelDistribution();
-    if (savedPie) this.modelDistribution.set(savedPie);
-  }
-
-  private loadPersistedKpiData(): void {
-    if (!this.state.hasKpi()) return;
-
-    const savedKpi = this.state.getKpi();
-    this.kpiTotalUnitSales.set(savedKpi.totalUnitSales ?? 0);
-    this.kpiTopModel.set(savedKpi.topModel);
-    this.kpiTopBranch.set(savedKpi.topBranch);
-  }
-
-  private loadPersistedAfterSalesKpiData(): void {
-    if (!this.state.hasAfterSalesKpi()) return;
-
-    const savedAfterSalesKpi = this.state.getAfterSalesKpi();
-    this.afterSalesKpi.set(savedAfterSalesKpi);
-  }
-
-  private loadPersistedAfterSalesChartData(): void {
-    const savedRealisasiVsTarget = this.state.getAfterSalesRealisasiVsTarget();
-    this.afterSalesRealisasiVsTarget.set(savedRealisasiVsTarget);
-
-    const savedProfitByBranch = this.state.getAfterSalesProfitByBranch();
-    this.afterSalesProfitByBranch.set(savedProfitByBranch);
-  }
-
-  private isValidCategory(category: string): boolean {
-    return category === 'sales' ||
-      category === 'all-category' ||
-      category === 'after-sales';
-  }
-
-  private prepareForNewSearch(filter: AppFilter): void {
     this.state.saveFilter(filter);
     this.prefilledFilter = filter;
-    this.clearDashboardData();
+    this.resetSignals();
+
+    this.loading.set(true);
+    this.api.getDashboardOverview(filter.company as any, filter.period, filter.category as any)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loading.set(false)) // ✅ tutup loading pada success maupun error
+      )
+      .subscribe({
+        next: (dto) => this.applyOverview(dto),
+        error: () => this.error.set('Gagal memuat data. Silakan coba lagi.'),
+      });
   }
 
-  private clearDashboardData(): void {
+  private applyOverview(d: DashboardOverviewDTO): void {
+    // Charts
+    this.lineMonthly.set(d.salesTrend);
+    this.branchPerformance.set(d.salesByBranch);
+    this.modelDistribution.set(d.salesByModel);
+    this.afterSalesRealisasiVsTarget.set(d.afterSalesRealisasiVsTarget);
+    this.afterSalesProfitByBranch.set(d.afterSalesProfitByBranch);
+
+    // KPI
+    this.kpiTotalUnitSales.set(d.totalUnitSales);
+    this.kpiTopModel.set(d.topModel);
+    this.kpiTopBranch.set(d.topBranch);
+    this.afterSalesKpi.set(d.afterSalesKpi);
+
+    // Persist once
+    if (d.salesTrend) this.state.saveLineMonthly(d.salesTrend);
+    if (d.salesByBranch) this.state.saveBranchPerformance(d.salesByBranch);
+    if (d.salesByModel) this.state.saveModelDistribution(d.salesByModel);
+    this.state.saveKpi({ totalUnitSales: d.totalUnitSales, topModel: d.topModel, topBranch: d.topBranch });
+    if (d.afterSalesKpi) this.state.saveAfterSalesKpi({
+      totalRevenueRealisasi: d.afterSalesKpi.totalRevenueRealisasi,
+      totalBiayaUsaha: d.afterSalesKpi.totalBiayaUsaha,
+      totalProfit: d.afterSalesKpi.totalProfit,
+      totalHariKerja: d.afterSalesKpi.totalHariKerja,
+      serviceCabang: d.afterSalesKpi.serviceCabang,
+      afterSalesRealisasi: d.afterSalesKpi.afterSalesRealisasi,
+      unitEntryRealisasi: d.afterSalesKpi.unitEntryRealisasi,
+      sparepartTunaiRealisasi: d.afterSalesKpi.sparepartTunaiRealisasi,
+    });
+    if (d.afterSalesRealisasiVsTarget) this.state.saveAfterSalesRealisasiVsTarget(d.afterSalesRealisasiVsTarget);
+    if (d.afterSalesProfitByBranch) this.state.saveAfterSalesProfitByBranch(d.afterSalesProfitByBranch);
+  }
+
+  private resetSignals(): void {
     this.kpiTotalUnitSales.set(0);
     this.kpiTopModel.set(null);
     this.kpiTopBranch.set(null);
@@ -195,117 +141,28 @@ export class DashboardComponent implements OnInit {
     this.afterSalesProfitByBranch.set(null);
   }
 
-  private executeSearch(filter: AppFilter): void {
-    this.loading.set(true);
+  private hydrateFromState(): void {
+    const f = this.state.getFilter();
+    if (f) this.prefilledFilter = f;
 
-    const apiCalls = this.buildApiCalls(filter);
+    const line = this.state.getLineMonthly();
+    const bar = this.state.getBranchPerformance();
+    const pie = this.state.getModelDistribution();
+    if (line) this.lineMonthly.set(line);
+    if (bar) this.branchPerformance.set(bar);
+    if (pie) this.modelDistribution.set(pie);
 
-    forkJoin(apiCalls).subscribe({
-      next: (response: any) => this.processApiResponse(response),
-      error: (error) => this.handleApiError(error),
-      complete: () => this.loading.set(false),
-    });
-  }
-
-  private buildApiCalls(filter: AppFilter) {
-    const apiCalls: any = {};
-
-    if (filter.category === 'sales' || filter.category === 'all-category') {
-      apiCalls.monthly = this.api.getSalesMonthly(filter.company, filter.period);
-      apiCalls.units = this.api.getSalesUnits(filter.company, filter.period);
-      apiCalls.branch = this.api.getSalesBranch(filter.company, filter.period);
+    if (this.state.hasKpi()) {
+      const k = this.state.getKpi();
+      this.kpiTotalUnitSales.set(k.totalUnitSales ?? 0);
+      this.kpiTopModel.set(k.topModel);
+      this.kpiTopBranch.set(k.topBranch);
     }
+    if (this.state.hasAfterSalesKpi()) this.afterSalesKpi.set(this.state.getAfterSalesKpi());
 
-    // ← TAMBAH INI
-    if (filter.category === 'after-sales' || filter.category === 'all-category') {
-      apiCalls.aftersales = this.api.getAfterSalesMonthly(filter.company, filter.period);
-    }
-
-    return apiCalls;
-  }
-
-  private processApiResponse(response: ApiResponse): void {
-    try {
-      const sales = response.units?.sales ?? [];
-      const branches = response.branch?.sales ?? [];
-
-      // Line Chart
-      const line = processLineChartData(response.monthly);
-      if (line) {
-        this.lineMonthly.set(line);
-        this.state.saveLineMonthly(line);
-      }
-
-      // Pie Chart
-      const pie = processPieChartData(response.units);
-      if (pie) {
-        this.modelDistribution.set(pie);
-        this.state.saveModelDistribution(pie);
-      }
-
-      // Bar Chart
-      const cabangMap = this.api.getCabangNameMap();
-      const branchChart = processBarChartData(response.branch, cabangMap);
-      if (branchChart) {
-        this.branchPerformance.set(branchChart);
-        this.state.saveBranchPerformance(branchChart);
-      }
-
-      // Sales KPI
-      const totalUnitSales = calculateTotalUnitSales(sales);
-      const topModel = findTopModel(sales);
-      const topBranch = findTopBranch(branches, this.api.getCabangName.bind(this.api));
-
-      this.kpiTotalUnitSales.set(totalUnitSales || 0); // ← Ensure never null
-      this.kpiTopModel.set(topModel);
-      this.kpiTopBranch.set(topBranch);
-      this.state.saveKpi({
-        totalUnitSales: totalUnitSales || 0, // ← Ensure never null
-        topModel,
-        topBranch
-      });
-
-      // ← TAMBAH INI - After Sales data processing
-      if (response.aftersales) {
-        const aftersalesData = response.aftersales?.aftersales ?? [];
-        const afterSalesKpiData = calculateAfterSalesKpi(aftersalesData);
-        this.afterSalesKpi.set(afterSalesKpiData);
-        this.state.saveAfterSalesKpi({
-          totalRevenueRealisasi: afterSalesKpiData.totalRevenueRealisasi,
-          totalBiayaUsaha: afterSalesKpiData.totalBiayaUsaha,
-          totalProfit: afterSalesKpiData.totalProfit,
-          totalHariKerja: afterSalesKpiData.totalHariKerja,
-          serviceCabang: afterSalesKpiData.serviceCabang,
-          afterSalesRealisasi: afterSalesKpiData.afterSalesRealisasi,
-          unitEntryRealisasi: afterSalesKpiData.unitEntryRealisasi,
-          sparepartTunaiRealisasi: afterSalesKpiData.sparepartTunaiRealisasi,
-        });
-
-        // Process Realisasi vs Target Chart
-        const realisasiVsTarget = processAfterSalesRealisasiVsTargetData(response.aftersales);
-        if (realisasiVsTarget) {
-          this.afterSalesRealisasiVsTarget.set(realisasiVsTarget);
-          this.state.saveAfterSalesRealisasiVsTarget(realisasiVsTarget);
-        }
-
-        // Process Profit by Branch Chart
-        const cabangMap = this.api.getCabangNameMap();
-        const profitByBranch = processAfterSalesProfitByBranchData(response.aftersales, cabangMap);
-        if (profitByBranch) {
-          this.afterSalesProfitByBranch.set(profitByBranch);
-          this.state.saveAfterSalesProfitByBranch(profitByBranch);
-        }
-      }
-
-    } catch (error) {
-      console.error('Error processing API response:', error);
-      this.error.set('Gagal memproses data. Silakan coba lagi.');
-    }
-  }
-
-  private handleApiError(error: any): void {
-    console.error('Dashboard API Error:', error);
-    this.error.set('Gagal memuat data. Silakan coba lagi.');
-    this.loading.set(false);
+    const rvt = this.state.getAfterSalesRealisasiVsTarget();
+    const pbb = this.state.getAfterSalesProfitByBranch();
+    if (rvt) this.afterSalesRealisasiVsTarget.set(rvt);
+    if (pbb) this.afterSalesProfitByBranch.set(pbb);
   }
 }

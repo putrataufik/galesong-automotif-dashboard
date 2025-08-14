@@ -1,3 +1,5 @@
+// src/app/types/filter.model.ts
+
 export type CategoryFilter = 'all-category' | 'sales' | 'after-sales';
 
 export interface AppFilter {

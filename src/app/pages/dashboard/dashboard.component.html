@@ -37,7 +37,7 @@
 
   <!-- SALES SECTION -->
   @if (prefilledFilter?.category === 'sales' || prefilledFilter?.category === 'all-category') {
-  @if (hasData) {
+  @if (hasData()) {
   
   <!-- Sales KPI Section -->
   <div class="row g-4 mb-4">
@@ -109,7 +109,7 @@
 
   <!-- AFTER SALES SECTION -->
   @if (prefilledFilter?.category === 'after-sales' || prefilledFilter?.category === 'all-category') {
-  @if (hasData) {
+  @if (hasData()) {
 
   <!-- After Sales KPI Section -->
   @if (afterSalesKpi(); as kpi) {
@@ -210,7 +210,7 @@
   }
 
   <!-- Empty State -->
-  @if (!hasData && !loading()) {
+  @if (!hasData() && !loading()) {
   <div class="row">
     <div class="col-12">
       <div class="text-center py-5">
