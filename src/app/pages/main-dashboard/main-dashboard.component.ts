@@ -1,11 +1,11 @@
-// src/app/pages/dashboard/dashboard.component.ts
+// src/app/pages/dashboard/main-dashboard.component.ts
 import { Component, OnInit, inject, signal, DestroyRef, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
-import { FilterComponent } from '../../shared/components/filter/filter.component';
+import { FilterMainDashboardComponent } from '../../shared/components/filter-main-dashboard/filter-main-dashboard.component';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
 import { BarChartCardComponent } from '../../shared/components/bar-chart-card/bar-chart-card.component';
@@ -18,12 +18,12 @@ import { formatCompactNumber } from '../../shared/utils/dashboard-aftersales-kpi
 // 👉 Pindahkan DTO ke shared agar tidak duplikat:
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-main-dashboard',
   standalone: true,
   imports: [
     CommonModule,
     KpiCardComponent,
-    FilterComponent,
+    FilterMainDashboardComponent,
     LineChartCardComponent,
     PieChartCardComponent,
     BarChartCardComponent,
