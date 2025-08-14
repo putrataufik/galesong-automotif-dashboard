@@ -33,9 +33,9 @@ export class AppComponent {
       window.addEventListener('resize', () => this.checkIfMobile());
     }
 
-    // Listen untuk route changes untuk update page title
+    // ✅ FIX: Listen untuk route changes untuk update page title
     this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.updatePageTitle(event.url);
     });
@@ -80,6 +80,9 @@ export class AppComponent {
         break;
       case '/financial-tracking':
         this._currentPageTitle.set('Financial Tracking');
+        break;
+      case '/after-sales-dashboard':
+        this._currentPageTitle.set('After Sales Dashboard');
         break;
       default:
         this._currentPageTitle.set('Dashboard');
