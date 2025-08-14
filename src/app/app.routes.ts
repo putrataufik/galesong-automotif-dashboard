@@ -8,7 +8,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    loadComponent: () => import('./pages/dashboard/main-dashboard.component').then(m => m.MainDashboardComponent),
     title: 'Dashboard - Galesong Automotif'
   },
   {

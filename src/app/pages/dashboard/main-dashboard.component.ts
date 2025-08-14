@@ -10,7 +10,7 @@ import { LineChartCardComponent } from '../../shared/components/line-chart-card/
 import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
 import { BarChartCardComponent } from '../../shared/components/bar-chart-card/bar-chart-card.component';
 
-import { DashboardOverviewDTO, DashboardService } from '../../core/services/dashboard.service';
+import { DashboardOverviewDTO, MainDashboardService } from '../../core/services/main-dashboard.service';
 import { DashboardStateService } from '../../core/state/dashboard-state.service';
 
 import { AppFilter } from '../../types/filter.model';
@@ -28,11 +28,11 @@ import { formatCompactNumber } from '../../shared/utils/dashboard-aftersales-kpi
     PieChartCardComponent,
     BarChartCardComponent,
   ],
-  templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css',
+  templateUrl: './main-dashboard.component.html',
+  styleUrl: './main-dashboard.component.css',
 })
-export class DashboardComponent implements OnInit {
-  private api = inject(DashboardService);
+export class MainDashboardComponent implements OnInit {
+  private api = inject(MainDashboardService);
   private state = inject(DashboardStateService);
   private destroyRef = inject(DestroyRef);
 

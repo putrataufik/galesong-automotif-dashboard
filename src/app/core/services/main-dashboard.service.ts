@@ -47,7 +47,7 @@ export interface DashboardOverviewDTO {
 }
 
 @Injectable({ providedIn: 'root' })
-export class DashboardService {
+export class MainDashboardService {
   private sales = inject(SalesService);
   private after = inject(AfterSalesService);
 
