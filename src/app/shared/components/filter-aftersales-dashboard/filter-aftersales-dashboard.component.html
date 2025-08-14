@@ -52,7 +52,7 @@
           </select>
         </div>
     
-        <div class="col-md-3">
+        <div class="col-md-2">
           <label for="period" class="form-label small text-muted">Tahun</label>
           <select
             id="period"
@@ -66,7 +66,7 @@
           </select>
         </div>
     
-        <div class="col-md-3">
+        <div class="col-md-2">
           <label for="month" class="form-label small text-muted">Bulan</label>
           <select
             id="month"
@@ -79,17 +79,15 @@
             }
           </select>
         </div>
-      </div>
-    
-      <div class="row justify-content-center">
-        <div class="col-md-4 d-flex justify-content-center">
+  
+        <div class="col-md-2">
           <button
             type="button"
-            class="btn btn-success px-5 py-2"
+            class="btn btn-success px-4 py-2 w-100"
             (click)="onSearchClick()"
             [disabled]="loading"
           >
-            <i class="bi bi-search me-1"></i> Cari Data After Sales
+            <i class="bi bi-search me-1"></i> Cari Data
           </button>
         </div>
       </div>
