@@ -98,9 +98,6 @@ export function processAfterSalesRealisasiVsTargetData(afterSalesData: any): Cha
       }
     ]
   };
-
-  console.log('Final chart result:', result);
-  console.log('=== END DEBUG ===');
   
   return result;
 }

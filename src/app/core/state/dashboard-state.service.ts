@@ -1,79 +1,52 @@
 import { Injectable, signal } from '@angular/core';
 import { AfterSalesFilter, AppFilter } from '../../types/filter.model';
 
-// === INTERFACE: KPI ===
 export interface KpiSnapshot {
   totalUnitSales: number | null;
   topModel: { name: string; unit: number } | null;
   topBranch: { code: string; unit: number } | null;
-
 }
 
-// === INTERFACE: AFTER SALES KPI ===
 export interface AfterSalesKpiSnapshot {
-  totalRevenueRealisasi: number;  // ← Hapus | null
-  totalBiayaUsaha: number;       // ← Hapus | null
-  totalProfit: number;           // ← Hapus | null
-  totalHariKerja: number;        // ← Hapus | null
-  serviceCabang: number;         // ← Hapus | null
+  totalRevenueRealisasi: number;
+  totalBiayaUsaha: number;
+  totalProfit: number;
+  totalHariKerja: number;
+  serviceCabang: number;
   afterSalesRealisasi: number;
-  afterSalesTarget: number;  // ← Hapus | null
-  unitEntryRealisasi: number;    // ← Hapus | null
-  sparepartTunaiRealisasi: number; // ← Hapus | null
+  afterSalesTarget: number;
+  unitEntryRealisasi: number;
+  sparepartTunaiRealisasi: number;
 }
 
-// === INTERFACE: CHARTS ===
-export interface LineMonthlyData {
-  labels: string[];
-  data: number[];
-}
-
-export interface ChartDataset {
-  labels: string[];
-  data: number[];
-}
-
-export interface PieChartData {
-  labels: string[];
-  data: number[];
-  colors?: string[];
-}
+export interface LineMonthlyData { labels: string[]; data: number[]; }
+export interface ChartDataset { labels: string[]; data: number[]; }
+export interface PieChartData { labels: string[]; data: number[]; colors?: string[]; }
 
 @Injectable({ providedIn: 'root' })
 export class DashboardStateService {
-  // === FILTER ===
+  /* ====== FILTERS ====== */
   readonly filter = signal<AppFilter | null>(null);
-  saveFilter(f: AppFilter) {
-    this.filter.set(f);
-  }
+  saveFilter(f: AppFilter) { this.filter.set(f); }
+  getFilter(): AppFilter | null { return this.filter(); }
 
-  getFilter(): AppFilter | null {
-    return this.filter();
-  }
-  // After Sales dashboard (pisah!)
   private afterSalesFilter = signal<AfterSalesFilter | null>(null);
   saveFilterAfterSales(f: AfterSalesFilter) { this.afterSalesFilter.set(f); }
   getFilterAfterSales(): AfterSalesFilter | null { return this.afterSalesFilter(); }
 
-  // === Sales KPI ===
+  /* ====== SALES KPI ====== */
   readonly totalUnitSales = signal<number | null>(null);
   readonly topModel = signal<{ name: string; unit: number } | null>(null);
   readonly topBranch = signal<{ code: string; unit: number } | null>(null);
 
-  saveKpi(snapshot: KpiSnapshot) {
-    this.totalUnitSales.set(snapshot.totalUnitSales);
-    this.topModel.set(snapshot.topModel);
-    this.topBranch.set(snapshot.topBranch);
+  saveKpi(s: KpiSnapshot) {
+    this.totalUnitSales.set(s.totalUnitSales);
+    this.topModel.set(s.topModel);
+    this.topBranch.set(s.topBranch);
   }
-
   hasKpi(): boolean {
-    return (
-      this.totalUnitSales() !== null ||
-      this.topModel() !== null ||
-      this.topBranch() !== null
-    );
+    return this.totalUnitSales() !== null || this.topModel() !== null || this.topBranch() !== null;
   }
-
   getKpi(): KpiSnapshot {
     return {
       totalUnitSales: this.totalUnitSales(),
@@ -82,7 +55,7 @@ export class DashboardStateService {
     };
   }
 
-  // === AFTER SALES KPI ===
+  /* ====== AFTER SALES KPI ====== */
   readonly totalRevenueRealisasi = signal<number | null>(null);
   readonly totalBiayaUsaha = signal<number | null>(null);
   readonly totalProfit = signal<number | null>(null);
@@ -93,17 +66,16 @@ export class DashboardStateService {
   readonly unitEntryRealisasi = signal<number | null>(null);
   readonly sparepartTunaiRealisasi = signal<number | null>(null);
 
-  saveAfterSalesKpi(snapshot: AfterSalesKpiSnapshot) {
-    this.totalRevenueRealisasi.set(snapshot.totalRevenueRealisasi);
-    this.totalBiayaUsaha.set(snapshot.totalBiayaUsaha);
-    this.totalProfit.set(snapshot.totalProfit);
-    this.totalHariKerja.set(snapshot.totalHariKerja);
-    this.serviceCabang.set(snapshot.serviceCabang);
-    this.afterSalesRealisasi.set(snapshot.afterSalesRealisasi);
-    this.afterSalesTarget.set(snapshot.afterSalesTarget);
-    this.unitEntryRealisasi.set(snapshot.unitEntryRealisasi);
-    this.sparepartTunaiRealisasi.set(snapshot.sparepartTunaiRealisasi);
-
+  saveAfterSalesKpi(s: AfterSalesKpiSnapshot) {
+    this.totalRevenueRealisasi.set(s.totalRevenueRealisasi);
+    this.totalBiayaUsaha.set(s.totalBiayaUsaha);
+    this.totalProfit.set(s.totalProfit);
+    this.totalHariKerja.set(s.totalHariKerja);
+    this.serviceCabang.set(s.serviceCabang);
+    this.afterSalesRealisasi.set(s.afterSalesRealisasi);
+    this.afterSalesTarget.set(s.afterSalesTarget);
+    this.unitEntryRealisasi.set(s.unitEntryRealisasi);
+    this.sparepartTunaiRealisasi.set(s.sparepartTunaiRealisasi);
   }
 
   hasAfterSalesKpi(): boolean {
@@ -130,63 +102,53 @@ export class DashboardStateService {
     };
   }
 
-  // === CHART: LINE (Trend Penjualan Bulanan) ===
+  /* ====== CHARTS ====== */
   readonly lineMonthly = signal<LineMonthlyData | null>(null);
-
-  saveLineMonthly(data: LineMonthlyData) {
-    this.lineMonthly.set(data);
-  }
-
-  getLineMonthly(): LineMonthlyData | null {
-    return this.lineMonthly();
-  }
-
-  // === CHART: BAR (Performa Penjualan per Cabang) ===
   readonly branchPerformance = signal<ChartDataset | null>(null);
-
-  saveBranchPerformance(data: ChartDataset) {
-    this.branchPerformance.set(data);
-  }
-
-  getBranchPerformance(): ChartDataset | null {
-    return this.branchPerformance();
-  }
-
-
-  // === CHART: PIE  CHART (Distribusi Model Paling Laku)
-
   readonly modelDistribution = signal<PieChartData | null>(null);
-
-  saveModelDistribution(data: PieChartData) {
-    this.modelDistribution.set(data);
-  }
-
-  getModelDistribution(): PieChartData | null {
-    return this.modelDistribution();
-  }
-
-  // === AFTER SALES REALISASI VS TARGET ===
   readonly afterSalesRealisasiVsTarget = signal<ChartDataset | null>(null);
-  saveAfterSalesRealisasiVsTarget(data: ChartDataset) {
-    this.afterSalesRealisasiVsTarget.set(data);
-  }
-  getAfterSalesRealisasiVsTarget(): ChartDataset | null {
-    return this.afterSalesRealisasiVsTarget();
-  }
-
-  // === AFTER SALES PROFIT BY BRANCH ===
   readonly afterSalesProfitByBranch = signal<ChartDataset | null>(null);
 
-  saveAfterSalesProfitByBranch(data: ChartDataset) {
-    this.afterSalesProfitByBranch.set(data);
+  saveLineMonthly(d: LineMonthlyData) { this.lineMonthly.set({ labels: [...d.labels], data: [...d.data] }); }
+  getLineMonthly(): LineMonthlyData | null { return this.lineMonthly(); }
+
+  saveBranchPerformance(d: ChartDataset) { this.branchPerformance.set({ labels: [...d.labels], data: [...d.data] }); }
+  getBranchPerformance(): ChartDataset | null { return this.branchPerformance(); }
+
+  saveModelDistribution(d: PieChartData) { this.modelDistribution.set({ labels: [...d.labels], data: [...d.data], colors: d.colors ? [...d.colors] : undefined }); }
+  getModelDistribution(): PieChartData | null { return this.modelDistribution(); }
+
+  saveAfterSalesRealisasiVsTarget(d: ChartDataset) { this.afterSalesRealisasiVsTarget.set({ labels: [...d.labels], data: [...d.data] }); }
+  getAfterSalesRealisasiVsTarget(): ChartDataset | null { return this.afterSalesRealisasiVsTarget(); }
+
+  saveAfterSalesProfitByBranch(d: ChartDataset) { this.afterSalesProfitByBranch.set({ labels: [...d.labels], data: [...d.data] }); }
+  getAfterSalesProfitByBranch(): ChartDataset | null { return this.afterSalesProfitByBranch(); }
+
+  /* ====== CLEAR HELPERS ====== */
+  clearAfterSales() {
+    // filter after-sales
+    this.afterSalesFilter.set(null);
+
+    // KPI
+    this.totalRevenueRealisasi.set(null);
+    this.totalBiayaUsaha.set(null);
+    this.totalProfit.set(null);
+    this.totalHariKerja.set(null);
+    this.serviceCabang.set(null);
+    this.afterSalesRealisasi.set(null);
+    this.afterSalesTarget.set(null);          // ← DULU TERLEWAT
+    this.unitEntryRealisasi.set(null);
+    this.sparepartTunaiRealisasi.set(null);
+
+    // Charts
+    this.afterSalesRealisasiVsTarget.set(null);
+    this.afterSalesProfitByBranch.set(null);
   }
-  getAfterSalesProfitByBranch(): ChartDataset | null {
-    const data = this.afterSalesProfitByBranch();
-    return data;
-  }
-  // === RESET STATE ===
+
   clear() {
+    // global filter
     this.filter.set(null);
+    // sales kpi & charts
     this.totalUnitSales.set(null);
     this.topModel.set(null);
     this.topBranch.set(null);
@@ -194,15 +156,7 @@ export class DashboardStateService {
     this.branchPerformance.set(null);
     this.modelDistribution.set(null);
 
-    this.totalRevenueRealisasi.set(null);
-    this.totalBiayaUsaha.set(null);
-    this.totalProfit.set(null);
-    this.totalHariKerja.set(null);
-    this.serviceCabang.set(null);
-    this.afterSalesRealisasi.set(null);
-    this.unitEntryRealisasi.set(null);
-    this.sparepartTunaiRealisasi.set(null);
-    this.afterSalesRealisasiVsTarget.set(null);
-    this.afterSalesProfitByBranch.set(null);
+    // after-sales semuanya
+    this.clearAfterSales();
   }
 }

@@ -105,7 +105,7 @@ export function formatNumber(value: number): string {
  */
 export function formatCompactNumber(
   value: number | string | null | undefined,
-  fractionDigits = 5 // default 2 angka di belakang koma
+  fractionDigits = 2 // default 2 angka di belakang koma
 ): string {
   const num = Number(value ?? 0);
   if (!isFinite(num)) return '0';

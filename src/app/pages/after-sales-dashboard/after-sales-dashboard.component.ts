@@ -1,5 +1,6 @@
 // src/app/pages/after-sales-dashboard/after-sales-dashboard.component.ts
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -23,6 +24,7 @@ import {
 } from '../../shared/utils/dashboard-chart.utils';
 import { ChartData } from '../../types/sales.model';
 import { AfterSalesFilter } from '../../types/filter.model';
+import { finalize, take } from 'rxjs';
 
 // ✅ Default filter saat pertama kali load / setelah refresh
 const DEFAULT_AFTERSALES_FILTER: AfterSalesFilter = {
@@ -124,31 +126,37 @@ export class AfterSalesDashboardComponent implements OnInit {
   }
 
   private prepareForNewSearch(filter: AfterSalesFilter): void {
-    // Persist filter khusus after-sales
+    // 1) Lepaskan data lama dulu agar GC bisa kerja
+    this.state.clearAfterSales?.();   // ← Pindahkan ke atas
+  
+    // 2) Simpan filter baru
     this.state.saveFilterAfterSales?.(filter);
-
-    // Update local
+  
+    // 3) Update local
     this.prefilledFilter = filter;
-
-    // Clear data dashboard
+  
+    // 4) Clear local signals (opsional tapi bagus untuk UI)
     this.afterSalesKpi.set(null);
     this.kpiCards.set([]);
     this.realisasiVsTargetChart.set(null);
     this.profitByBranchChart.set(null);
   }
 
+  private destroyRef = inject(DestroyRef);
   private executeSearch(filter: AfterSalesFilter): void {
     this.loading.set(true);
-
-    // branch kosong => undefined (semua cabang)
+  
     const branchParam = filter.branch ? filter.branch : undefined;
-
-    this.api
-      .getAfterSalesMonthly(filter.company, filter.period, branchParam)
+  
+    this.api.getAfterSalesMonthly(filter.company, filter.period, branchParam)
+      .pipe(
+        take(1),                                  // http completes once; sabuk pengaman
+        takeUntilDestroyed(this.destroyRef),      // auto cleanup bila komponen destroy
+        finalize(() => this.loading.set(false)),  // selalu matikan loading
+      )
       .subscribe({
         next: (response) => this.processApiResponse(response),
-        error: (err) => this.handleError(err),
-        complete: () => this.loading.set(false),
+        error: (err) => this.handleError(err), // jangan set loading di sini lagi (sudah di finalize)
       });
   }
 

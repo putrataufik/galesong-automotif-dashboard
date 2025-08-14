@@ -7,9 +7,11 @@
         After Sales <span class="text-success">Dashboard</span>
       </h2>
 
-      <!-- After Sales Filter Component (No Category, With Branch) -->
-      <app-filter-after-sales [initialFilter]="prefilledFilter" [loading]="loading()" (search)="onSearch($event)">
-      </app-filter-after-sales>
+      <app-filter-after-sales
+  [initialFilter]="prefilledFilter"
+  [loading]="loading()"
+  (search)="onSearch($event)">
+</app-filter-after-sales>
     </div>
   </div>
 
