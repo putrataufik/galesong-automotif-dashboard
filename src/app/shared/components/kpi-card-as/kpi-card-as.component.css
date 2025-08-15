@@ -58,31 +58,39 @@
   .percentage-display {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #242424;
     margin-bottom: 10px;
     line-height: 1;
   }
   
   /* Progress Bar */
-  .progress {
-    height: 25px;
-    background-color: #e9ecef;
-    margin-bottom: 20px;
-    overflow: visible;
-  }
-  
-  .progress-bar {
-    transition: width 0.6s ease;
-  }
-  
-  .progress-text {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #495057;
-    line-height: 25px;
-    z-index: 2;
-    pointer-events: none;
-  }
+.progress {
+  height: 35px;
+  background-color: #878787;
+  margin-bottom: 20px;
+  overflow: visible;
+  position: relative; /* sudah ada via class, tapi aman ditulis */
+}
+
+/* Bar anim */
+.progress-bar {
+  transition: width 0.6s ease;
+}
+
+/* Teks di tengah (vertikal & horizontal) */
+.progress-text {
+  position: absolute;
+  inset: 0;                 /* top:0; right:0; bottom:0; left:0 */
+  display: flex;
+  align-items: center;      /* center vertikal */
+  justify-content: center;  /* center horizontal */
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  z-index: 2;
+  pointer-events: none;
+}
+
   
   /* Detail Rows */
   .details {

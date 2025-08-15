@@ -40,27 +40,32 @@ export class KpiCardAsComponent {
 
   get harapanTarget(): number {
     if (!this.sisaHariKerja || this.sisaHariKerja === 0) return 0;
-    return this.target / this.sisaHariKerja;
+    const harapanTarget = (this.realisasi-this.target) / this.sisaHariKerja;
+    if (harapanTarget > 0){
+      return 0;
+    }else{
+      return harapanTarget;
+    }
   }
 
   // Formatting methods
   formatCurrency(value: number): string {
     if (value === 0) return 'Rp 0';
     
-    // Format dengan K, M, B untuk readability
     const abs = Math.abs(value);
     const sign = value < 0 ? '-' : '';
     
     if (abs >= 1_000_000_000) {
-      return `${sign}Rp ${(abs / 1_000_000_000).toFixed(1)}M`;
+      return `${sign}Rp ${(abs / 1_000_000_000).toFixed(3)}M`;
     } else if (abs >= 1_000_000) {
-      return `${sign}Rp ${(abs / 1_000_000).toFixed(1)}Juta`;
+      return `${sign}Rp ${(abs / 1_000_000).toFixed(3)}Juta`;
     } else if (abs >= 1_000) {
-      return `${sign}Rp ${(abs / 1_000).toFixed(1)}Ribu`;
+      return `${sign}Rp ${(abs / 1_000).toFixed(3)}Ribu`;
     } else {
-      return `${sign}Rp ${abs.toLocaleString('id-ID')}`;
-    } 
+      return `${sign}Rp ${abs.toLocaleString('id-ID', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
+    }
   }
+  
 
   formatUnit(value: number): string {
     if (value === 0) return '0 unit';
@@ -83,12 +88,16 @@ export class KpiCardAsComponent {
     return 'text-muted';
   }
 
-  getProgressBarColor(): string {
-    if (this.percentage >= 100) return 'bg-success';
-    if (this.percentage >= 75) return 'bg-info';
-    if (this.percentage >= 50) return 'bg-warning';
-    return 'bg-danger';
+  getProgressBarStyle(): {[k: string]: string} {
+    const p = Math.max(0, Math.min(100, Number(this.clampedPercent ?? this.percentage) || 0));
+    const color =
+      p >= 100 ? '#00A00D' :
+      p >= 75  ? '#0048A0' :
+      p >= 50  ? '#DA8001' :
+                 '#D00000';
+    return { backgroundColor: color };
   }
+  
 
   getUnitSuffix(): string {
     return this.isUnit ? '' : '';

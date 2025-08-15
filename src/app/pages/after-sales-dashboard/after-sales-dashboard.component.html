@@ -6,7 +6,8 @@
         After Sales <span class="text-success">Dashboard</span>
       </h2>
       <app-filter-aftersales-dashboard 
-        [loading]="loading()" 
+        [loading]="loading()"
+        [initialFilter]="currentFilter()"
         (search)="onSearch($event)">
       </app-filter-aftersales-dashboard>
     </div>
@@ -37,25 +38,6 @@
     </div>
   }
 
-  <!-- DEBUG INFO SECTION -->
-  @if (hasData() && !loading()) {
-    <div class="row mb-2">
-      <div class="col-12">
-        <div class="card border-warning border-2" style="background: #fff3cd;">
-          <div class="card-body p-2">
-            <small class="text-dark">
-              <strong>🔍 DEBUG INFO:</strong><br>
-              showSisaHariKerja: <span class="badge bg-primary">{{ showSisaHariKerja() }}</span> | 
-              sisaHariKerja: <span class="badge bg-info">"{{ sisaHariKerja }}"</span> | 
-              options count: <span class="badge bg-success">{{ sisaHariKerjaOptions.length }}</span> |
-              current filter month: <span class="badge bg-warning text-dark">"{{ currentFilter()?.month }}"</span>
-            </small>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
-
   <!-- KPI Cards Section -->
   @if (hasData() && !loading()) {
     <div class="row g-4 mb-4">
@@ -70,7 +52,6 @@
           @if (showSisaHariKerja()) {
             <div class="d-flex align-items-center">
               <label for="sisaHariKerja" class="form-label small text-muted me-2 mb-0">
-                Sisa Hari Kerja ({{ sisaHariKerjaOptions.length }} options):
               </label>
               <select
                 id="sisaHariKerja"
@@ -83,11 +64,6 @@
                   <option [value]="sh.value">{{ sh.name }}</option>
                 }
               </select>
-            </div>
-          } @else {
-            <div class="text-muted small">
-              <i class="bi bi-info-circle me-1"></i>
-              Sisa hari kerja tersembunyi (showSisaHariKerja: {{ showSisaHariKerja() }})
             </div>
           }
         </div>
@@ -128,7 +104,6 @@
           headerColor="#588000"
           [realisasi]="kpiData()!.unitEntry.realisasi"
           [target]="kpiData()!.unitEntry.target"
-          [unitEntry]="getTotalUnitEntry()"
           [sisaHariKerja]="getSisaHariKerja()"
           [loading]="loading()"
           [isUnit]="true">
@@ -147,82 +122,6 @@
           [loading]="loading()"
           [isUnit]="false">
         </app-kpi-card-as>
-      </div>
-    </div>
-
-    <!-- Additional Info Section -->
-    <div class="row g-4">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-3">
-          <div class="card-body p-4">
-            <h5 class="card-title fw-semibold text-dark mb-3">
-              <i class="bi bi-info-circle-fill text-success me-2"></i>
-              Informasi Dashboard
-            </h5>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <h6 class="text-success fw-semibold mb-2">Metrics Explanation:</h6>
-                <ul class="list-unstyled small">
-                  <li class="mb-1">
-                    <i class="bi bi-check-circle text-success me-2"></i>
-                    <strong>Grand Total:</strong> Selisih antara Realisasi dan Target
-                  </li>
-                  <li class="mb-1">
-                    <i class="bi bi-check-circle text-success me-2"></i>
-                    <strong>Rata-rata:</strong> Realisasi dibagi Unit Entry Realisasi
-                  </li>
-                  <li class="mb-1">
-                    <i class="bi bi-check-circle text-success me-2"></i>
-                    <strong>Harapan Target:</strong> Target dibagi Sisa Hari Kerja
-                  </li>
-                  <li class="mb-1">
-                    <i class="bi bi-check-circle text-success me-2"></i>
-                    <strong>Service Cabang:</strong> After Sales minus Sparepart Tunai
-                  </li>
-                </ul>
-              </div>
-              <div class="col-md-6">
-                <h6 class="text-success fw-semibold mb-2">Filter Information:</h6>
-                @if (currentFilter(); as filter) {
-                  <ul class="list-unstyled small">
-                    <li class="mb-1">
-                      <strong>Perusahaan:</strong> {{ filter.company }}
-                    </li>
-                    <li class="mb-1">
-                      <strong>Cabang:</strong> {{ filter.cabang === 'all-cabang' ? 'Semua Cabang' : filter.cabang }}
-                    </li>
-                    <li class="mb-1">
-                      <strong>Periode:</strong> {{ filter.period }}
-                    </li>
-                    <li class="mb-1">
-                      <strong>Bulan:</strong> {{ filter.month === 'all-month' ? 'Semua Bulan' : filter.month }}
-                    </li>
-                    @if (sisaHariKerja) {
-                      <li class="mb-1">
-                        <strong>Sisa Hari Kerja:</strong> {{ sisaHariKerja }} hari
-                      </li>
-                    }
-                  </ul>
-                }
-              </div>
-            </div>
-
-            <!-- Debug Section untuk Raw Data -->
-            <div class="row g-3 mt-3">
-              <div class="col-12">
-                <h6 class="text-warning fw-semibold mb-2">
-                  <i class="bi bi-bug me-1"></i>
-                  Debug Data (Hapus di Production):
-                </h6>
-                <div class="bg-light p-2 rounded">
-                  <small class="font-monospace">
-                    KPI Data: {{ kpiData() | json }}
-                  </small>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   }

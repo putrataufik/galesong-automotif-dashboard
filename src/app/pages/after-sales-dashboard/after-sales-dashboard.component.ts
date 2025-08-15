@@ -1,22 +1,38 @@
-import { Component, inject, signal, DestroyRef, computed, OnInit } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  DestroyRef,
+  computed,
+  OnInit,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 
-import { FilterAftersalesDashboardComponent, AfterSalesFilter } from '../../shared/components/filter-aftersales-dashboard/filter-aftersales-dashboard.component';
+import {
+  FilterAftersalesDashboardComponent,
+  AfterSalesFilter,
+} from '../../shared/components/filter-aftersales-dashboard/filter-aftersales-dashboard.component';
 import { KpiCardAsComponent } from '../../shared/components/kpi-card-as/kpi-card-as.component';
 
 import { AfterSalesService } from '../../core/services/aftersales.service';
 import { AfterSalesStateService } from '../../core/state/after-sales-state.service';
 import { AfterSalesResponse, AfterSalesItem } from '../../types/aftersales.model';
+import { buildDescendingDayOptions, estimateRemainingWorkdays, isSameMonthYear, normalizeMonth, processAftersalesToKpi } from '../../shared/utils/dashboard-aftersales-kpi.utils';
+
+// Utils (DRY)
+
 
 interface KpiData {
-  afterSales: { realisasi: number; target: number; };
-  serviceCabang: { realisasi: number; target: number; };
-  unitEntry: { realisasi: number; target: number; };
-  sparepartTunai: { realisasi: number; target: number; };
+  afterSales: { realisasi: number; target: number };
+  serviceCabang: { realisasi: number; target: number };
+  unitEntry: { realisasi: number; target: number };
+  sparepartTunai: { realisasi: number; target: number };
   totalUnitEntry: number;
+  profit: number;
 }
 
 interface SisaHariOption {
@@ -29,12 +45,14 @@ interface SisaHariOption {
   standalone: true,
   imports: [CommonModule, FormsModule, FilterAftersalesDashboardComponent, KpiCardAsComponent],
   templateUrl: './after-sales-dashboard.component.html',
-  styleUrl: './after-sales-dashboard.component.css'
+  styleUrls: ['./after-sales-dashboard.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AfterSalesDashboardComponent implements OnInit {
-  private afterSalesService = inject(AfterSalesService);
-  private afterSalesState = inject(AfterSalesStateService);
-  private destroyRef = inject(DestroyRef);
+  // Services & destroy ref
+  private readonly afterSalesService = inject(AfterSalesService);
+  private readonly afterSalesState = inject(AfterSalesStateService);
+  private readonly destroyRef = inject(DestroyRef);
 
   // State signals
   loading = signal(false);
@@ -42,320 +60,159 @@ export class AfterSalesDashboardComponent implements OnInit {
   kpiData = signal<KpiData | null>(null);
   currentFilter = signal<AfterSalesFilter | null>(null);
 
-  // Sisa Hari Kerja properties (now managed by state)
+  // Sisa Hari Kerja (managed by state)
   sisaHariKerja = '';
   sisaHariKerjaOptions: SisaHariOption[] = [];
   showSisaHariKerja = signal(false);
 
-  // Computed properties
+  // Computed
   hasData = computed(() => !!this.kpiData());
 
+  // --------------------------
+  // Lifecycle
+  // --------------------------
   ngOnInit(): void {
     this.hydrateFromState();
   }
 
-  onSearch(filter: AfterSalesFilter) {
-    console.log('After Sales Search initiated:', filter);
-  
+  // --------------------------
+  // Public: Aksi & Events
+  // --------------------------
+  onSearch(filter: AfterSalesFilter): void {
     this.error.set(null);
     this.currentFilter.set(filter);
-    
-    // Save filter to state
-    this.afterSalesState.saveFilter(filter);
-    
-    // First update with no API data (will use fallback)
+    this.afterSalesState.saveFilterAfterSales(filter);
+
+    // Fallback sisa hari (sebelum data API ada)
     this.updateSisaHariKerjaOptions(filter);
     this.loading.set(true);
-  
-    this.afterSalesService.getAfterSalesMonthly(filter.company, filter.period)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.loading.set(false))
-      )
+
+    this.afterSalesService
+      .getAfterSalesMonthly(filter.company, filter.period)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response) => {
-          console.log('📡 Raw API Response:', response);
-  
-          // DEBUG: Lihat struktur data asli
-          console.log('🔍 DEBUG - First 3 items from API:');
-          response.aftersales?.slice(0, 3).forEach((item, index) => {
-            console.log(`Item ${index + 1}:`, {
-              month: item.month,
-              cabang_id: item.cabang_id,
-              hari_kerja: item.hari_kerja,
-              after_sales_realisasi: item.after_sales_realisasi,
-              after_sales_target: item.after_sales_target
-            });
-          });
-  
-          // Update sisa hari kerja options dengan data API
           this.updateSisaHariKerjaOptions(filter, response.aftersales);
-  
+
           const processed = this.processAfterSalesData(response, filter);
-          console.log('✅ Final Processed KPI Data:', processed);
-          
-          // Save to state and local signal
           this.kpiData.set(processed);
           this.afterSalesState.saveKpi(processed);
         },
         error: (err) => {
           console.error('Error fetching after sales data:', err);
           this.error.set('Gagal memuat data after sales. Silakan coba lagi.');
-        }
+        },
       });
   }
 
-  private updateSisaHariKerjaOptions(filter: AfterSalesFilter, apiData?: AfterSalesItem[]) {
-    console.log('🔧 Updating sisa hari kerja options for filter:', filter);
-    console.log('🔧 API data available:', !!apiData, 'items:', apiData?.length || 0);
-    
-    if (filter.month === 'all-month' || !filter.month) {
-      console.log('🔧 Hiding sisa hari kerja (all-month selected)');
-      this.showSisaHariKerja.set(false);
-      this.sisaHariKerja = '';
-      this.sisaHariKerjaOptions = [];
-      
-      // Update state
-      this.afterSalesState.setSisaHariKerjaVisibility(false);
-      this.afterSalesState.setSisaHariKerjaValue('');
-      this.afterSalesState.saveSisaHariKerjaOptions([]);
-    } else {
-      console.log('🔧 Showing sisa hari kerja (specific month selected)');
-      this.showSisaHariKerja.set(true);
-      
-      // Generate options based on API data if available
-      if (apiData && apiData.length > 0) {
-        this.sisaHariKerjaOptions = this.generateSisaHariKerjaFromAPI(filter, apiData);
-      } else {
-        // Fallback: use calendar days if no API data yet
-        this.sisaHariKerjaOptions = this.generateSisaHariKerjaFallback(filter.month, filter.period);
-      }
-      
-      console.log('🔧 Generated options:', this.sisaHariKerjaOptions.length, 'days');
-      
-      // Set default to mid-range
-      const defaultDay = Math.min(15, this.sisaHariKerjaOptions.length);
-      this.sisaHariKerja = String(defaultDay);
-      console.log('🔧 Set default sisa hari kerja to:', this.sisaHariKerja);
-      
-      // Update state
-      this.afterSalesState.setSisaHariKerjaVisibility(true);
-      this.afterSalesState.saveSisaHariKerjaOptions(this.sisaHariKerjaOptions);
-      this.afterSalesState.setSisaHariKerjaValue(this.sisaHariKerja);
-    }
-  }
-
-  private generateSisaHariKerjaFallback(month: string, year: string): SisaHariOption[] {
-    console.log('📅 Generating sisa hari kerja FALLBACK for month:', month, 'year:', year);
-    
-    const monthNum = parseInt(month); 
-    const yearNum = parseInt(year);   
-    
-    const daysInMonth = new Date(yearNum, monthNum, 0).getDate();
-    console.log('📅 Fallback - Days in month:', daysInMonth);
-  
-    const options: SisaHariOption[] = [];
-    for (let i = 1; i <= daysInMonth; i++) {
-      options.push({
-        value: String(i),
-        name: `${i} hari tersisa`
-      });
-    }
-    
-    console.log('📅 Generated', options.length, 'fallback options');
-    return options;
-  }
-
-  private generateSisaHariKerjaFromAPI(filter: AfterSalesFilter, apiData: AfterSalesItem[]): SisaHariOption[] {
-    console.log('📅 Generating sisa hari kerja from API data');
-    
-    // Filter data untuk month yang dipilih
-    const normalizedFilterMonth = parseInt(filter.month).toString();
-    const monthData = apiData.filter(item => item.month === normalizedFilterMonth);
-    
-    console.log('📅 Filtered data for month', normalizedFilterMonth, ':', monthData.length, 'items');
-    
-    if (monthData.length === 0) {
-      console.warn('📅 No data found for month', normalizedFilterMonth, 'using fallback');
-      return this.generateSisaHariKerjaFallback(filter.month, filter.period);
-    }
-    
-    // Ambil hari_kerja dari data pertama
-    const hariKerja = parseInt(monthData[0].hari_kerja) || 30;
-    console.log('📅 Hari kerja from API:', hariKerja, 'days');
-    
-    // Generate options dari 1 sampai hari_kerja
-    const options: SisaHariOption[] = [];
-    for (let i = 1; i <= hariKerja; i++) {
-      options.push({
-        value: String(i),
-        name: `${i} hari tersisa`
-      });
-    }
-    
-    console.log('📅 Generated', options.length, 'options from API data');
-    return options;
-  }
-
-  onSisaHariKerjaChange() {
-    console.log('🔄 Sisa hari kerja changed to:', this.sisaHariKerja);
-    
-    // Update state
+  onSisaHariKerjaChange(): void {
     this.afterSalesState.setSisaHariKerjaValue(this.sisaHariKerja);
-    
-    // Trigger recalculation when sisa hari kerja changes
-    if (this.kpiData()) {
-      // Force update untuk memicu recalculation di KPI cards
-      this.kpiData.set({ ...this.kpiData()! });
-    }
+
+    // Memicu re-render KPI cards yang mungkin bergantung pada sisa hari kerja
+    if (this.kpiData()) this.kpiData.set({ ...this.kpiData()! });
   }
 
-  private processAfterSalesData(response: AfterSalesResponse, filter: AfterSalesFilter): KpiData {
-    console.log('🔄 Starting data processing...');
-    console.log('🔄 Filter received:', filter);
-
-    let filteredData = response.aftersales;
-
-    console.log('📊 Original data count:', filteredData.length);
-    console.log('📊 Sample original data:', filteredData.slice(0, 2));
-
-    // Filter by month if specific month selected
-    if (filter.month && filter.month !== 'all-month') {
-      console.log('🔍 Filtering by month. Filter month:', filter.month, '(type:', typeof filter.month, ')');
-
-      const originalMonths = [...new Set(filteredData.map(item => item.month))];
-      console.log('📅 Available months in data:', originalMonths);
-
-      const normalizedFilterMonth = parseInt(filter.month).toString();
-      console.log('🔧 Normalized filter month:', normalizedFilterMonth);
-
-      filteredData = filteredData.filter(item => {
-        const itemMonth = item.month;
-        const matches = itemMonth === normalizedFilterMonth;
-        console.log(`🔍 Comparing: data="${itemMonth}" vs normalized="${normalizedFilterMonth}" → ${matches ? '✅' : '❌'}`);
-        return matches;
-      });
-
-      console.log('📊 After month filter:', filteredData.length, 'items for month', normalizedFilterMonth);
-    }
-
-    // Filter by cabang if specific cabang selected
-    if (filter.cabang && filter.cabang !== 'all-cabang') {
-      console.log('🔍 Filtering by cabang:', filter.cabang);
-
-      const originalCabangs = [...new Set(filteredData.map(item => item.cabang_id))];
-      console.log('🏢 Available cabangs in filtered data:', originalCabangs);
-
-      filteredData = filteredData.filter(item => {
-        const matches = item.cabang_id === filter.cabang;
-        console.log(`🏢 Comparing: data="${item.cabang_id}" vs filter="${filter.cabang}" → ${matches ? '✅' : '❌'}`);
-        return matches;
-      });
-
-      console.log('📊 After cabang filter:', filteredData.length, 'items for cabang', filter.cabang);
-    }
-
-    console.log('📊 Final filtered data count:', filteredData.length);
-
-    if (filteredData.length === 0) {
-      console.warn('⚠️ No data after filtering! Check filter criteria vs API data format.');
-    }
-
-    return this.calculateKpiMetrics(filteredData);
-  }
-
-  private calculateKpiMetrics(data: AfterSalesItem[]): KpiData {
-    console.log('Calculating KPI for data:', data);
-
-    // Calculate After Sales KPI
-    const afterSales = {
-      realisasi: this.sumField(data, 'total_revenue_realisasi'),
-      target: this.sumField(data, 'total_revenue_target')
-    };
-
-    // Calculate Service Cabang KPI (Total Revenue - Sparepart Tunai)
-    const serviceCabang = {
-      realisasi: this.sumField(data, 'total_revenue_realisasi') - this.sumField(data, 'part_tunai_realisasi'),
-      target: this.sumField(data, 'total_revenue_target') - this.sumField(data, 'part_tunai_target')
-    };
-
-    // Calculate Unit Entry KPI
-    const unitEntry = {
-      realisasi: this.sumField(data, 'unit_entry_realisasi'),
-      target: this.sumField(data, 'unit_entry_target')
-    };
-
-    // Calculate Sparepart Tunai KPI
-    const sparepartTunai = {
-      realisasi: this.sumField(data, 'part_tunai_realisasi'),
-      target: this.sumField(data, 'part_tunai_target')
-    };
-
-    // Total unit entry for rata-rata calculation
-    const totalUnitEntry = unitEntry.realisasi;
-
-    const result = {
-      afterSales,
-      serviceCabang,
-      unitEntry,
-      sparepartTunai,
-      totalUnitEntry
-    };
-
-    console.log('Calculated KPI metrics:', result);
-    return result;
-  }
-
-  private sumField(data: AfterSalesItem[], field: keyof AfterSalesItem): number {
-    const sum = data.reduce((total, item) => {
-      const value = Number(item[field]) || 0;
-      return total + value;
-    }, 0);
-    console.log(`Sum of ${field}:`, sum);
-    return sum;
-  }
-
-  // Helper method to get sisa hari kerja for KPI cards
+  // Helpers untuk template
   getSisaHariKerja(): number | undefined {
     return this.afterSalesState.getSisaHariKerjaNumber();
   }
 
-  // Helper method to get unit entry for rata-rata calculation
   getTotalUnitEntry(): number {
     return this.kpiData()?.totalUnitEntry || 0;
   }
 
-  // Hydrate from state on component init
-  private hydrateFromState(): void {
-    const savedFilter = this.afterSalesState.getFilter();
-    if (savedFilter) {
-      this.currentFilter.set(savedFilter);
+  // --------------------------
+  // Proses Data & KPI
+  // --------------------------
+  private processAfterSalesData(response: AfterSalesResponse, filter: AfterSalesFilter): KpiData {
+    return processAftersalesToKpi(response.aftersales || [], {
+      month: filter.month,
+      cabang: filter.cabang,
+    });
+  }
+
+  // --------------------------
+  // Util: Sisa Hari Kerja (DRY)
+  // --------------------------
+  private updateSisaHariKerjaOptions(filter: AfterSalesFilter, apiData?: AfterSalesItem[]): void {
+    // Hanya tampil untuk bulan & tahun berjalan
+    const monthNum = filter?.month && filter.month !== 'all-month' ? normalizeMonth(filter.month) : null;
+    const yearNum = filter?.period ? parseInt(filter.period, 10) : null;
+    const shouldShow = isSameMonthYear(monthNum, yearNum);
+
+    if (!shouldShow) {
+      this.resetSisaHariState();
+      return;
     }
 
-    const savedKpi = this.afterSalesState.getKpi();
-    if (this.afterSalesState.hasKpi()) {
-      this.kpiData.set(savedKpi);
+    // Hitung default berdasarkan tanggal hari ini (gunakan data API jika tersedia)
+    const monthStr = String(normalizeMonth(filter.month!));
+    const dataForMonth = (apiData ?? []).filter((item) => item.month === monthStr);
+
+    const totalHariKerja = dataForMonth?.[0]?.['hari_kerja' as keyof AfterSalesItem];
+    const totalHariKerjaNum =
+      totalHariKerja == null ? undefined : Number(String(totalHariKerja).replace(/,/g, ''));
+
+    const defaultRemaining = estimateRemainingWorkdays(
+      yearNum!,
+      monthNum!,
+      new Date(),
+      totalHariKerjaNum
+    );
+
+    // Sembunyikan jika sudah 0 (habis)
+    if (defaultRemaining <= 0) {
+      this.resetSisaHariState();
+      return;
     }
+
+    // Bangun opsi 1..N dan set default terpilih = N
+    const options = buildDescendingDayOptions(defaultRemaining);
+    this.applySisaHariState(options, String(defaultRemaining));
+  }
+
+  private resetSisaHariState(): void {
+    this.showSisaHariKerja.set(false);
+    this.sisaHariKerja = '';
+    this.sisaHariKerjaOptions = [];
+    this.afterSalesState.setSisaHariKerjaVisibility(false);
+    this.afterSalesState.setSisaHariKerjaValue('');
+    this.afterSalesState.saveSisaHariKerjaOptions([]);
+  }
+
+  private applySisaHariState(options: SisaHariOption[], selected: string): void {
+    this.sisaHariKerjaOptions = options;
+    this.sisaHariKerja = selected;
+    this.showSisaHariKerja.set(true);
+    this.afterSalesState.setSisaHariKerjaVisibility(true);
+    this.afterSalesState.saveSisaHariKerjaOptions(options);
+    this.afterSalesState.setSisaHariKerjaValue(selected);
+  }
+
+  // --------------------------
+  // State Hydration
+  // --------------------------
+  private hydrateFromState(): void {
+    const savedFilter = this.afterSalesState.getFilterAfterSales();
+    if (savedFilter) this.currentFilter.set(savedFilter);
+
+    const savedKpi = this.afterSalesState.getKpi();
+    if (this.afterSalesState.hasKpi()) this.kpiData.set(savedKpi);
 
     const sisaHariState = this.afterSalesState.getSisaHariKerjaState();
     this.sisaHariKerjaOptions = sisaHariState.options;
     this.sisaHariKerja = sisaHariState.selectedValue;
     this.showSisaHariKerja.set(sisaHariState.isVisible);
-
-    console.log('🔄 Hydrated from state:', {
-      filter: savedFilter,
-      hasKpi: this.afterSalesState.hasKpi(),
-      sisaHariState
-    });
   }
 
-  // Debug method
-  logCurrentState() {
+  // --------------------------
+  // Debug & Reset
+  // --------------------------
+  logCurrentState(): void {
     this.afterSalesState.logState();
   }
 
-  // Clear all data
-  clearAllData() {
+  clearAllData(): void {
     this.afterSalesState.clearAll();
     this.kpiData.set(null);
     this.currentFilter.set(null);

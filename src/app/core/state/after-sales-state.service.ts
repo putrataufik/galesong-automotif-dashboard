@@ -12,6 +12,7 @@ export interface AfterSalesKpiSnapshot {
   unitEntry: { realisasi: number; target: number };
   sparepartTunai: { realisasi: number; target: number };
   totalUnitEntry: number;
+  profit: number;
 }
 
 // === TYPES: Sisa Hari Kerja ===
@@ -44,6 +45,7 @@ const initialKpi: AfterSalesKpiSnapshot = {
   unitEntry: { realisasi: 0, target: 0 },
   sparepartTunai: { realisasi: 0, target: 0 },
   totalUnitEntry: 0,
+  profit: 0,
 };
 
 const initialSisaHariKerja: SisaHariKerjaState = {
@@ -88,6 +90,7 @@ export class AfterSalesStateService {
       // Persist otomatis setiap perubahan state
       effect(() => {
         const value = this._state();
+        console.log('💾 Persisting After Sales State:', value);
         try {
           sessionStorage.setItem(STORAGE_KEY, JSON.stringify(value));
         } catch {
@@ -131,11 +134,12 @@ export class AfterSalesStateService {
   }
 
   // ====== FILTER MANAGEMENT ======
-  saveFilter(filter: AfterSalesFilter) { 
+  saveFilterAfterSales(filter: AfterSalesFilter) { 
     this.patch({ filter }); 
   }
 
-  getFilter(): AfterSalesFilter | null { 
+  getFilterAfterSales(): AfterSalesFilter | null { 
+    console.log('🔍 Getting After Sales Filter:', this._state().filter);
     return this._state().filter; 
   }
 
@@ -151,6 +155,7 @@ export class AfterSalesStateService {
       unitEntry: kpi.unitEntry ?? this._state().kpi.unitEntry,
       sparepartTunai: kpi.sparepartTunai ?? this._state().kpi.sparepartTunai,
       totalUnitEntry: kpi.totalUnitEntry ?? this._state().kpi.totalUnitEntry,
+      profit: kpi.profit ?? this._state().kpi.profit,
     });
   }
 
@@ -275,6 +280,7 @@ export class AfterSalesStateService {
           unitEntry: parsed.kpi?.unitEntry ?? { realisasi: 0, target: 0 },
           sparepartTunai: parsed.kpi?.sparepartTunai ?? { realisasi: 0, target: 0 },
           totalUnitEntry: parsed.kpi?.totalUnitEntry ?? 0,
+          profit: parsed.kpi?.profit ?? 0,
         },
         sisaHariKerja: {
           options: parsed.sisaHariKerja?.options ?? [],
