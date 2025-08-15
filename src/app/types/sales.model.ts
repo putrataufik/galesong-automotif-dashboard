@@ -1,3 +1,5 @@
+// src/app/types/sales.model.ts
+
 import { FilterInfo } from "./filter.model";
 
 // Interfaces

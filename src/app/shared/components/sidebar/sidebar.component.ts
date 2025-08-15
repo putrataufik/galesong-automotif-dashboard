@@ -27,6 +27,11 @@ export class SidebarComponent {
       icon: 'dashboard' // akan menjadi assets/icons/home.png
     },
     {
+      path: '/after-sales-dashboard',
+      label: 'After Sales Dashboard',
+      icon: 'service-provider' // akan menjadi assets/icons/service-provider.png
+    },
+    {
       path: '/financial-tracking',
       label: 'Financial Tracker',
       icon: 'expense' // akan menjadi assets/icons/chart-line.png

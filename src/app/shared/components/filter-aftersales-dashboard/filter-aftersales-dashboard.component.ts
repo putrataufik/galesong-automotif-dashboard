@@ -9,39 +9,53 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AppFilter, CategoryFilter } from '../../../types/filter.model';
 
-// Interface untuk opsi dropdown (company, category, period)
+// Interface untuk filter After Sales
+export interface AfterSalesFilter {
+  company: string;
+  cabang: string;
+  period: string;
+  month: string;
+}
+
+// Interface untuk opsi dropdown
 interface Option {
   value: string;
   name: string;
 }
 
 @Component({
-  selector: 'app-filter',
+  selector: 'app-filter-aftersales-dashboard',
   standalone: true,
   imports: [FormsModule],
-  templateUrl: './filter.component.html',
-  styleUrl: './filter.component.css',
+  templateUrl: './filter-aftersales-dashboard.component.html',
+  styleUrl: './filter-aftersales-dashboard.component.css',
 })
-export class FilterComponent implements OnInit, OnChanges, OnDestroy {
+export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, OnDestroy {
   // Props dari parent
-  @Input() initialFilter: AppFilter | null = null;
+  @Input() initialFilter: AfterSalesFilter | null = null;
   @Input() loading = false;
 
   // Event emitter untuk mengirim filter ke parent
-  @Output() search = new EventEmitter<AppFilter>();
+  @Output() search = new EventEmitter<AfterSalesFilter>();
 
   // Static data perusahaan
   companies: Option[] = [
     { value: 'sinar-galesong-mobilindo', name: 'Sinar Galesong Mobilindo' },
+    // { value: 'sinar-galesong-mandiri', name: 'Sinar Galesong Mandiri' },
+    // { value: 'sinar-galesong-prima', name: 'Sinar Galesong Prima' },
+    // { value: 'sinar-galesong-automobil', name: 'Sinar Galesong Automobil' },
   ];
 
-  // Static data kategori
-  categories: Option[] = [
-    { value: 'all-category', name: 'Semua Kategori' },
-    { value: 'sales', name: 'Sales' },
-    { value: 'after-sales', name: 'After Sales' },
+  // Static data cabang (berdasarkan mapping yang ada di BaseApiService)
+  cabangOptions: Option[] = [
+    { value: 'all-cabang', name: 'Semua Cabang' },
+    { value: '0050', name: 'PETTARANI' },
+    { value: '0051', name: 'PALU' },
+    { value: '0052', name: 'KENDARI' },
+    { value: '0053', name: 'GORONTALO' },
+    // { value: '0054', name: 'PALOPO' },
+    // { value: '0055', name: 'SUNGGUMINASA' },
   ];
 
   // Periode tahun (generate dinamis)
@@ -50,15 +64,21 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
 
   // State untuk form filter (ngModel)
   company = '';
-  category: CategoryFilter = 'all-category';
+  cabang = 'all-cabang';
   period = String(new Date().getFullYear());
-  month = 'all-month';
+  month = this.getCurrentMonth(); // ✅ Default ke bulan saat ini
 
   // State alert notifikasi
   showAlert = false;
   alertMessage = '';
   alertType: 'success' | 'danger' = 'danger';
   private alertTimeoutId: any;
+
+  // ✅ Method untuk mendapatkan bulan saat ini dalam format "MM"
+  private getCurrentMonth(): string {
+    const currentMonth = new Date().getMonth() + 1; // getMonth() returns 0-11, kita butuh 1-12
+    return String(currentMonth).padStart(2, '0'); // Format menjadi "01", "02", dst
+  }
 
   // Lifecycle: pertama kali komponen dibuat
   ngOnInit() {
@@ -78,11 +98,11 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   // Terapkan filter awal yang dikirim dari parent
-  private applyInitialFilter(filter: AppFilter | null) {
+  private applyInitialFilter(filter: AfterSalesFilter | null) {
     if (!filter) return;
 
     this.company = filter.company ?? this.company;
-    this.category = (filter.category ?? this.category) as CategoryFilter;
+    this.cabang = filter.cabang ?? this.cabang;
 
     // Jika tahun dari filter tidak ada dalam list tahun, tambahkan secara dinamis
     if (filter.period && !this.periods.find((p) => p.value === filter.period)) {
@@ -111,7 +131,7 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private generateMonths(): Option[] {
-    const names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     const opts: Option[] = [{ value: 'all-month', name: 'Semua Bulan' }];
     for (let i = 0; i < 12; i++) {
       const v = String(i + 1).padStart(2, '0');
@@ -123,6 +143,23 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
   // Saat salah satu filter diubah → reset alert
   onFilterChange() {
     if (this.showAlert) this.hideAlert();
+  }
+
+  // ✅ Method yang dipanggil saat tahun berubah
+  onPeriodChange() {
+    this.onFilterChange();
+    
+    // Update default bulan berdasarkan tahun yang dipilih
+    const currentYear = new Date().getFullYear();
+    const selectedYear = parseInt(this.period);
+    
+    if (selectedYear === currentYear) {
+      // Jika pilih tahun sekarang → default ke bulan saat ini
+      this.month = this.getCurrentMonth();
+    } else {
+      // Jika pilih tahun lain → default ke "Semua Bulan"
+      this.month = 'all-month';
+    }
   }
 
   // Saat tombol cari ditekan
@@ -140,13 +177,13 @@ export class FilterComponent implements OnInit, OnChanges, OnDestroy {
     // Emit ke parent
     this.search.emit({
       company: this.company,
-      category: this.category,
+      cabang: this.cabang,
       period: this.period,
       month: this.month,
     });
 
     // Tampilkan notifikasi
-    this.show('Pencarian berhasil! Data sedang dimuat…', 'success');
+    this.show('Pencarian berhasil! Data After Sales sedang dimuat…', 'success');
   }
 
   // Sembunyikan alert secara manual

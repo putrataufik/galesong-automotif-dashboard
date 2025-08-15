@@ -6,7 +6,7 @@
         Dashboard <span class="text-primary">Galesong Otomotif</span>
       </h2>
 
-      <app-filter [initialFilter]="prefilledFilter" [loading]="loading()" (search)="onSearch($event)" />
+      <app-filter-main-dashboard [initialFilter]="prefilledFilter" [loading]="loading()" (search)="onSearch($event)" />
     </div>
   </div>
 
@@ -37,8 +37,8 @@
 
   <!-- SALES SECTION -->
   @if (prefilledFilter?.category === 'sales' || prefilledFilter?.category === 'all-category') {
-  @if (hasData) {
-  
+  @if (hasData()) {
+
   <!-- Sales KPI Section -->
   <div class="row g-4 mb-4">
     <div class="col-12">
@@ -109,7 +109,7 @@
 
   <!-- AFTER SALES SECTION -->
   @if (prefilledFilter?.category === 'after-sales' || prefilledFilter?.category === 'all-category') {
-  @if (hasData) {
+  @if (hasData()) {
 
   <!-- After Sales KPI Section -->
   @if (afterSalesKpi(); as kpi) {
@@ -121,11 +121,6 @@
       </div>
     </div>
 
-    <!-- Total Revenue Realisasi -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Total Revenue Realisasi'" [value]="formatCompactNumber(kpi.totalRevenueRealisasi)"
-        [subtitle]="'Total pendapatan realisasi'" icon="icons/increase.png" iconBgClass="bg-success bg-opacity-10"/>
-    </div>
 
     <!-- Total Biaya Usaha (BEP) -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
@@ -139,23 +134,26 @@
         [subtitle]="'Keuntungan bersih'" icon="icons/uptrend.png" iconBgClass="bg-primary bg-opacity-10" />
     </div>
 
-    <!-- Jumlah Hari Kerja -->
+    <!-- Total Revenue Realisasi -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Jumlah Hari Kerja'" [value]="kpi.totalHariKerja" unit="hari"
-        [subtitle]="'Total hari operasional'" icon="icons/leave.png" iconBgClass="bg-info bg-opacity-10" />
+      <app-kpi-card [title]="'Total Revenue Realisasi'" [value]="formatCompactNumber(kpi.totalRevenueRealisasi)"
+        [subtitle]="'Total pendapatan realisasi'" icon="icons/increase.png" iconBgClass="bg-success bg-opacity-10" />
     </div>
 
+
+    <!-- After Sales -->
+    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+      <app-kpi-card [title]="'Service Cabang'" [value]="formatCompactNumber(kpi.afterSalesRealisasi)" unit=""
+        [subtitle]="'Realisasi Service Cabang'" icon="icons/service-provider.png"
+        iconBgClass="bg-purple bg-opacity-10" />
+    </div>
     <!-- Service Cabang -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
       <app-kpi-card [title]="'Service Cabang'" [value]="formatCompactNumber(kpi.serviceCabang)" unit=""
         [subtitle]="'After Sales - Sparepart Tunai'" icon="icons/wrench.png" iconBgClass="bg-secondary bg-opacity-10" />
     </div>
 
-    <!-- After Sales -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'After Sales'" [value]="formatCompactNumber(kpi.afterSalesRealisasi)" unit=""
-        [subtitle]="'Realisasi after sales'" icon="icons/service-provider.png" iconBgClass="bg-purple bg-opacity-10" />
-    </div>
+
 
     <!-- Unit Entry -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
@@ -165,9 +163,8 @@
 
     <!-- Sparepart Tunai -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Sparepart Tunai'" [value]="formatCompactNumber(kpi.sparepartTunaiRealisasi)"
-        unit="" [subtitle]="'Penjualan sparepart cash'" icon="icons/spare-parts.png"
-        iconBgClass="bg-primary bg-opacity-10" />
+      <app-kpi-card [title]="'Sparepart Tunai'" [value]="formatCompactNumber(kpi.sparepartTunaiRealisasi)" unit=""
+        [subtitle]="'Penjualan sparepart cash'" icon="icons/spare-parts.png" iconBgClass="bg-primary bg-opacity-10" />
     </div>
   </div>
   }
@@ -176,41 +173,29 @@
   @if (afterSalesRealisasiVsTarget() || afterSalesProfitByBranch()) {
   <div class="row g-4 mb-5">
     <!-- After Sales Realisasi vs Target Chart -->
-@if (afterSalesRealisasiVsTarget()) {
-  <div class="col-12 col-lg-6">
-    <app-bar-chart-card 
-      [title]="'After Sales Realisasi vs Target per Bulan'"
-      [chartData]="afterSalesRealisasiVsTarget()!"
-      [height]="300" 
-      [horizontal]="false"
-      [showLegend]="true"
-      [isMultiDataset]="true" />
-  </div>
-  }
-  
+    @if (afterSalesRealisasiVsTarget()) {
+    <div class="col-12 col-lg-6">
+      <app-bar-chart-card [title]="'After Sales Realisasi vs Target per Bulan'"
+        [chartData]="afterSalesRealisasiVsTarget()!" [height]="300" [horizontal]="false" [showLegend]="true"
+        [isMultiDataset]="true" />
+    </div>
+    }
+
     <!-- Profit by Branch Chart -->
-@if (afterSalesProfitByBranch()) {
-  <div class="col-12 col-lg-6">
-    <app-bar-chart-card 
-      [title]="'Profit per Cabang (After Sales)'"
-      [labels]="afterSalesProfitByBranch()!.labels" 
-      [data]="afterSalesProfitByBranch()!.data"
-      [height]="300" 
-      [horizontal]="true"
-      [showLegend]="false"
-      [label]="'Profit'"
-      [chartType]="'currency'"
-      [backgroundColor]="'#ffc107'"
-      [borderColor]="'#ffc107'" />
-  </div>
-  }
+    @if (afterSalesProfitByBranch()) {
+    <div class="col-12 col-lg-6">
+      <app-bar-chart-card [title]="'Profit per Cabang (After Sales)'" [labels]="afterSalesProfitByBranch()!.labels"
+        [data]="afterSalesProfitByBranch()!.data" [height]="300" [horizontal]="true" [showLegend]="false"
+        [label]="'Profit'" [chartType]="'currency'" [backgroundColor]="'#ffc107'" [borderColor]="'#ffc107'" />
+    </div>
+    }
   </div>
   }
   }
   }
 
   <!-- Empty State -->
-  @if (!hasData && !loading()) {
+  @if (!hasData() && !loading()) {
   <div class="row">
     <div class="col-12">
       <div class="text-center py-5">

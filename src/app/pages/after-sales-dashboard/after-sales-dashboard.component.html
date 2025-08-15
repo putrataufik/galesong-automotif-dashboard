@@ -1,0 +1,213 @@
+<div class="container-fluid p-4">
+  <!-- Header dan Filter -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2 class="fw-bold text-dark mb-3">
+        After Sales <span class="text-success">Dashboard</span>
+      </h2>
+      <app-filter-aftersales-dashboard 
+        [loading]="loading()"
+        [initialFilter]="currentFilter()"
+        (search)="onSearch($event)">
+      </app-filter-aftersales-dashboard>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  @if (error() && !loading()) {
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="alert alert-danger border-0 rounded-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <strong>Error:</strong> {{ error() }}
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Global Loading Spinner -->
+  @if (loading()) {
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-center align-items-center p-5" style="min-height: 400px">
+          <div class="spinner-border text-success" style="width: 3rem; height: 3rem" role="status">
+            <span class="visually-hidden">Memuat dashboard after sales...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ✅ SECTION 1: KPI Cards Tambahan -->
+  @if (hasData() && !loading() && additionalKpiData()) {
+    <div class="row g-4 mb-4">
+      <div class="col-12">
+        <div class="d-flex align-items-center mb-3">
+          <i class="bi bi-graph-up text-info me-2 fs-4"></i>
+          <h4 class="mb-0 fw-bold text-dark">Summary Metrics</h4>
+        </div>
+      </div>
+
+      <!-- Jumlah Mekanik - Hanya tampil jika pilih 1 bulan -->
+      @if (showJumlahMekanik()) {
+        <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+          <app-kpi-card 
+            [title]="'Jumlah Mekanik'" 
+            [value]="additionalKpiData()!.jumlahMekanik"
+            unit="orang"
+            [subtitle]="'Total mekanik aktif'"
+            icon="icons/service-provider.png" 
+            iconBgClass="bg-info bg-opacity-10" />
+        </div>
+      }
+
+      <!-- Jumlah Hari Kerja - Jangan tampil jika semua cabang + semua bulan -->
+      @if (showJumlahHariKerja()) {
+        <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+          <app-kpi-card 
+            [title]="'Jumlah Hari Kerja'" 
+            [value]="additionalKpiData()!.jumlahHariKerja"
+            unit="hari"
+            [subtitle]="'Total hari operasional'"
+            icon="icons/leave.png" 
+            iconBgClass="bg-primary bg-opacity-10" />
+        </div>
+      }
+
+      <!-- Total Biaya Usaha -->
+      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+        <app-kpi-card 
+          [title]="'Total Biaya Usaha'" 
+          [value]="formatCompactNumber(additionalKpiData()!.totalBiayaUsaha)"
+          [subtitle]="'Break Even Point (BEP)'"
+          icon="icons/money.png" 
+          iconBgClass="bg-warning bg-opacity-10" />
+      </div>
+
+      <!-- Total Revenue -->
+      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+        <app-kpi-card 
+          [title]="'Total Revenue'" 
+          [value]="formatCompactNumber(additionalKpiData()!.totalRevenueRealisasi)"
+          [subtitle]="'Total Pendapatan Realisasi'"
+          icon="icons/increase.png" 
+          iconBgClass="bg-success bg-opacity-10" />
+      </div>
+
+      <!-- Total Profit -->
+      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+        <app-kpi-card 
+          [title]="'Total Profit'" 
+          [value]="formatCompactNumber(additionalKpiData()!.totalProfit)"
+          [subtitle]="'Keuntungan bersih'"
+          icon="icons/uptrend.png" 
+          iconBgClass="bg-success bg-opacity-10" />
+      </div>
+    </div>
+  }
+
+  <!-- ✅ SECTION 2: Pencapaian Cabang (KPI Cards AS yang sudah ada) -->
+  @if (hasData() && !loading()) {
+    <div class="row g-4 mb-4">
+      <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-speedometer2 text-success me-2 fs-4"></i>
+            <h4 class="mb-0 fw-bold text-dark">Pencapaian Cabang</h4>
+          </div>
+          
+          <!-- Sisa Hari Kerja Filter dengan debug info -->
+          @if (showSisaHariKerja()) {
+            <div class="d-flex align-items-center">
+              <label for="sisaHariKerja" class="form-label small text-muted me-2 mb-0">
+              </label>
+              <select
+                id="sisaHariKerja"
+                class="form-select form-select-sm"
+                style="width: auto; min-width: 150px"
+                [(ngModel)]="sisaHariKerja"
+                (change)="onSisaHariKerjaChange()"
+              >
+                @for (sh of sisaHariKerjaOptions; track sh.value) {
+                  <option [value]="sh.value">{{ sh.name }}</option>
+                }
+              </select>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- After Sales Realisasi vs Target -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <app-kpi-card-as
+          title="AFTER SALES REALISASI vs TARGET"
+          headerColor="#2563EB"
+          [realisasi]="kpiData()!.afterSales.realisasi"
+          [target]="kpiData()!.afterSales.target"
+          [unitEntry]="getTotalUnitEntry()"
+          [sisaHariKerja]="getSisaHariKerja()"
+          [loading]="loading()"
+          [isUnit]="false">
+        </app-kpi-card-as>
+      </div>
+
+      <!-- Service Cabang Realisasi vs Target -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <app-kpi-card-as
+          title="SERVICE CABANG REALISASI vs TARGET"
+          headerColor="#3B00A0"
+          [realisasi]="kpiData()!.serviceCabang.realisasi"
+          [target]="kpiData()!.serviceCabang.target"
+          [unitEntry]="getTotalUnitEntry()"
+          [sisaHariKerja]="getSisaHariKerja()"
+          [loading]="loading()"
+          [isUnit]="false">
+        </app-kpi-card-as>
+      </div>
+
+      <!-- Unit Entry Realisasi vs Target -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <app-kpi-card-as
+          title="UNIT ENTRY REALISASI vs TARGET"
+          headerColor="#588000"
+          [realisasi]="kpiData()!.unitEntry.realisasi"
+          [target]="kpiData()!.unitEntry.target"
+          [sisaHariKerja]="getSisaHariKerja()"
+          [loading]="loading()"
+          [isUnit]="true">
+        </app-kpi-card-as>
+      </div>
+
+      <!-- Sparepart Tunai Realisasi vs Target -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <app-kpi-card-as
+          title="SPAREPART TUNAI REALISASI vs TARGET"
+          headerColor="#944700"
+          [realisasi]="kpiData()!.sparepartTunai.realisasi"
+          [target]="kpiData()!.sparepartTunai.target"
+          [unitEntry]="getTotalUnitEntry()"
+          [sisaHariKerja]="getSisaHariKerja()"
+          [loading]="loading()"
+          [isUnit]="false">
+        </app-kpi-card-as>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!hasData() && !loading() && !error()) {
+    <div class="row">
+      <div class="col-12">
+        <div class="text-center py-5">
+          <i class="bi bi-bar-chart text-muted fs-1 mb-3"></i>
+          <h6 class="text-muted mb-0">
+            Belum ada data untuk ditampilkan. Silakan pilih filter dan klik cari data.
+          </h6>
+          <p class="text-muted small mt-2">
+            Pastikan memilih perusahaan dan periode yang valid
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

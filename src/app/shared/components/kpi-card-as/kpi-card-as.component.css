@@ -1,0 +1,190 @@
+/* KPI Card AS Styles */
+.kpi-card-as {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    min-height: 280px;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .kpi-card-as:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  /* Header Chip */
+  .header-chip-wrapper {
+    position: relative;
+    color: white;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    padding: 0 20px;
+  }
+  
+  .header-chip {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 200px;
+  }
+  
+  .chip-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    flex-grow: 1;
+  }
+  
+  .chip-icon {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-left: 8px;
+  }
+  
+  /* Content Section */
+  .content-section {
+    padding: 20px;
+  }
+  
+  /* Percentage Display */
+  .percentage-display {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #242424;
+    margin-bottom: 10px;
+    line-height: 1;
+  }
+  
+  /* Progress Bar */
+.progress {
+  height: 35px;
+  background-color: #878787;
+  margin-bottom: 20px;
+  overflow: visible;
+  position: relative; /* sudah ada via class, tapi aman ditulis */
+}
+
+/* Bar anim */
+.progress-bar {
+  transition: width 0.6s ease;
+}
+
+/* Teks di tengah (vertikal & horizontal) */
+.progress-text {
+  position: absolute;
+  inset: 0;                 /* top:0; right:0; bottom:0; left:0 */
+  display: flex;
+  align-items: center;      /* center vertikal */
+  justify-content: center;  /* center horizontal */
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  z-index: 2;
+  pointer-events: none;
+}
+
+  
+  /* Detail Rows */
+  .details {
+    space-y: 8px;
+  }
+  
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f8f9fa;
+    font-size: 0.9rem;
+  }
+  
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+  
+  .detail-row span:first-child {
+    color: #6c757d;
+    font-weight: 500;
+  }
+  
+  .detail-row span:last-child {
+    font-size: 0.85rem;
+  }
+  
+  /* Loading Overlay */
+  .loading-overlay {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(2px);
+    z-index: 10;
+    border-radius: inherit;
+  }
+  
+  /* Shadow Utilities */
+  .shadow-soft {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .kpi-card-as {
+      min-height: 260px;
+    }
+    
+    .percentage-display {
+      font-size: 2rem;
+    }
+    
+    .header-chip {
+      min-width: 180px;
+      padding: 6px 16px;
+    }
+    
+    .chip-title {
+      font-size: 0.8rem;
+    }
+    
+    .content-section {
+      padding: 16px;
+    }
+    
+    .progress-text {
+      font-size: 0.7rem;
+    }
+    
+    .detail-row {
+      font-size: 0.85rem;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .header-chip {
+      min-width: 160px;
+      padding: 6px 12px;
+    }
+    
+    .chip-title {
+      font-size: 0.75rem;
+    }
+    
+    .percentage-display {
+      font-size: 1.8rem;
+    }
+  }
+  
+  /* Animation for percentage counter */
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .percentage-display {
+    animation: countUp 0.6s ease-out;
+  }

@@ -1,3 +1,5 @@
+// src/app/types/aftersales.model.ts
+
 import { FilterInfo } from "./filter.model";
 
 // After Sales Interfaces
