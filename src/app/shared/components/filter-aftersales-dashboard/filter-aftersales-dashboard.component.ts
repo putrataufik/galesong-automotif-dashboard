@@ -42,9 +42,9 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
   // Static data perusahaan
   companies: Option[] = [
     { value: 'sinar-galesong-mobilindo', name: 'Sinar Galesong Mobilindo' },
-    { value: 'sinar-galesong-mandiri', name: 'Sinar Galesong Mandiri' },
-    { value: 'sinar-galesong-prima', name: 'Sinar Galesong Prima' },
-    { value: 'sinar-galesong-automobil', name: 'Sinar Galesong Automobil' },
+    // { value: 'sinar-galesong-mandiri', name: 'Sinar Galesong Mandiri' },
+    // { value: 'sinar-galesong-prima', name: 'Sinar Galesong Prima' },
+    // { value: 'sinar-galesong-automobil', name: 'Sinar Galesong Automobil' },
   ];
 
   // Static data cabang (berdasarkan mapping yang ada di BaseApiService)
@@ -54,8 +54,8 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
     { value: '0051', name: 'PALU' },
     { value: '0052', name: 'KENDARI' },
     { value: '0053', name: 'GORONTALO' },
-    { value: '0054', name: 'PALOPO' },
-    { value: '0055', name: 'SUNGGUMINASA' },
+    // { value: '0054', name: 'PALOPO' },
+    // { value: '0055', name: 'SUNGGUMINASA' },
   ];
 
   // Periode tahun (generate dinamis)
@@ -66,13 +66,19 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
   company = '';
   cabang = 'all-cabang';
   period = String(new Date().getFullYear());
-  month = 'all-month';
+  month = this.getCurrentMonth(); // ✅ Default ke bulan saat ini
 
   // State alert notifikasi
   showAlert = false;
   alertMessage = '';
   alertType: 'success' | 'danger' = 'danger';
   private alertTimeoutId: any;
+
+  // ✅ Method untuk mendapatkan bulan saat ini dalam format "MM"
+  private getCurrentMonth(): string {
+    const currentMonth = new Date().getMonth() + 1; // getMonth() returns 0-11, kita butuh 1-12
+    return String(currentMonth).padStart(2, '0'); // Format menjadi "01", "02", dst
+  }
 
   // Lifecycle: pertama kali komponen dibuat
   ngOnInit() {
@@ -137,6 +143,23 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
   // Saat salah satu filter diubah → reset alert
   onFilterChange() {
     if (this.showAlert) this.hideAlert();
+  }
+
+  // ✅ Method yang dipanggil saat tahun berubah
+  onPeriodChange() {
+    this.onFilterChange();
+    
+    // Update default bulan berdasarkan tahun yang dipilih
+    const currentYear = new Date().getFullYear();
+    const selectedYear = parseInt(this.period);
+    
+    if (selectedYear === currentYear) {
+      // Jika pilih tahun sekarang → default ke bulan saat ini
+      this.month = this.getCurrentMonth();
+    } else {
+      // Jika pilih tahun lain → default ke "Semua Bulan"
+      this.month = 'all-month';
+    }
   }
 
   // Saat tombol cari ditekan

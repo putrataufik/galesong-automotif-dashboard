@@ -15,7 +15,6 @@ import { DashboardStateService } from '../../core/state/dashboard-state.service'
 
 import { AppFilter } from '../../types/filter.model';
 import { formatCompactNumber } from '../../shared/utils/dashboard-aftersales-kpi.utils';
-// 👉 Pindahkan DTO ke shared agar tidak duplikat:
 
 @Component({
   selector: 'app-main-dashboard',

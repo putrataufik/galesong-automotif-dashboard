@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { BaseApiService } from './base-api.service';
 import { AfterSalesResponse } from '../../types/aftersales.model';
 import { CompanyKey } from '../../types/company.model';
-import { tap } from 'rxjs/operators';
 
 /**
  * Pola sama: beberapa company beda path/param.
@@ -48,10 +47,6 @@ export class AfterSalesService extends BaseApiService {
 
   getAfterSalesMonthly(company: string, year: string) {
     const c = this.use(company);
-    return this.get<AfterSalesResponse>(company, c.monthlyPath(year), c.monthlyParams(year)).pipe(
-      tap((res) => {
-        console.log('📦 RAW After Sales API Response:', res);
-      })
-    );
+    return this.get<AfterSalesResponse>(company, c.monthlyPath(year), c.monthlyParams(year));
   }
-}   
+}

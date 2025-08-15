@@ -15,6 +15,15 @@ export interface AfterSalesKpiSnapshot {
   profit: number;
 }
 
+// ✅ TYPES: Additional KPI
+export interface AdditionalKpiSnapshot {
+  jumlahMekanik: number;
+  jumlahHariKerja: number;
+  totalBiayaUsaha: number;
+  totalProfit: number;
+  totalRevenueRealisasi:number;
+}
+
 // === TYPES: Sisa Hari Kerja ===
 export interface SisaHariKerjaState {
   options: Array<{ value: string; name: string }>;
@@ -33,6 +42,7 @@ export interface AfterSalesChartsState {
 interface AfterSalesState {
   filter: AfterSalesFilter | null;
   kpi: AfterSalesKpiSnapshot;
+  additionalKpi: AdditionalKpiSnapshot; // ✅ Tambah additional KPI
   sisaHariKerja: SisaHariKerjaState;
   charts: AfterSalesChartsState;
   lastUpdated: number | null;
@@ -46,6 +56,15 @@ const initialKpi: AfterSalesKpiSnapshot = {
   sparepartTunai: { realisasi: 0, target: 0 },
   totalUnitEntry: 0,
   profit: 0,
+};
+
+// ✅ Initial Additional KPI
+const initialAdditionalKpi: AdditionalKpiSnapshot = {
+  jumlahMekanik: 0,
+  jumlahHariKerja: 0,
+  totalBiayaUsaha: 0,
+  totalProfit: 0,
+  totalRevenueRealisasi: 0, 
 };
 
 const initialSisaHariKerja: SisaHariKerjaState = {
@@ -63,13 +82,14 @@ const initialCharts: AfterSalesChartsState = {
 const initialState: AfterSalesState = {
   filter: null,
   kpi: initialKpi,
+  additionalKpi: initialAdditionalKpi, // ✅ Include additional KPI
   sisaHariKerja: initialSisaHariKerja,
   charts: initialCharts,
   lastUpdated: null,
 };
 
 // ====== STORAGE CONFIG ======
-const STORAGE_KEY = 'afterSalesState:v1';
+const STORAGE_KEY = 'afterSalesState:v2'; // ✅ Bump version untuk schema change
 
 @Injectable({ providedIn: 'root' })
 export class AfterSalesStateService {
@@ -90,7 +110,6 @@ export class AfterSalesStateService {
       // Persist otomatis setiap perubahan state
       effect(() => {
         const value = this._state();
-        console.log('💾 Persisting After Sales State:', value);
         try {
           sessionStorage.setItem(STORAGE_KEY, JSON.stringify(value));
         } catch {
@@ -117,6 +136,15 @@ export class AfterSalesStateService {
     }));
   }
 
+  // ✅ Patch helper for additional KPI
+  private patchAdditionalKpi(partial: Partial<AdditionalKpiSnapshot>) {
+    this._state.update((s) => ({ 
+      ...s, 
+      additionalKpi: { ...s.additionalKpi, ...partial },
+      lastUpdated: Date.now()
+    }));
+  }
+
   private patchSisaHariKerja(partial: Partial<SisaHariKerjaState>) {
     this._state.update((s) => ({ 
       ...s, 
@@ -138,8 +166,7 @@ export class AfterSalesStateService {
     this.patch({ filter }); 
   }
 
-  getFilterAfterSales(): AfterSalesFilter | null { 
-    console.log('🔍 Getting After Sales Filter:', this._state().filter);
+  getFilterAfterSales(): AfterSalesFilter | null {
     return this._state().filter; 
   }
 
@@ -173,6 +200,34 @@ export class AfterSalesStateService {
 
   clearKpi() {
     this.patchKpi(initialKpi);
+  }
+
+  // ✅ ADDITIONAL KPI MANAGEMENT
+  saveAdditionalKpi(additionalKpi: Partial<AdditionalKpiSnapshot>) {
+    this.patchAdditionalKpi({
+      jumlahMekanik: additionalKpi.jumlahMekanik ?? this._state().additionalKpi.jumlahMekanik,
+      jumlahHariKerja: additionalKpi.jumlahHariKerja ?? this._state().additionalKpi.jumlahHariKerja,
+      totalBiayaUsaha: additionalKpi.totalBiayaUsaha ?? this._state().additionalKpi.totalBiayaUsaha,
+      totalProfit: additionalKpi.totalProfit ?? this._state().additionalKpi.totalProfit,
+      totalRevenueRealisasi: additionalKpi.totalRevenueRealisasi ?? this._state().additionalKpi.totalRevenueRealisasi
+    });
+  }
+
+  getAdditionalKpi(): AdditionalKpiSnapshot {
+    return this._state().additionalKpi;
+  }
+
+  hasAdditionalKpi(): boolean {
+    const k = this._state().additionalKpi;
+    return k.jumlahMekanik > 0 || 
+           k.jumlahHariKerja > 0 || 
+           k.totalBiayaUsaha > 0 || 
+           k.totalProfit !== 0; // profit bisa negatif, jadi cek !== 0
+           k.totalRevenueRealisasi > 0; // Tambah cek totalRevenueRealisasi
+  }
+
+  clearAdditionalKpi() {
+    this.patchAdditionalKpi(initialAdditionalKpi);
   }
 
   // ====== SISA HARI KERJA MANAGEMENT ======
@@ -281,6 +336,14 @@ export class AfterSalesStateService {
           sparepartTunai: parsed.kpi?.sparepartTunai ?? { realisasi: 0, target: 0 },
           totalUnitEntry: parsed.kpi?.totalUnitEntry ?? 0,
           profit: parsed.kpi?.profit ?? 0,
+        },
+        // ✅ Hydrate additional KPI
+        additionalKpi: {
+          jumlahMekanik: parsed.additionalKpi?.jumlahMekanik ?? 0,
+          jumlahHariKerja: parsed.additionalKpi?.jumlahHariKerja ?? 0,
+          totalBiayaUsaha: parsed.additionalKpi?.totalBiayaUsaha ?? 0,
+          totalProfit: parsed.additionalKpi?.totalProfit ?? 0,
+          totalRevenueRealisasi: parsed.additionalKpi?.totalRevenueRealisasi ?? 0,
         },
         sisaHariKerja: {
           options: parsed.sisaHariKerja?.options ?? [],

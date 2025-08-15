@@ -38,14 +38,82 @@
     </div>
   }
 
-  <!-- KPI Cards Section -->
+  <!-- ✅ SECTION 1: KPI Cards Tambahan -->
+  @if (hasData() && !loading() && additionalKpiData()) {
+    <div class="row g-4 mb-4">
+      <div class="col-12">
+        <div class="d-flex align-items-center mb-3">
+          <i class="bi bi-graph-up text-info me-2 fs-4"></i>
+          <h4 class="mb-0 fw-bold text-dark">Summary Metrics</h4>
+        </div>
+      </div>
+
+      <!-- Jumlah Mekanik - Hanya tampil jika pilih 1 bulan -->
+      @if (showJumlahMekanik()) {
+        <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+          <app-kpi-card 
+            [title]="'Jumlah Mekanik'" 
+            [value]="additionalKpiData()!.jumlahMekanik"
+            unit="orang"
+            [subtitle]="'Total mekanik aktif'"
+            icon="icons/service-provider.png" 
+            iconBgClass="bg-info bg-opacity-10" />
+        </div>
+      }
+
+      <!-- Jumlah Hari Kerja - Jangan tampil jika semua cabang + semua bulan -->
+      @if (showJumlahHariKerja()) {
+        <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+          <app-kpi-card 
+            [title]="'Jumlah Hari Kerja'" 
+            [value]="additionalKpiData()!.jumlahHariKerja"
+            unit="hari"
+            [subtitle]="'Total hari operasional'"
+            icon="icons/leave.png" 
+            iconBgClass="bg-primary bg-opacity-10" />
+        </div>
+      }
+
+      <!-- Total Biaya Usaha -->
+      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+        <app-kpi-card 
+          [title]="'Total Biaya Usaha'" 
+          [value]="formatCompactNumber(additionalKpiData()!.totalBiayaUsaha)"
+          [subtitle]="'Break Even Point (BEP)'"
+          icon="icons/money.png" 
+          iconBgClass="bg-warning bg-opacity-10" />
+      </div>
+
+      <!-- Total Revenue -->
+      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+        <app-kpi-card 
+          [title]="'Total Revenue'" 
+          [value]="formatCompactNumber(additionalKpiData()!.totalRevenueRealisasi)"
+          [subtitle]="'Total Pendapatan Realisasi'"
+          icon="icons/increase.png" 
+          iconBgClass="bg-success bg-opacity-10" />
+      </div>
+
+      <!-- Total Profit -->
+      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+        <app-kpi-card 
+          [title]="'Total Profit'" 
+          [value]="formatCompactNumber(additionalKpiData()!.totalProfit)"
+          [subtitle]="'Keuntungan bersih'"
+          icon="icons/uptrend.png" 
+          iconBgClass="bg-success bg-opacity-10" />
+      </div>
+    </div>
+  }
+
+  <!-- ✅ SECTION 2: Pencapaian Cabang (KPI Cards AS yang sudah ada) -->
   @if (hasData() && !loading()) {
     <div class="row g-4 mb-4">
       <div class="col-12">
         <div class="d-flex align-items-center justify-content-between mb-3">
           <div class="d-flex align-items-center">
             <i class="bi bi-speedometer2 text-success me-2 fs-4"></i>
-            <h4 class="mb-0 fw-bold text-dark">After Sales Performance KPI</h4>
+            <h4 class="mb-0 fw-bold text-dark">Pencapaian Cabang</h4>
           </div>
           
           <!-- Sisa Hari Kerja Filter dengan debug info -->
@@ -114,7 +182,7 @@
       <div class="col-12 col-md-6 col-xl-3">
         <app-kpi-card-as
           title="SPAREPART TUNAI REALISASI vs TARGET"
-          headerColor="#944700  "
+          headerColor="#944700"
           [realisasi]="kpiData()!.sparepartTunai.realisasi"
           [target]="kpiData()!.sparepartTunai.target"
           [unitEntry]="getTotalUnitEntry()"
