@@ -204,6 +204,19 @@
           [isUnit]="false">
         </app-kpi-card-as>
       </div>
+      <!-- Sparepart Bengkel Realisasi vs Target -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <app-kpi-card-as
+          title="Oli REALISASI vs TARGET"
+          headerColor="#944700"
+          [realisasi]="kpiData()!.oli.realisasi"
+          [target]="kpiData()!.oli.target"
+          [unitEntry]="getTotalUnitEntry()"
+          [sisaHariKerja]="getSisaHariKerja()"
+          [loading]="loading()"
+          [isUnit]="false">
+        </app-kpi-card-as>
+      </div>
     </div>
   }
 

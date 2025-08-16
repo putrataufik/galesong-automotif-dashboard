@@ -39,6 +39,7 @@ interface KpiData {
   unitEntry: { realisasi: number; target: number };
   sparepartTunai: { realisasi: number; target: number };
   sparepartBengkel: { realisasi: number; target: number };
+  oli:{ realisasi: number; target:number};
   totalUnitEntry: number;
   profit: number;
 }

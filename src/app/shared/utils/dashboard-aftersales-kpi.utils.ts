@@ -129,6 +129,7 @@ export interface AfterSalesKpiData {
   afterSalesRealisasi: number;
   unitEntryRealisasi: number;
   sparepartTunaiRealisasi: number;
+  oli: number;
 }
 
 /** Hitung KPI After Sales agregat (versi dashboard utama) */
@@ -143,6 +144,7 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
       afterSalesRealisasi: 0,
       unitEntryRealisasi: 0,
       sparepartTunaiRealisasi: 0,
+      oli:0,
     };
   }
 
@@ -153,6 +155,7 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
   const sparepartTunaiRealisasi = sumBy(aftersales, x => x.part_tunai_realisasi);
   const unitEntryRealisasi      = sumBy(aftersales, x => x.unit_entry_realisasi);
   const totalHariKerja          = sumBy(aftersales, x => x.hari_kerja);
+  const oli                     = sumBy(aftersales, x => x.jasa_service_oli_realisasi); 
 
   // Service Cabang = After Sales - Sparepart Tunai
   const serviceCabang = toNumberSafe(afterSalesRealisasi) - toNumberSafe(sparepartTunaiRealisasi);
@@ -166,6 +169,7 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
     afterSalesRealisasi,
     unitEntryRealisasi,
     sparepartTunaiRealisasi,
+    oli
   };
 }
 
@@ -181,6 +185,7 @@ export interface KpiResult {
   serviceCabang: KpiGroup;
   unitEntry: KpiGroup;
   sparepartTunai: KpiGroup;
+  oli: KpiGroup;
   totalUnitEntry: number;
   profit: number;
   sparepartBengkel: KpiGroup;
@@ -215,6 +220,11 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
     target: sumBy(rows,r => r.part_bengkel_target)
   }
 
+  const oli = {
+    realisasi: sumBy(rows, r => r.jasa_service_oli_realisasi),
+    target: 0
+  }
+
   return {
     afterSales,
     serviceCabang,
@@ -222,6 +232,7 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
     sparepartTunai,
     sparepartBengkel,
     totalUnitEntry: toNumberSafe(unitEntry.realisasi),
+    oli,
     profit: toNumberSafe(profit),
   };
 }
