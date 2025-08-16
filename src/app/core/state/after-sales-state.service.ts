@@ -11,6 +11,7 @@ export interface AfterSalesKpiSnapshot {
   serviceCabang: { realisasi: number; target: number };
   unitEntry: { realisasi: number; target: number };
   sparepartTunai: { realisasi: number; target: number };
+  sparepartBengkel: {realisasi: number; target: number};
   totalUnitEntry: number;
   profit: number;
 }
@@ -54,6 +55,7 @@ const initialKpi: AfterSalesKpiSnapshot = {
   serviceCabang: { realisasi: 0, target: 0 },
   unitEntry: { realisasi: 0, target: 0 },
   sparepartTunai: { realisasi: 0, target: 0 },
+  sparepartBengkel: {realisasi: 0, target: 0},
   totalUnitEntry: 0,
   profit: 0,
 };
@@ -181,6 +183,7 @@ export class AfterSalesStateService {
       serviceCabang: kpi.serviceCabang ?? this._state().kpi.serviceCabang,
       unitEntry: kpi.unitEntry ?? this._state().kpi.unitEntry,
       sparepartTunai: kpi.sparepartTunai ?? this._state().kpi.sparepartTunai,
+      sparepartBengkel: kpi.sparepartBengkel ?? this._state().kpi.sparepartBengkel,
       totalUnitEntry: kpi.totalUnitEntry ?? this._state().kpi.totalUnitEntry,
       profit: kpi.profit ?? this._state().kpi.profit,
     });
@@ -334,6 +337,7 @@ export class AfterSalesStateService {
           serviceCabang: parsed.kpi?.serviceCabang ?? { realisasi: 0, target: 0 },
           unitEntry: parsed.kpi?.unitEntry ?? { realisasi: 0, target: 0 },
           sparepartTunai: parsed.kpi?.sparepartTunai ?? { realisasi: 0, target: 0 },
+          sparepartBengkel: parsed.kpi?.sparepartBengkel?? { realisasi: 0, target: 0},
           totalUnitEntry: parsed.kpi?.totalUnitEntry ?? 0,
           profit: parsed.kpi?.profit ?? 0,
         },

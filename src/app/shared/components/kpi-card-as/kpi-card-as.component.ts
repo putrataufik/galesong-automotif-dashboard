@@ -58,15 +58,14 @@ export class KpiCardAsComponent {
     if (abs >= 1_000_000_000) {
       return `${sign}Rp ${(abs / 1_000_000_000).toFixed(3)}M`;
     } else if (abs >= 1_000_000) {
-      return `${sign}Rp ${(abs / 1_000_000).toFixed(3)}Juta`;
+      return `${sign}Rp ${(abs / 1_000_000).toFixed(3)}Jt`;
     } else if (abs >= 1_000) {
-      return `${sign}Rp ${(abs / 1_000).toFixed(3)}Ribu`;
+      return `${sign}Rp ${(abs / 1_000).toFixed(3)}Rb`;
     } else {
       return `${sign}Rp ${abs.toLocaleString('id-ID', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
     }
   }
   
-
   formatUnit(value: number): string {
     if (value === 0) return '0 unit';
     return `${value.toLocaleString('id-ID')} unit`;

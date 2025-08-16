@@ -182,9 +182,22 @@
       <div class="col-12 col-md-6 col-xl-3">
         <app-kpi-card-as
           title="SPAREPART TUNAI REALISASI vs TARGET"
-          headerColor="#944700"
+          headerColor="#004B66"
           [realisasi]="kpiData()!.sparepartTunai.realisasi"
           [target]="kpiData()!.sparepartTunai.target"
+          [unitEntry]="getTotalUnitEntry()"
+          [sisaHariKerja]="getSisaHariKerja()"
+          [loading]="loading()"
+          [isUnit]="false">
+        </app-kpi-card-as>
+      </div>
+      <!-- Sparepart Bengkel Realisasi vs Target -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <app-kpi-card-as
+          title="SPAREPART Bengkel REALISASI vs TARGET"
+          headerColor="#890000"
+          [realisasi]="kpiData()!.sparepartBengkel.realisasi"
+          [target]="kpiData()!.sparepartBengkel.target"
           [unitEntry]="getTotalUnitEntry()"
           [sisaHariKerja]="getSisaHariKerja()"
           [loading]="loading()"

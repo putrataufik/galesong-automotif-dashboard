@@ -31,7 +31,6 @@ import {
   processAftersalesToKpi,
   formatCompactNumber,
   sumBy,
-  toNumberSafe 
 } from '../../shared/utils/dashboard-aftersales-kpi.utils';
 
 interface KpiData {
@@ -39,6 +38,7 @@ interface KpiData {
   serviceCabang: { realisasi: number; target: number };
   unitEntry: { realisasi: number; target: number };
   sparepartTunai: { realisasi: number; target: number };
+  sparepartBengkel: { realisasi: number; target: number };
   totalUnitEntry: number;
   profit: number;
 }
@@ -143,6 +143,7 @@ export class AfterSalesDashboardComponent implements OnInit {
           
           // ✅ Simpan ke state
           this.afterSalesState.saveKpi(processed);
+          console.log('Processed KPI Data:', processed);
           this.afterSalesState.saveAdditionalKpi(additionalKpi);
         },
         error: (err) => {
@@ -178,7 +179,7 @@ export class AfterSalesDashboardComponent implements OnInit {
     });
   }
 
-  // ✅ Method baru untuk menghitung KPI tambahan
+  
   private calculateAdditionalKpi(response: AfterSalesResponse, filter: AfterSalesFilter): AdditionalKpiData {
     const rawData = response.aftersales || [];
     console.log('Raw After Sales Data:', rawData);

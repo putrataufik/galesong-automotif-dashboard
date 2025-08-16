@@ -175,6 +175,7 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
  * plus totalUnitEntry, profit.
  */
 export interface KpiGroup { realisasi: number; target: number; }
+
 export interface KpiResult {
   afterSales: KpiGroup;
   serviceCabang: KpiGroup;
@@ -182,20 +183,21 @@ export interface KpiResult {
   sparepartTunai: KpiGroup;
   totalUnitEntry: number;
   profit: number;
+  sparepartBengkel: KpiGroup;
 }
 
 /** Bangun KpiResult dari baris aftersales yang SUDAH difilter */
 export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
   const afterSales = {
-    realisasi: sumBy(rows, r => r.total_revenue_realisasi),
-    target:    sumBy(rows, r => r.total_revenue_target),
+    realisasi: sumBy(rows, r => r.after_sales_realisasi),
+    target:    sumBy(rows, r => r.after_sales_target),
   };
 
   const profit = sumBy(rows, r => r.profit);
 
   const serviceCabang = {
-    realisasi: sumBy(rows, r => r.after_sales_realisasi),
-    target:    sumBy(rows, r => r.after_sales_target),
+    realisasi: sumBy(rows, r => r.jasa_service_realisasi),
+    target:    sumBy(rows, r => r.jasa_service_target),
   };
 
   const unitEntry = {
@@ -208,11 +210,17 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
     target:    sumBy(rows, r => r.part_tunai_target),
   };
 
+  const sparepartBengkel = {
+    realisasi: sumBy(rows, r => r.part_bengkel_realisasi),
+    target: sumBy(rows,r => r.part_bengkel_target)
+  }
+
   return {
     afterSales,
     serviceCabang,
     unitEntry,
     sparepartTunai,
+    sparepartBengkel,
     totalUnitEntry: toNumberSafe(unitEntry.realisasi),
     profit: toNumberSafe(profit),
   };
@@ -224,6 +232,7 @@ export function processAftersalesToKpi(
   filter: AfterSalesFilterLike
 ): KpiResult {
   const filtered = filterAftersales(rows, filter);
+  console.log('🔍 Filtered After Sales Rows:', filtered);
   return buildKpiForComponent(filtered);
 }
 
