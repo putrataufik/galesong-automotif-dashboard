@@ -33,6 +33,7 @@ export interface AfterSalesItem {
   // Part bengkel (breakdown + agregat)
   part_bengkel_realisasi: string;
   part_bengkel_target: string;
+  //cpus sparepart bengkel
   part_bengkel_berat_realisasi: string;
   part_bengkel_express_realisasi: string;
   part_bengkel_oli_realisasi: string;
@@ -43,6 +44,7 @@ export interface AfterSalesItem {
   // Jasa service (breakdown + agregat)
   jasa_service_realisasi: string;
   jasa_service_target: string;
+  // cpus jasa service
   jasa_service_berat_realisasi: string;
   jasa_service_body_repair_realisasi: string;
   jasa_service_claim_realisasi: string;

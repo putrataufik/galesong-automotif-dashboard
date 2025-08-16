@@ -189,6 +189,22 @@ export interface KpiResult {
   totalUnitEntry: number;
   profit: number;
   sparepartBengkel: KpiGroup;
+  // CPUS Service
+  jasaServiceBerat: KpiGroup;
+  jasaServiceBodyRepair: KpiGroup;
+  jasaServiceCvt: KpiGroup;
+  jasaServiceExpress: KpiGroup;
+  jasaServiceKelistrikan: KpiGroup;
+  jasaServiceOli: KpiGroup;
+  jasaServiceOverSize: KpiGroup;
+  jasaServiceOverhoul: KpiGroup;
+  jasaServiceRutin: KpiGroup;
+  jasaServiceSedang: KpiGroup;
+  
+  //Non CPUS Service
+  jasaServiceClaim: KpiGroup;
+  jasaServicePdc: KpiGroup;
+  jasaServiceKupon: KpiGroup;
 }
 
 /** Bangun KpiResult dari baris aftersales yang SUDAH difilter */
@@ -224,6 +240,60 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
     realisasi: sumBy(rows, r => r.jasa_service_oli_realisasi),
     target: 0
   }
+  // CPUS SERVICE 
+  const jasaServiceBerat = {
+    realisasi: sumBy(rows, r => r.jasa_service_berat_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServiceBodyRepair = {
+    realisasi: sumBy(rows, r => r.jasa_service_body_repair_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServiceClaim = {
+    realisasi: sumBy(rows, r => r.jasa_service_claim_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServiceCvt = {
+    realisasi: sumBy(rows, r => r.jasa_service_cvt_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServiceExpress = {
+    realisasi: sumBy(rows, r => r.jasa_service_express_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServiceKelistrikan = {
+    realisasi: sumBy(rows, r => r.jasa_service_kelistrikan_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServiceKupon = {
+    realisasi: sumBy(rows, r => r.jasa_service_kupon_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServiceOli = {
+    realisasi: sumBy(rows, r => r.jasa_service_oli_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServiceOverSize = {
+    realisasi: sumBy(rows, r => r.jasa_service_over_size_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServiceOverhoul = {
+    realisasi: sumBy(rows, r => r.jasa_service_overhoul_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServicePdc = {
+    realisasi: sumBy(rows, r => r.jasa_service_pdc_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServiceRutin = {
+    realisasi: sumBy(rows, r => r.jasa_service_rutin_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+  const jasaServiceSedang = {
+    realisasi: sumBy(rows, r => r.jasa_service_sedang_realisasi),
+    target: sumBy(rows, r => r.jasa_service_realisasi),
+  }
+
 
   return {
     afterSales,
@@ -234,6 +304,19 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
     totalUnitEntry: toNumberSafe(unitEntry.realisasi),
     oli,
     profit: toNumberSafe(profit),
+    jasaServiceBerat,
+    jasaServiceBodyRepair,
+    jasaServiceClaim,
+    jasaServiceCvt,
+    jasaServiceExpress,
+    jasaServiceKelistrikan,
+    jasaServiceKupon,
+    jasaServiceOli,
+    jasaServiceOverSize,
+    jasaServiceOverhoul,
+    jasaServicePdc,
+    jasaServiceRutin,
+    jasaServiceSedang,
   };
 }
 

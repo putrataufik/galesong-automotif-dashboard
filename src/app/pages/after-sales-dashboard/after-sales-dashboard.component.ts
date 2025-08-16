@@ -40,6 +40,24 @@ interface KpiData {
   sparepartTunai: { realisasi: number; target: number };
   sparepartBengkel: { realisasi: number; target: number };
   oli:{ realisasi: number; target:number};
+
+  // CPUS SERVICE
+  jasaServiceBerat: { realisasi: number; target: number };
+  jasaServiceBodyRepair: { realisasi: number; target: number };
+  jasaServiceExpress: { realisasi: number; target: number };
+  jasaServiceKelistrikan: { realisasi: number; target: number };
+  jasaServiceOli: { realisasi: number; target: number };
+  jasaServiceOverSize: { realisasi: number; target: number };
+  jasaServiceOverhoul: { realisasi: number; target: number };
+  jasaServicePdc: { realisasi: number; target: number };
+  jasaServiceRutin: { realisasi: number; target: number };
+  jasaServiceSedang: { realisasi: number; target: number };
+  
+  // Non CPUS Service
+  jasaServiceClaim: { realisasi: number; target: number };
+  jasaServiceKupon: { realisasi: number; target: number };
+  jasaServiceCvt: { realisasi: number; target: number };
+
   totalUnitEntry: number;
   profit: number;
 }
