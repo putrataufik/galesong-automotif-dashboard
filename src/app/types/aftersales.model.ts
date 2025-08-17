@@ -60,6 +60,35 @@ export interface AfterSalesItem {
   jasa_service_sedang_realisasi: string;
 }
 
+export interface KpiGroup { realisasi: number; target: number; }
+
+export interface KpiResult {
+  afterSales: KpiGroup;
+  serviceCabang: KpiGroup;
+  unitEntry: KpiGroup;
+  sparepartTunai: KpiGroup;
+  oli: KpiGroup;
+  totalUnitEntry: number;
+  profit: number;
+  sparepartBengkel: KpiGroup;
+  // CPUS Service
+  jasaServiceBerat: KpiGroup;
+  jasaServiceBodyRepair: KpiGroup;
+  jasaServiceCvt: KpiGroup;
+  jasaServiceExpress: KpiGroup;
+  jasaServiceKelistrikan: KpiGroup;
+  jasaServiceOli: KpiGroup;
+  jasaServiceOverSize: KpiGroup;
+  jasaServiceOverhoul: KpiGroup;
+  jasaServiceRutin: KpiGroup;
+  jasaServiceSedang: KpiGroup;
+  
+  //Non CPUS Service
+  jasaServiceClaim: KpiGroup;
+  jasaServicePdc: KpiGroup;
+  jasaServiceKupon: KpiGroup;
+}
+
   
   export interface AfterSalesResponse {
     filterInfo: FilterInfo[];

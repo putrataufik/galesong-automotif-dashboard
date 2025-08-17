@@ -1,5 +1,5 @@
 // src/app/shared/utils/dashboard-aftersales-kpi.utils.ts
-import { AfterSalesItem } from '../../types/aftersales.model';
+import { AfterSalesItem, KpiResult } from '../../types/aftersales.model';
 
 /* =========================================================
  *  NUMBERS & AGGREGATION (DRY)
@@ -104,7 +104,7 @@ export function filterAftersales(
   filter: AfterSalesFilterLike
 ): AfterSalesItem[] {
   let out = [...(rows || [])];
-
+  
   if (filter.month && filter.month !== 'all-month') {
     const m = String(normalizeMonth(filter.month));
     out = out.filter((r) => String(r.month) === m);
@@ -112,7 +112,6 @@ export function filterAftersales(
   if (filter.cabang && filter.cabang !== 'all-cabang') {
     out = out.filter((r) => r.cabang_id === filter.cabang);
   }
-
   return out;
 }
 
@@ -129,7 +128,6 @@ export interface AfterSalesKpiData {
   afterSalesRealisasi: number;
   unitEntryRealisasi: number;
   sparepartTunaiRealisasi: number;
-  oli: number;
 }
 
 /** Hitung KPI After Sales agregat (versi dashboard utama) */
@@ -144,7 +142,6 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
       afterSalesRealisasi: 0,
       unitEntryRealisasi: 0,
       sparepartTunaiRealisasi: 0,
-      oli:0,
     };
   }
 
@@ -169,7 +166,6 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
     afterSalesRealisasi,
     unitEntryRealisasi,
     sparepartTunaiRealisasi,
-    oli
   };
 }
 
@@ -178,34 +174,6 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
  * afterSales, serviceCabang, unitEntry, sparepartTunai (masing2: realisasi/target),
  * plus totalUnitEntry, profit.
  */
-export interface KpiGroup { realisasi: number; target: number; }
-
-export interface KpiResult {
-  afterSales: KpiGroup;
-  serviceCabang: KpiGroup;
-  unitEntry: KpiGroup;
-  sparepartTunai: KpiGroup;
-  oli: KpiGroup;
-  totalUnitEntry: number;
-  profit: number;
-  sparepartBengkel: KpiGroup;
-  // CPUS Service
-  jasaServiceBerat: KpiGroup;
-  jasaServiceBodyRepair: KpiGroup;
-  jasaServiceCvt: KpiGroup;
-  jasaServiceExpress: KpiGroup;
-  jasaServiceKelistrikan: KpiGroup;
-  jasaServiceOli: KpiGroup;
-  jasaServiceOverSize: KpiGroup;
-  jasaServiceOverhoul: KpiGroup;
-  jasaServiceRutin: KpiGroup;
-  jasaServiceSedang: KpiGroup;
-  
-  //Non CPUS Service
-  jasaServiceClaim: KpiGroup;
-  jasaServicePdc: KpiGroup;
-  jasaServiceKupon: KpiGroup;
-}
 
 /** Bangun KpiResult dari baris aftersales yang SUDAH difilter */
 export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
