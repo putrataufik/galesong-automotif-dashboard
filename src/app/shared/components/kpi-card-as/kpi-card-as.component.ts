@@ -28,8 +28,6 @@ export class KpiCardAsComponent {
   @Input() isUnit: boolean = false; // Flag: unit atau currency
   @Input() isHarapanTarget: boolean = false;
 
-  /** Opsional: isi popover custom */
-  @Input() infoText: string = '';
 
   /** State popover */
   showInfo = false;

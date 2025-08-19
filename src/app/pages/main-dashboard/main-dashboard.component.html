@@ -134,26 +134,19 @@
         [subtitle]="'Keuntungan bersih'" icon="icons/uptrend.png" iconBgClass="bg-primary bg-opacity-10" />
     </div>
 
-    <!-- Total Revenue Realisasi -->
+    <!-- Total Revenue After Sales -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Total Revenue Realisasi'" [value]="formatCompactNumber(kpi.totalRevenueRealisasi)"
-        [subtitle]="'Total pendapatan realisasi'" icon="icons/increase.png" iconBgClass="bg-success bg-opacity-10" />
+      <app-kpi-card [title]="'Total Revenue After Sales'" [value]="formatCompactNumber(kpi.totalRevenueRealisasi)"
+        [subtitle]="'Total pendapatan After Sales'" icon="icons/increase.png" iconBgClass="bg-success bg-opacity-10" />
     </div>
 
 
-    <!-- After Sales -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Service Cabang'" [value]="formatCompactNumber(kpi.afterSalesRealisasi)" unit=""
-        [subtitle]="'Realisasi Service Cabang'" icon="icons/service-provider.png"
-        iconBgClass="bg-purple bg-opacity-10" />
-    </div>
     <!-- Service Cabang -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Service Cabang'" [value]="formatCompactNumber(kpi.serviceCabang)" unit=""
-        [subtitle]="'After Sales - Sparepart Tunai'" icon="icons/wrench.png" iconBgClass="bg-secondary bg-opacity-10" />
+      <app-kpi-card [title]="'Service Cabang'" [value]="formatCompactNumber(kpi.afterSalesRealisasi)" unit=""
+        [subtitle]="'Total Service'" icon="icons/service-provider.png"
+        iconBgClass="bg-purple bg-opacity-10" />
     </div>
-
-
 
     <!-- Unit Entry -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">

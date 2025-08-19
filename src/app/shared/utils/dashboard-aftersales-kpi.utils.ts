@@ -1,4 +1,5 @@
 // src/app/shared/utils/dashboard-aftersales-kpi.utils.ts
+import { after } from 'node:test';
 import { AfterSalesItem, KpiResult } from '../../types/aftersales.model';
 
 /* =========================================================
@@ -165,9 +166,10 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
   const sparepartTunaiRealisasi = sumBy(aftersales, x => x.part_tunai_realisasi);
   const unitEntryRealisasi = sumBy(aftersales, x => x.unit_entry_realisasi);
   const totalHariKerja = sumBy(aftersales, x => x.hari_kerja);
-
-  // Service Cabang = After Sales - Sparepart Tunai
-  const serviceCabang = toNumberSafe(afterSalesRealisasi) - toNumberSafe(sparepartTunaiRealisasi);
+  const serviceCabang = sumBy(
+    aftersales,
+    x => (num(x.jasa_service_realisasi) + (num(x.after_sales_realisasi) - (num(x.jasa_service_realisasi) + num(x.part_bengkel_realisasi))) + num(x.part_bengkel_realisasi))
+  );
 
   return {
     totalRevenueRealisasi,
@@ -207,7 +209,7 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
     ),
   };
 
-  
+
   const jasaService = {
     realisasi: sumBy(rows, r => r.jasa_service_realisasi),
     target: sumBy(rows, r => r.jasa_service_target),

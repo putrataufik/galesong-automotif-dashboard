@@ -35,12 +35,78 @@
     </div>
   </div>
   }
+
+  <!--==================================================================-->
+  <!-- ===========================LEGENDA============================ -->
+  <!--==================================================================-->
+  @if (hasData() && !loading() && additionalKpiData()) {
+    <div class="bg-white border rounded-3 p-3 mt-2" aria-label="Legenda KPI">
+      <div class="d-flex align-items-center mb-2">
+        <i class="bi bi-info-circle me-2"></i>
+        <span class="fw-semibold text-secondary small text-uppercase">Legenda KPI</span>
+      </div>
+  
+      <!-- Deviasi Target -->
+      <div class="row g-2 small align-items-start">
+        <div class="col-auto pt-1">
+          <i class="bi bi-arrow-left-right text-secondary"></i>
+        </div>
+        <div class="col">
+          <div class="fw-semibold">Deviasi Target</div>
+          <div class="text-body-secondary text-break">
+            Selisih antara <span class="fw-semibold">Realisasi</span> dan <span class="fw-semibold">Target</span>;
+            <span class="text-success">Positif</span> = di atas target,
+            <span class="text-danger">Negatif</span> = di bawah target.
+          </div>
+        </div>
+      </div>
+  
+      <hr class="my-2 d-none d-sm-block">
+  
+      <!-- Rata-rata -->
+      <div class="row g-2 small align-items-start">
+        <div class="col-auto pt-1">
+          <i class="bi bi-calculator text-secondary"></i>
+        </div>
+        <div class="col">
+          <div class="fw-semibold">Rata-rata</div>
+          <div class="text-body-secondary text-break">
+            Nilai <span class="fw-semibold">Realisasi ÷ Unit Entry</span> (indikator nilai per unit).
+          </div>
+        </div>
+      </div>
+  
+      @if (showSisaHariKerja()) {
+        <hr class="my-2 d-none d-sm-block">
+  
+        <!-- Harapan Target -->
+        <div class="row g-2 small align-items-start">
+          <div class="col-auto pt-1">
+            <i class="bi bi-bullseye text-secondary"></i>
+          </div>
+          <div class="col">
+            <div class="fw-semibold">Harapan Target</div>
+            <div class="text-body-secondary text-break">
+              Kebutuhan per hari agar target tercapai
+              (<span class="fw-semibold">gap ÷ sisa hari kerja</span>).
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+  
+  <!--==================================================================-->
+  <!-- ===========================LEGENDA============================ -->
+  <!--==================================================================-->
+
+
   <!-- ========================================================== -->
   <!-- SECTION 1: KPI Cards Tambahan -->
   <!-- ========================================================== -->
   @if (hasData() && !loading() && additionalKpiData()) {
-  <div class="section-sep"></div>
-  <div class="row g-4 mb-4">
+  
+  <div class="row g-4 my-4">
     <div class="col-12">
       <div class="d-flex align-items-center mb-3">
         <i class="bi bi-graph-up text-info me-2 fs-4"></i>
@@ -72,8 +138,8 @@
 
     <!-- Total Revenue -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Total Revenue'" [value]="formatCompactNumber(additionalKpiData()!.totalRevenueRealisasi)"
-        [subtitle]="'Total Pendapatan Realisasi'" icon="icons/increase.png" iconBgClass="bg-success bg-opacity-10" />
+      <app-kpi-card [title]="'Total Revenue After Sales'" [value]="formatCompactNumber(additionalKpiData()!.totalRevenueRealisasi)"
+        [subtitle]="'Total Pendapatan After Sales'" icon="icons/increase.png" iconBgClass="bg-success bg-opacity-10" />
     </div>
 
     <!-- Total Profit -->
@@ -83,11 +149,15 @@
     </div>
   </div>
   }
+
+
   <!-- ========================================================== -->
   <!-- SECTION 2: Pencapaian Cabang (KPI Cards AS yang sudah ada) -->
   <!-- ========================================================== -->
+
+  
+  
   @if (hasData() && !loading()) {
-  <div class="section-sep"></div>
   <div class="row g-4 mb-4">
     <div class="col-12">
       <div class="d-flex align-items-center justify-content-between mb-3">
@@ -98,17 +168,27 @@
 
         <!-- Sisa Hari Kerja Filter dengan debug info -->
         @if (showSisaHariKerja()) {
-        <div class="d-flex align-items-center">
-          <label for="sisaHariKerja" class="form-label small text-muted me-2 mb-0">
-          </label>
-          <select id="sisaHariKerja" class="form-select form-select-sm" style="width: auto; min-width: 150px"
-            [(ngModel)]="sisaHariKerja" (change)="onSisaHariKerjaChange()">
-            @for (sh of sisaHariKerjaOptions; track sh.value) {
-            <option [value]="sh.value">{{ sh.name }}</option>
-            }
-          </select>
-        </div>
+          <div class="d-flex align-items-center">
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-1 gap-sm-2">
+              <label for="sisaHariKerja" class="form-label small text-muted mb-1 mb-sm-0">
+                Pilih Sisa Hari Kerja
+              </label>
+        
+              <select
+                id="sisaHariKerja"
+                class="form-select form-select-sm w-100 w-sm-auto"
+                style="min-width: 150px"
+                [(ngModel)]="sisaHariKerja"
+                (change)="onSisaHariKerjaChange()"
+              >
+                @for (sh of sisaHariKerjaOptions; track sh.value) {
+                  <option [value]="sh.value">{{ sh.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
         }
+        
       </div>
     </div>
 
@@ -117,7 +197,9 @@
       <app-kpi-card-as title="AFTER SALES REALISASI vs TARGET" headerColor="#2563EB"
         [realisasi]="kpiData()!.afterSales.realisasi" [target]="kpiData()!.afterSales.target"
         [unitEntry]="getTotalUnitEntry()" [sisaHariKerja]="getSisaHariKerja()" [loading]="loading()" [isUnit]="false"
-        [isHarapanTarget]="true" [infoText]="'After Sales merupakan gabungan dari nilai Service Cabang & Sparepart Tunai'">
+        [isHarapanTarget]="true"
+      
+      >
       </app-kpi-card-as>
     </div>
 
@@ -126,7 +208,7 @@
       <app-kpi-card-as title="SERVICE CABANG REALISASI vs TARGET" headerColor="#3B00A0"
         [realisasi]="kpiData()!.serviceCabang.realisasi" [target]="kpiData()!.serviceCabang.target"
         [unitEntry]="getTotalUnitEntry()" [sisaHariKerja]="getSisaHariKerja()" [loading]="loading()" [isUnit]="false"
-        [isHarapanTarget]="true">
+        [isHarapanTarget]="true"> 
       </app-kpi-card-as>
     </div>
 

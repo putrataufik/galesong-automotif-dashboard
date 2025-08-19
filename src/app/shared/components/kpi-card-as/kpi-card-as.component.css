@@ -140,6 +140,7 @@
   right: 12px;        /* menempel ke sisi kanan header */
   z-index: 50;
   width: 250px;
+  height: 150px;
   background: rgba(25, 25, 28, 0.96);
   color: #fff;
   border-radius: 12px;
@@ -150,8 +151,16 @@
 
 /* Isi popover */
 .info-popover-content {
-  font-size: 0.5rem;
+  font-size: 0.8rem;     /* atau 12px / small */
+  line-height: 1.35;
 }
+.info-popover-content * { font-size: inherit; } /* jaga konsisten untuk child */
+
+.info-popover,
+.info-popover-content {
+  white-space: pre-line;
+}
+
 
 /* Panah kecil */
 .info-popover-arrow {
