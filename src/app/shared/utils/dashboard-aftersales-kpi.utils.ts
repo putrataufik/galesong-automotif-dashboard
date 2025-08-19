@@ -14,6 +14,19 @@ export function sumBy<T>(rows: T[], pick: (x: T) => unknown): number {
   return rows.reduce((acc, x) => acc + toNumberSafe(pick(x)), 0);
 }
 
+const num = (v: unknown): number => {
+  if (v == null) return 0;
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') {
+    // hapus pemisah ribuan/kode mata uang jika ada
+    const cleaned = v.replace(/[^\d.-]/g, '');
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : 0;
+  }
+  const n = Number(v as any);
+  return Number.isFinite(n) ? n : 0;
+};
+
 /* =========================================================
  *  DATE & CALENDAR HELPERS
  * =======================================================*/
@@ -104,7 +117,7 @@ export function filterAftersales(
   filter: AfterSalesFilterLike
 ): AfterSalesItem[] {
   let out = [...(rows || [])];
-  
+
   if (filter.month && filter.month !== 'all-month') {
     const m = String(normalizeMonth(filter.month));
     out = out.filter((r) => String(r.month) === m);
@@ -145,14 +158,13 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
     };
   }
 
-  const totalRevenueRealisasi   = sumBy(aftersales, x => x.total_revenue_realisasi);
-  const totalBiayaUsaha         = sumBy(aftersales, x => x.biaya_usaha);
-  const totalProfit             = sumBy(aftersales, x => x.profit);
-  const afterSalesRealisasi     = sumBy(aftersales, x => x.after_sales_realisasi);
+  const totalRevenueRealisasi = sumBy(aftersales, x => x.total_revenue_realisasi);
+  const totalBiayaUsaha = sumBy(aftersales, x => x.biaya_usaha);
+  const totalProfit = sumBy(aftersales, x => x.profit);
+  const afterSalesRealisasi = sumBy(aftersales, x => x.after_sales_realisasi);
   const sparepartTunaiRealisasi = sumBy(aftersales, x => x.part_tunai_realisasi);
-  const unitEntryRealisasi      = sumBy(aftersales, x => x.unit_entry_realisasi);
-  const totalHariKerja          = sumBy(aftersales, x => x.hari_kerja);
-  const oli                     = sumBy(aftersales, x => x.jasa_service_oli_realisasi); 
+  const unitEntryRealisasi = sumBy(aftersales, x => x.unit_entry_realisasi);
+  const totalHariKerja = sumBy(aftersales, x => x.hari_kerja);
 
   // Service Cabang = After Sales - Sparepart Tunai
   const serviceCabang = toNumberSafe(afterSalesRealisasi) - toNumberSafe(sparepartTunaiRealisasi);
@@ -178,36 +190,62 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
 /** Bangun KpiResult dari baris aftersales yang SUDAH difilter */
 export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
   const afterSales = {
-    realisasi: sumBy(rows, r => r.after_sales_realisasi),
-    target:    sumBy(rows, r => r.after_sales_target),
+    realisasi: sumBy(rows, r => num(r.after_sales_realisasi) + num(r.part_tunai_realisasi)),
+    target: sumBy(rows, r => num(r.after_sales_target) + num(r.part_tunai_target)),
   };
 
   const profit = sumBy(rows, r => r.profit);
 
   const serviceCabang = {
+    realisasi: sumBy(
+      rows,
+      (r) => (num(r.jasa_service_realisasi) + (num(r.after_sales_realisasi) - (num(r.jasa_service_realisasi) + num(r.part_bengkel_realisasi))) + num(r.part_bengkel_realisasi))
+    ),
+    target: sumBy(
+      rows,
+      (r) => (num(r.jasa_service_target) + (num(r.after_sales_target) - (num(r.jasa_service_target) + num(r.part_bengkel_target))) + num(r.part_bengkel_target))
+    ),
+  };
+
+  
+  const jasaService = {
     realisasi: sumBy(rows, r => r.jasa_service_realisasi),
-    target:    sumBy(rows, r => r.jasa_service_target),
+    target: sumBy(rows, r => r.jasa_service_target),
   };
 
   const unitEntry = {
     realisasi: sumBy(rows, r => r.unit_entry_realisasi),
-    target:    sumBy(rows, r => r.unit_entry_target),
+    target: sumBy(rows, r => r.unit_entry_target),
   };
 
   const sparepartTunai = {
     realisasi: sumBy(rows, r => r.part_tunai_realisasi),
-    target:    sumBy(rows, r => r.part_tunai_target),
+    target: sumBy(rows, r => r.part_tunai_target),
   };
 
   const sparepartBengkel = {
     realisasi: sumBy(rows, r => r.part_bengkel_realisasi),
-    target: sumBy(rows,r => r.part_bengkel_target)
+    target: sumBy(rows, r => r.part_bengkel_target)
   }
 
   const oli = {
-    realisasi: sumBy(rows, r => r.jasa_service_oli_realisasi),
-    target: 0
+    realisasi: sumBy(
+      rows,
+      (r) => num(r.after_sales_realisasi) - (num(r.jasa_service_realisasi) + num(r.part_bengkel_realisasi))
+    ),
+    target: sumBy(
+      rows,
+      (r) => num(r.after_sales_target) - (num(r.jasa_service_target) + num(r.part_bengkel_target)))
   }
+
+  console.table(
+    rows.map(r => ({
+      cabang: r.cabang_id,
+      afterSalesTarget: r.after_sales_target,
+      jasaServiceTarget: r.jasa_service_target,
+      partBengkelTarget: r.part_bengkel_target,
+    }))
+  )
   // CPUS SERVICE 
   const jasaServiceBerat = {
     realisasi: sumBy(rows, r => r.jasa_service_berat_realisasi),
@@ -262,16 +300,47 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
     target: sumBy(rows, r => r.jasa_service_realisasi),
   }
 
+  const partBengkelExpress = {
+    realisasi: sumBy(rows, r => r.part_bengkel_express_realisasi),
+    target: sumBy(rows, r => r.part_bengkel_target),
+  }
+  const partBengkelOli = {
+    realisasi: sumBy(rows, r => r.part_bengkel_oli_realisasi),
+    target: sumBy(rows, r => r.part_bengkel_target),
+  }
+
+  const partBengkelOverhoul = {
+    realisasi: sumBy(rows, r => r.part_bengkel_overhoul_realisasi),
+    target: sumBy(rows, r => r.part_bengkel_target),
+  }
+
+  const partBengkelRutin = {
+    realisasi: sumBy(rows, r => r.part_bengkel_rutin_realisasi),
+    target: sumBy(rows, r => r.part_bengkel_target),
+  }
+
+  const partBengkelSedang = {
+    realisasi: sumBy(rows, r => r.part_bengkel_sedang_realisasi),
+    target: sumBy(rows, r => r.part_bengkel_target),
+  }
+
+  const partBengkelBerat = {
+    realisasi: sumBy(rows, r => r.part_bengkel_berat_realisasi),
+    target: sumBy(rows, r => r.part_bengkel_target),
+  }
+
 
   return {
     afterSales,
     serviceCabang,
+    jasaService,
     unitEntry,
     sparepartTunai,
     sparepartBengkel,
     totalUnitEntry: toNumberSafe(unitEntry.realisasi),
     oli,
     profit: toNumberSafe(profit),
+
     jasaServiceBerat,
     jasaServiceBodyRepair,
     jasaServiceClaim,
@@ -285,6 +354,13 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
     jasaServicePdc,
     jasaServiceRutin,
     jasaServiceSedang,
+
+    partBengkelExpress,
+    partBengkelOli,
+    partBengkelOverhoul,
+    partBengkelRutin,
+    partBengkelSedang,
+    partBengkelBerat,
   };
 }
 

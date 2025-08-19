@@ -9,10 +9,13 @@ import { AfterSalesFilter } from '../../shared/components/filter-aftersales-dash
 export interface AfterSalesKpiSnapshot {
   afterSales: { realisasi: number; target: number };
   serviceCabang: { realisasi: number; target: number };
+  jasaService: { realisasi: number; target: number };
   unitEntry: { realisasi: number; target: number };
   sparepartTunai: { realisasi: number; target: number };
   sparepartBengkel: {realisasi: number; target: number};
   oli: {realisasi: number; target: number};
+  totalUnitEntry: number;
+  profit: number;
   // CPUS SERVICE
   jasaServiceBerat: { realisasi: number; target: number };
   jasaServiceBodyRepair: { realisasi: number; target: number };
@@ -29,8 +32,14 @@ export interface AfterSalesKpiSnapshot {
   jasaServiceClaim: { realisasi: number; target: number };
   jasaServiceKupon: { realisasi: number; target: number };
   jasaServiceCvt: { realisasi: number; target: number };
-  totalUnitEntry: number;
-  profit: number;
+  
+  // Tambahan untuk sparepart
+  partBengkelExpress: { realisasi: number; target: number };
+  partBengkelOli: { realisasi: number; target: number };
+  partBengkelOverhoul: { realisasi: number; target: number };
+  partBengkelRutin: { realisasi: number; target: number };
+  partBengkelSedang: { realisasi: number; target: number };
+  partBengkelBerat: { realisasi: number; target: number };
 
 }
 
@@ -71,10 +80,13 @@ interface AfterSalesState {
 const initialKpi: AfterSalesKpiSnapshot = {
   afterSales: { realisasi: 0, target: 0 },
   serviceCabang: { realisasi: 0, target: 0 },
+  jasaService: { realisasi: 0, target: 0 },
   unitEntry: { realisasi: 0, target: 0 },
   sparepartTunai: { realisasi: 0, target: 0 },
   sparepartBengkel: {realisasi: 0, target: 0},
   oli: {realisasi:0, target:0},
+  totalUnitEntry: 0,
+  profit: 0,
   jasaServiceBerat: { realisasi: 0, target: 0 },
   jasaServiceBodyRepair: { realisasi: 0, target: 0 },
   jasaServiceExpress: { realisasi: 0, target: 0 },
@@ -89,8 +101,14 @@ const initialKpi: AfterSalesKpiSnapshot = {
   jasaServiceKupon: { realisasi: 0, target: 0 },
   jasaServiceCvt: { realisasi: 0, target: 0 },
 
-  totalUnitEntry: 0,
-  profit: 0,
+  partBengkelExpress: { realisasi: 0, target: 0 },
+  partBengkelOli: { realisasi: 0, target: 0 },
+  partBengkelOverhoul: { realisasi: 0, target: 0 },
+  partBengkelRutin: { realisasi: 0, target: 0 },
+  partBengkelSedang: { realisasi: 0, target: 0 },
+  partBengkelBerat: { realisasi: 0, target: 0 },
+
+
 };
 
 // ✅ Initial Additional KPI
@@ -214,6 +232,7 @@ export class AfterSalesStateService {
     this.patchKpi({
       afterSales: kpi.afterSales ?? this._state().kpi.afterSales,
       serviceCabang: kpi.serviceCabang ?? this._state().kpi.serviceCabang,
+      jasaService: kpi.jasaService ?? this._state().kpi.jasaService,
       unitEntry: kpi.unitEntry ?? this._state().kpi.unitEntry,
       sparepartTunai: kpi.sparepartTunai ?? this._state().kpi.sparepartTunai,
       sparepartBengkel: kpi.sparepartBengkel ?? this._state().kpi.sparepartBengkel,
@@ -231,6 +250,15 @@ export class AfterSalesStateService {
       jasaServiceClaim: kpi.jasaServiceClaim ?? this._state().kpi.jasaServiceClaim,
       jasaServiceKupon: kpi.jasaServiceKupon ?? this._state().kpi.jasaServiceKupon,
       jasaServiceCvt: kpi.jasaServiceCvt ?? this._state().kpi.jasaServiceCvt,
+
+      partBengkelExpress: kpi.partBengkelExpress?? this._state().kpi.partBengkelExpress,
+      partBengkelOli: kpi.partBengkelOli ?? this._state().kpi.partBengkelOli,
+      partBengkelOverhoul: kpi.partBengkelOverhoul ?? this._state().kpi.partBengkelOverhoul,
+      partBengkelRutin: kpi.partBengkelRutin ?? this._state().kpi.partBengkelRutin,
+      partBengkelSedang: kpi.partBengkelSedang ?? this._state().kpi.partBengkelSedang,
+      partBengkelBerat: kpi.partBengkelBerat ?? this._state().kpi.partBengkelBerat,
+
+
       totalUnitEntry: kpi.totalUnitEntry ?? this._state().kpi.totalUnitEntry,
       profit: kpi.profit ?? this._state().kpi.profit,
     });
@@ -382,10 +410,12 @@ export class AfterSalesStateService {
         kpi: {
           afterSales: parsed.kpi?.afterSales ?? { realisasi: 0, target: 0 },
           serviceCabang: parsed.kpi?.serviceCabang ?? { realisasi: 0, target: 0 },
+          jasaService: parsed.kpi?.jasaService ?? { realisasi: 0, target: 0 },
           unitEntry: parsed.kpi?.unitEntry ?? { realisasi: 0, target: 0 },
           sparepartTunai: parsed.kpi?.sparepartTunai ?? { realisasi: 0, target: 0 },
           sparepartBengkel: parsed.kpi?.sparepartBengkel?? { realisasi: 0, target: 0},
           oli: parsed.kpi?.oli ?? { realisasi: 0, target: 0 },
+
           jasaServiceBerat: parsed.kpi?.jasaServiceBerat ?? { realisasi: 0, target: 0 },
           jasaServiceBodyRepair: parsed.kpi?.jasaServiceBodyRepair ?? { realisasi: 0, target: 0 },
           jasaServiceExpress: parsed.kpi?.jasaServiceExpress ?? { realisasi: 0, target: 0 },
@@ -400,6 +430,13 @@ export class AfterSalesStateService {
           jasaServiceKupon: parsed.kpi?.jasaServiceKupon ?? { realisasi: 0, target: 0 },
           jasaServiceCvt: parsed.kpi?.jasaServiceCvt ?? { realisasi: 0, target: 0 },
           
+          partBengkelExpress: parsed.kpi?.partBengkelExpress ?? { realisasi: 0, target: 0 },
+          partBengkelOli: parsed.kpi?.partBengkelOli ?? { realisasi: 0, target: 0 },
+          partBengkelOverhoul: parsed.kpi?.partBengkelOverhoul ?? { realisasi: 0, target: 0 },
+          partBengkelRutin: parsed.kpi?.partBengkelRutin ?? { realisasi: 0, target: 0 },
+          partBengkelSedang: parsed.kpi?.partBengkelSedang ?? { realisasi: 0, target: 0 },
+          partBengkelBerat: parsed.kpi?.partBengkelBerat ?? { realisasi: 0, target: 0 },
+
           totalUnitEntry: parsed.kpi?.totalUnitEntry ?? 0,
           profit: parsed.kpi?.profit ?? 0,
         },

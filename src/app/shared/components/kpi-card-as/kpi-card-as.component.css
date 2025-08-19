@@ -8,11 +8,6 @@
   transition: all 0.3s ease;
 }
 
-.kpi-card-as:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
-}
-
 /* Header Chip */
 .header-chip-wrapper {
   position: relative;
@@ -25,21 +20,10 @@
   padding: 0 20px;
 }
 
-.header-chip {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 8px 20px;
-  border-radius: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-width: 180px;
-}
-
 .chip-title {
   font-size: 0.8rem;
   font-weight: 600;
-  text-align: center;
+  text-align: start;
   flex-grow: 1;
 }
 
@@ -47,6 +31,26 @@
   font-size: 0.9rem;
   opacity: 0.8;
   margin-left: 8px;
+}
+.chip-icon:hover {
+  opacity: 1;
+}
+
+/* Tombol ikon agar accessible */
+.chip-icon-btn {
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 50%;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+}
+.chip-icon-btn:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.45);
 }
 
 /* Content Section */
@@ -61,6 +65,7 @@
   color: #242424;
   margin-bottom: 10px;
   line-height: 1;
+  animation: countUp 0.6s ease-out;
 }
 
 /* Progress Bar */
@@ -69,21 +74,20 @@
   background-color: #878787;
   margin-bottom: 20px;
   overflow: visible;
-  position: relative; /* sudah ada via class, tapi aman ditulis */
+  position: relative;
 }
 
-/* Bar anim */
 .progress-bar {
   transition: width 0.6s ease;
 }
 
-/* Teks di tengah (vertikal & horizontal) */
+/* Teks di tengah progress */
 .progress-text {
   position: absolute;
-  inset: 0; /* top:0; right:0; bottom:0; left:0 */
+  inset: 0;
   display: flex;
-  align-items: center; /* center vertikal */
-  justify-content: center; /* center horizontal */
+  align-items: center;
+  justify-content: center;
   font-size: 0.75rem;
   font-weight: 600;
   color: #ffffff;
@@ -92,16 +96,14 @@
 }
 
 /* Detail Rows */
-.details {
-  space-y: 8px;
-}
+
 
 .detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 4px 0;
-  border-bottom: 1px solid #f8f9fa;
+  border-bottom: 1px solid #e5e5e5;
   font-size: 0.8rem;
 }
 
@@ -131,6 +133,44 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
+/* Popover (bubble chat) */
+.info-popover {
+  position: absolute;
+  top: 56px;          /* muncul di bawah header */
+  right: 12px;        /* menempel ke sisi kanan header */
+  z-index: 50;
+  width: 250px;
+  background: rgba(25, 25, 28, 0.96);
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.22);
+  padding: 12px 14px;
+  animation: popIn 120ms ease-out;
+}
+
+/* Isi popover */
+.info-popover-content {
+  font-size: 0.5rem;
+}
+
+/* Panah kecil */
+.info-popover-arrow {
+  position: absolute;
+  top: -8px;
+  right: 18px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid rgba(25, 25, 28, 0.96);
+}
+
+/* Animasi muncul */
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .kpi-card-as {
@@ -139,15 +179,6 @@
 
   .percentage-display {
     font-size: 2rem;
-  }
-
-  .header-chip {
-    min-width: 180px;
-    padding: 6px 16px;
-  }
-
-  .chip-title {
-    font-size: 0.8rem;
   }
 
   .content-section {
@@ -164,15 +195,6 @@
 }
 
 @media (max-width: 576px) {
-  .header-chip {
-    min-width: 160px;
-    padding: 6px 12px;
-  }
-
-  .chip-title {
-    font-size: 0.75rem;
-  }
-
   .percentage-display {
     font-size: 1.8rem;
   }
@@ -188,8 +210,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.percentage-display {
-  animation: countUp 0.6s ease-out;
 }

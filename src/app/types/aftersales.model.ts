@@ -58,6 +58,9 @@ export interface AfterSalesItem {
   jasa_service_pdc_realisasi: string;
   jasa_service_rutin_realisasi: string;
   jasa_service_sedang_realisasi: string;
+
+  
+
 }
 
 export interface KpiGroup { realisasi: number; target: number; }
@@ -65,6 +68,7 @@ export interface KpiGroup { realisasi: number; target: number; }
 export interface KpiResult {
   afterSales: KpiGroup;
   serviceCabang: KpiGroup;
+  jasaService: KpiGroup;
   unitEntry: KpiGroup;
   sparepartTunai: KpiGroup;
   oli: KpiGroup;
@@ -87,6 +91,14 @@ export interface KpiResult {
   jasaServiceClaim: KpiGroup;
   jasaServicePdc: KpiGroup;
   jasaServiceKupon: KpiGroup;
+
+  partBengkelExpress: KpiGroup;
+  partBengkelBerat: KpiGroup;
+  partBengkelOli: KpiGroup;
+  partBengkelOverhoul: KpiGroup;
+  partBengkelRutin: KpiGroup;
+  partBengkelSedang: KpiGroup;
+  
 }
 
   

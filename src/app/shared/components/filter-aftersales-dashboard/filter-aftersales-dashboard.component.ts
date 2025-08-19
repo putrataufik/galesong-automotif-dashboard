@@ -148,11 +148,11 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
   // ✅ Method yang dipanggil saat tahun berubah
   onPeriodChange() {
     this.onFilterChange();
-    
+
     // Update default bulan berdasarkan tahun yang dipilih
     const currentYear = new Date().getFullYear();
     const selectedYear = parseInt(this.period);
-    
+
     if (selectedYear === currentYear) {
       // Jika pilih tahun sekarang → default ke bulan saat ini
       this.month = this.getCurrentMonth();

@@ -36,6 +36,7 @@ import {
 interface KpiData {
   afterSales: { realisasi: number; target: number };
   serviceCabang: { realisasi: number; target: number };
+  jasaService: { realisasi: number; target: number };
   unitEntry: { realisasi: number; target: number };
   sparepartTunai: { realisasi: number; target: number };
   sparepartBengkel: { realisasi: number; target: number };
@@ -60,6 +61,14 @@ interface KpiData {
 
   totalUnitEntry: number;
   profit: number;
+
+  //CPUS SPAREPART BENGKEL #1
+  partBengkelExpress: { realisasi: number; target: number };
+  partBengkelOli: { realisasi: number; target: number };
+  partBengkelOverhoul: { realisasi: number; target: number };
+  partBengkelRutin: { realisasi: number; target: number };
+  partBengkelSedang: { realisasi: number; target: number };
+  partBengkelBerat: { realisasi: number; target: number };
 }
 
 // ✅ Interface baru untuk KPI tambahan
@@ -164,6 +173,7 @@ export class AfterSalesDashboardComponent implements OnInit {
           this.afterSalesState.saveKpi(processed);
           console.log('Processed KPI Data:', processed);
           this.afterSalesState.saveAdditionalKpi(additionalKpi);
+
         },
         error: (err) => {
           console.error('Error fetching after sales data:', err);

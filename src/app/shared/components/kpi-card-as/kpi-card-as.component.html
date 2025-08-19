@@ -1,10 +1,35 @@
 <!-- src/app/shared/components/kpi-card-as/kpi-card-as.component.html -->
 <div class="kpi-card-as compact shadow-soft rounded-4 position-relative">
     <!-- Header pill -->
-    <div class="header-chip-wrapper" [style.background]="headerColor">
-        <div class="chip-title">{{ title }}</div>
-        <i class="bi bi-info-circle-fill chip-icon"></i>
+<div class="header-chip-wrapper" [style.background]="headerColor">
+    <div class="chip-title">{{ title }}</div>
+  
+    <!-- Icon dijadikan tombol agar accessible -->
+    <button
+      class="chip-icon-btn"
+      type="button"
+      aria-label="Info KPI"
+      [attr.aria-expanded]="showInfo"
+      [attr.aria-controls]="'kpi-info-'+componentId"
+      (click)="toggleInfo($event)"
+    >
+      <i class="bi bi-info-circle-fill chip-icon"></i>
+    </button>
+  
+    <!-- Popover / bubble chat -->
+    @if (showInfo) {
+    <div
+      class="info-popover"
+      role="tooltip"
+      [id]="'kpi-info-'+componentId"
+      (click)="$event.stopPropagation()"
+    >
+    {{infoText}}
+      <span class="info-popover-arrow" aria-hidden="true"></span>
     </div>
+    }
+  </div>
+  
 
     <!-- Body -->
     <div class="content-section">
@@ -25,21 +50,21 @@
         <!-- Detail Rows -->
         <div class="details">
             <div class="detail-row">
-                <span>Grand Total</span>
+                <span>Deviasi Target</span>
                 <span class="fw-bold" [ngClass]="getValueColor(grandTotal)">
                     {{ formatValue(grandTotal) }}
                 </span>
             </div>
             <div class="detail-row">
                 <span>Rata - Rata</span>
-                <span class="fw-bold" [ngClass]="getValueColor(rataRata)">
-                    {{ formatValue(rataRata) }}
+                <span class="fw-bold">
+                    {{ formatValue(rataRata) }} / unit
                 </span>
             </div>
-            @if (sisaHariKerja && sisaHariKerja > 0) {
+            @if (showHarapanTarget) {
             <div class="detail-row">
                 <span>Harapan Target</span>
-                <span class="fw-bold" [ngClass]="getValueColor(harapanTarget)">
+                <span class="fw-bold">
                     {{ formatValue(harapanTarget) }}{{ getUnitSuffix() }} / Hari
                 </span>
             </div>
