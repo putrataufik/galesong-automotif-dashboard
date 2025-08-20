@@ -70,16 +70,21 @@
 
 /* Progress Bar */
 .progress {
-  height: 20px;
+  height: 25px;
   background-color: #878787;
-  margin-bottom: 20px;
-  overflow: visible;
+  margin-bottom: 0px;
   position: relative;
+  overflow: hidden;            /* ← penting: potong isi agar mengikuti pil */
+  border-radius: 9999px;       /* ← radius hanya di track */
 }
 
+/* Hindari radius di bar agar ujung kanan tidak membulat ketika kecil */
 .progress-bar {
   transition: width 0.6s ease;
+  border-radius: 0 !important; /* ← jangan dibulatkan */
+  height: 100%;
 }
+
 
 /* Teks di tengah progress */
 .progress-text {
@@ -88,7 +93,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #ffffff;
   z-index: 2;
@@ -114,10 +119,11 @@
 .detail-row span:first-child {
   color: #6c757d;
   font-weight: 500;
+  font-size: 0.85rem;
 }
 
 .detail-row span:last-child {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 
 /* Loading Overlay */
@@ -131,53 +137,6 @@
 /* Shadow Utilities */
 .shadow-soft {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
-}
-
-/* Popover (bubble chat) */
-.info-popover {
-  position: absolute;
-  top: 56px;          /* muncul di bawah header */
-  right: 12px;        /* menempel ke sisi kanan header */
-  z-index: 50;
-  width: 250px;
-  height: 150px;
-  background: rgba(25, 25, 28, 0.96);
-  color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.22);
-  padding: 12px 14px;
-  animation: popIn 120ms ease-out;
-}
-
-/* Isi popover */
-.info-popover-content {
-  font-size: 0.8rem;     /* atau 12px / small */
-  line-height: 1.35;
-}
-.info-popover-content * { font-size: inherit; } /* jaga konsisten untuk child */
-
-.info-popover,
-.info-popover-content {
-  white-space: pre-line;
-}
-
-
-/* Panah kecil */
-.info-popover-arrow {
-  position: absolute;
-  top: -8px;
-  right: 18px;
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 8px solid rgba(25, 25, 28, 0.96);
-}
-
-/* Animasi muncul */
-@keyframes popIn {
-  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Responsive Design */

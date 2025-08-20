@@ -50,6 +50,7 @@ export interface AdditionalKpiSnapshot {
   totalBiayaUsaha: number;
   totalProfit: number;
   totalRevenueRealisasi:number;
+  totalProfitRealisasi: number;
 }
 
 // === TYPES: Sisa Hari Kerja ===
@@ -118,6 +119,7 @@ const initialAdditionalKpi: AdditionalKpiSnapshot = {
   totalBiayaUsaha: 0,
   totalProfit: 0,
   totalRevenueRealisasi: 0, 
+  totalProfitRealisasi:0,
 };
 
 const initialSisaHariKerja: SisaHariKerjaState = {
@@ -287,7 +289,8 @@ export class AfterSalesStateService {
       jumlahHariKerja: additionalKpi.jumlahHariKerja ?? this._state().additionalKpi.jumlahHariKerja,
       totalBiayaUsaha: additionalKpi.totalBiayaUsaha ?? this._state().additionalKpi.totalBiayaUsaha,
       totalProfit: additionalKpi.totalProfit ?? this._state().additionalKpi.totalProfit,
-      totalRevenueRealisasi: additionalKpi.totalRevenueRealisasi ?? this._state().additionalKpi.totalRevenueRealisasi
+      totalRevenueRealisasi: additionalKpi.totalRevenueRealisasi ?? this._state().additionalKpi.totalRevenueRealisasi,
+      totalProfitRealisasi: additionalKpi.totalProfitRealisasi ?? this._state().additionalKpi.totalProfitRealisasi
     });
   }
 
@@ -447,6 +450,7 @@ export class AfterSalesStateService {
           totalBiayaUsaha: parsed.additionalKpi?.totalBiayaUsaha ?? 0,
           totalProfit: parsed.additionalKpi?.totalProfit ?? 0,
           totalRevenueRealisasi: parsed.additionalKpi?.totalRevenueRealisasi ?? 0,
+          totalProfitRealisasi: parsed.additionalKpi?.totalProfitRealisasi ?? 0
         },
         sisaHariKerja: {
           options: parsed.sisaHariKerja?.options ?? [],

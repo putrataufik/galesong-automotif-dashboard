@@ -117,7 +117,7 @@ export class LineChartCardComponent
             backgroundColor: this.backgroundColor || 'rgba(59, 130, 246, 0.1)', // Default light blue
             pointBackgroundColor:
               this.pointBackgroundColor || this.borderColor || '#0047aaff',
-            pointBorderColor: this.pointBorderColor || '#0047aaff',
+            pointBorderColor: this.pointBorderColor || '#000000ff',
             pointRadius: 3,
             pointHoverRadius: 4,
             borderWidth: 3,

@@ -46,6 +46,7 @@ interface ChartsState {
   modelDistribution: PieChartData | null;
   afterSalesRealisasiVsTarget: ChartDataset | null;
   afterSalesProfitByBranch: ChartDataset | null;
+  afterSalesTotalRevenue: ChartDataset | null;
 }
 
 interface DashboardState {
@@ -77,6 +78,7 @@ const initialCharts: ChartsState = {
   modelDistribution: null,
   afterSalesRealisasiVsTarget: null,
   afterSalesProfitByBranch: null,
+  afterSalesTotalRevenue: null
 };
 const initialState: DashboardState = {
   filter: null,
@@ -232,6 +234,7 @@ export class DashboardStateService {
           modelDistribution: parsed.charts?.modelDistribution ?? null,
           afterSalesRealisasiVsTarget: parsed.charts?.afterSalesRealisasiVsTarget ?? null,
           afterSalesProfitByBranch: parsed.charts?.afterSalesProfitByBranch ?? null,
+          afterSalesTotalRevenue: parsed.charts?.afterSalesTotalRevenue ?? null
         },
       };
     } catch {

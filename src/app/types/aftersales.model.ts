@@ -74,6 +74,7 @@ export interface KpiResult {
   oli: KpiGroup;
   totalUnitEntry: number;
   profit: number;
+  profitRealisasi: number;
   sparepartBengkel: KpiGroup;
   // CPUS Service
   jasaServiceBerat: KpiGroup;

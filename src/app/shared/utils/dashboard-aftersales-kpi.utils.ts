@@ -15,7 +15,7 @@ export function sumBy<T>(rows: T[], pick: (x: T) => unknown): number {
   return rows.reduce((acc, x) => acc + toNumberSafe(pick(x)), 0);
 }
 
-const num = (v: unknown): number => {
+export const num = (v: unknown): number => {
   if (v == null) return 0;
   if (typeof v === 'number') return v;
   if (typeof v === 'string') {
@@ -198,6 +198,16 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
 
   const profit = sumBy(rows, r => r.profit);
 
+  
+  const profitRealisasi = sumBy(rows, r => (
+  num(r.jasa_service_realisasi) +
+  (0.20 * (num(r.after_sales_realisasi) - (num(r.jasa_service_realisasi) + num(r.part_bengkel_realisasi)))) +
+  (0.17 * num(r.part_bengkel_realisasi)) +
+  (0.17 * num(r.part_tunai_realisasi)) -
+  num(r.biaya_usaha)
+));
+
+
   const serviceCabang = {
     realisasi: sumBy(
       rows,
@@ -341,8 +351,8 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
     sparepartBengkel,
     totalUnitEntry: toNumberSafe(unitEntry.realisasi),
     oli,
-    profit: toNumberSafe(profit),
-
+    profit,
+    profitRealisasi,
     jasaServiceBerat,
     jasaServiceBodyRepair,
     jasaServiceClaim,

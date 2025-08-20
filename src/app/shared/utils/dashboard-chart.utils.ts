@@ -52,21 +52,22 @@ export function processPieChartData(unitsData: any, limit = 8): ChartData | null
 // === AFTER SALES CHART PROCESSING ===
 export function processAfterSalesRealisasiVsTargetData(afterSalesData: any): ChartData | null {
   const aftersales = afterSalesData?.aftersales ?? [];
+  console.log('after sales raw data: ', aftersales)
   
   if (!aftersales.length) return null;
 
   // Group by month dan sum realisasi + target
   const monthlyData = aftersales.reduce((acc: any, item: any) => {
     const month = item.month;
-    
+    console.log('Processing month:', month, ' | item:', item);
     if (!acc[month]) {
       acc[month] = {
         realisasi: 0,
         target: 0
       };
     }
-    acc[month].realisasi += Number(item.after_sales_realisasi);
-    acc[month].target += Number(item.after_sales_target);
+    acc[month].realisasi += Number(item.total_revenue_realisasi);
+    acc[month].target += Number(item.total_revenue_target);
     return acc;
   }, {});
 
@@ -129,5 +130,35 @@ export function processAfterSalesProfitByBranchData(
   return {
     labels: sortedBranches.map(([cabangId]) => cabangMap[cabangId] || cabangId),
     data: sortedBranches.map(([, profit]) => profit as number)
+  };
+}
+
+
+// === AFTER SALES CHART PROCESSING ===
+export function processAfterSalesTotalRevenueData(afterSalesData: any): ChartData | null {
+  const aftersales = afterSalesData?.aftersales ?? [];
+  
+  if (!aftersales.length) return null;
+
+  // Group by month dan sum total_revenue_realisasi (IGNORE filter bulan)
+  const monthlyRevenue = aftersales.reduce((acc: any, item: any) => {
+    const month = item.month;
+    
+    if (!acc[month]) {
+      acc[month] = 0;
+    }
+    acc[month] += Number(item.total_revenue_realisasi);
+    return acc;
+  }, {});
+
+  // Sort by month dan convert ke format chart
+  const sortedMonths = Object.keys(monthlyRevenue).sort((a, b) => Number(a) - Number(b));
+
+  const chartLabels = sortedMonths.map(month => getMonthLabel(month));
+  const revenueData = sortedMonths.map(month => monthlyRevenue[month]);
+
+  return {
+    labels: chartLabels,
+    data: revenueData
   };
 }
