@@ -2,9 +2,21 @@
   <!-- Header dan Filter -->
   <div class="row mb-4">
     <div class="col-12">
-      <h2 class="fw-bold text-dark mb-3">
-        After Sales <span class="text-success">Dashboard</span>
-      </h2>
+      <!-- Baris judul + tombol info (justify-between) -->
+      <div class="d-flex align-items-center justify-content-between">
+        <h2 class="fw-bold text-dark my-3">
+          After Sales <span class="text-success">Dashboard</span>
+        </h2>
+
+        <!-- Tombol legenda di sisi kanan judul -->
+        <app-kpi-legend-button
+          [showSisaHariKerja]="showSisaHariKerja()"
+          placement="end"
+          [buttonClass]="'btn btn-light rounded-circle p-2 shadow-sm'"
+        />
+      </div>
+
+      <!-- Filter di bawah judul -->
       <app-filter-aftersales-dashboard
         [loading]="loading()"
         [initialFilter]="currentFilter()"
@@ -45,86 +57,15 @@
     </div>
   </div>
   }
-
-  <!--==================================================================-->
-  <!-- ===========================LEGENDA============================ -->
-  <!--==================================================================-->
-  @if (hasData() && !loading() && additionalKpiData()) {
-  <div class="bg-white shadow-sm rounded-3 p-3 mt-2" aria-label="Legenda KPI">
-    <div class="d-flex align-items-center mb-2">
-      <i class="bi bi-info-circle me-2"></i>
-      <span class="fw-semibold text-secondary small text-uppercase"
-        >Legenda KPI</span
-      >
-    </div>
-
-    <!-- Deviasi Target -->
-    <div class="row g-2 small align-items-start">
-      <div class="col-auto pt-1">
-        <i class="bi bi-arrow-left-right text-secondary"></i>
-      </div>
-      <div class="col">
-        <div class="fw-semibold">Deviasi Target</div>
-        <div class="text-body-secondary text-break">
-          Selisih antara <span class="fw-semibold">Realisasi</span> dan
-          <span class="fw-semibold">Target</span>;
-          <span class="text-success">Positif</span> = di atas target,
-          <span class="text-danger">Negatif</span> = di bawah target.
-        </div>
-      </div>
-    </div>
-
-    <hr class="my-2 d-none d-sm-block" />
-
-    <!-- Rata-rata -->
-    <div class="row g-2 small align-items-start">
-      <div class="col-auto pt-1">
-        <i class="bi bi-calculator text-secondary"></i>
-      </div>
-      <div class="col">
-        <div class="fw-semibold">Rata-rata</div>
-        <div class="text-body-secondary text-break">
-          Nilai
-          <span class="fw-semibold">Realisasi ÷ Unit Entry</span> (indikator
-          nilai per unit).
-        </div>
-      </div>
-    </div>
-
-    @if (showSisaHariKerja()) {
-    <hr class="my-2 d-none d-sm-block" />
-
-    <!-- Harapan Target -->
-    <div class="row g-2 small align-items-start">
-      <div class="col-auto pt-1">
-        <i class="bi bi-bullseye text-secondary"></i>
-      </div>
-      <div class="col">
-        <div class="fw-semibold">Harapan Target</div>
-        <div class="text-body-secondary text-break">
-          Kebutuhan per hari agar target tercapai (<span class="fw-semibold"
-            >gap ÷ sisa hari kerja</span
-          >).
-        </div>
-      </div>
-    </div>
-    }
-  </div>
-  }
-
-  <!--==================================================================-->
-  <!-- ===========================LEGENDA============================ -->
-  <!--==================================================================-->
-
   <!-- ========================================================== -->
-  <!-- SECTION 1: KPI Cards Tambahan -->
+  <!-- SECTION 1: After Sales Summary -->
   <!-- ========================================================== -->
   @if (hasData() && !loading() && additionalKpiData()) {
 
-  <div class="row g-4 my-4">
+  <div class="row g-4 mb-4">
     <div class="col-12">
       <div class="d-flex align-items-center mb-3">
-        <i class="bi bi-graph-up text-info me-2 fs-2"></i>
+        <i class="bi bi-graph-up text-info me-2 fs-4"></i>
         <h4 class="mb-0 fw-bold text-dark">After Sales Summary</h4>
       </div>
     </div>
@@ -191,6 +132,8 @@
         iconBgClass="bg-success bg-opacity-10"
       />
     </div>
+
+    <!--Total Profit Realisasi-->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
       <app-kpi-card
         [title]="'Total Profit Realisasi'"
@@ -201,6 +144,14 @@
       />
     </div>
   </div>
+
+  <!-- ========================================================== -->
+  <!-- SECTION 1: After Sales Summary -->
+  <!-- ========================================================== -->
+
+  <!-- ========================================================== -->
+  <!-- SECTION 2: Chart Section -->
+  <!-- ========================================================== -->
   @if (totalRevenueChart(); as revenueChart) {
   <div class="col-12 col-lg-6">
     <app-line-chart-card
@@ -221,15 +172,18 @@
     >
     </app-line-chart-card>
   </div>
-  } }
+  }
 
   <!-- ========================================================== -->
-  <!-- SECTION 2: Pencapaian Cabang (KPI Cards AS yang sudah ada) -->
+  <!-- SECTION 2: Chart Section -->
   <!-- ========================================================== -->
 
-  @if (hasData() && !loading()) {
+  } @if (hasData() && !loading()) {
   <div class="row g-4 mb-4">
     <div class="col-12">
+      <!-- ========================================================== -->
+      <!-- SECTION 3: Pencapaian Cabang (KPI Cards AS yang sudah ada) -->
+      <!-- ========================================================== -->
       <div class="d-flex align-items-center justify-content-between my-3">
         <div class="d-flex align-items-center">
           <i class="bi bi-speedometer2 text-success me-2 fs-4"></i>
@@ -270,7 +224,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="AFTER SALES REALISASI vs TARGET"
-        headerColor="#0447D9"
+        headerColor="#0070D2"
         [realisasi]="kpiData()!.afterSales.realisasi"
         [target]="kpiData()!.afterSales.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -286,7 +240,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="SERVICE CABANG REALISASI vs TARGET"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.serviceCabang.realisasi"
         [target]="kpiData()!.serviceCabang.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -302,7 +256,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title=" JASA SERVICE SERVICE REALISASI vs TARGET"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaService.realisasi"
         [target]="kpiData()!.jasaService.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -377,7 +331,7 @@
   </div>
 
   <!-- ========================================================== -->
-  <!-- SECTION 3: Pencapaian SRO (KPI Cards AS yang sudah ada) -->
+  <!-- SECTION 4: Pencapaian SRO (KPI Cards AS yang sudah ada) -->
   <!-- ========================================================== -->
   <div class="row g-4 mb-4">
     <div class="col-12">
@@ -396,7 +350,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="JASA SERVICE EXPRESS REALISASI vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceExpress.realisasi"
         [target]="kpiData()!.jasaServiceExpress.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -412,7 +366,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="JASA SERVICE RUTIN vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceRutin.realisasi"
         [target]="kpiData()!.jasaServiceRutin.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -427,7 +381,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="JASA SERVICE SEDANG vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceSedang.realisasi"
         [target]="kpiData()!.jasaServiceSedang.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -443,7 +397,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="JASA SERVICE BERAT REALISASI vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceBerat.realisasi"
         [target]="kpiData()!.jasaServiceBerat.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -458,7 +412,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="JASA SERVICE OLI REALISASI vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceOli.realisasi"
         [target]="kpiData()!.jasaServiceOli.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -473,7 +427,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="JASA SERVICE OVERHOUL REALISASI vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceOverhoul.realisasi"
         [target]="kpiData()!.jasaServiceOverhoul.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -488,7 +442,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="JASA SERVICE KELISTRIKAN REALISASI vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceKelistrikan.realisasi"
         [target]="kpiData()!.jasaServiceKelistrikan.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -504,7 +458,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="JASA SERVICE CVT REALISASI vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceCvt.realisasi"
         [target]="kpiData()!.jasaServiceCvt.target"
         [sisaHariKerja]="getSisaHariKerja()"
@@ -518,7 +472,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="SABLET JASA SERVICE BODY REPAIR REALISASI vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceBodyRepair.realisasi"
         [target]="kpiData()!.jasaServiceBodyRepair.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -529,12 +483,11 @@
       >
       </app-kpi-card-as>
     </div>
-
     <!-- Jasa Service Over Size Realisasi vs TOTAL -->
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="SABLET JASA SERVICE OVER SIZE REALISASI vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceOverSize.realisasi"
         [target]="kpiData()!.jasaServiceOverSize.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -545,7 +498,6 @@
       >
       </app-kpi-card-as>
     </div>
-
     <div class="d-flex align-items-center">
       <i class="bi bi-ui-checks-grid text-secondary me-2 fs-4"></i>
       <h6 class="mb-0 fw-bold text-dark">NON CPUS SERVICE</h6>
@@ -555,7 +507,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="JASA SERVICE CLAIM REALISASI vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceClaim.realisasi"
         [target]="kpiData()!.jasaServiceClaim.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -570,7 +522,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="JASA SERVICE KUPON REALISASI VS TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServiceKupon.realisasi"
         [target]="kpiData()!.jasaServiceKupon.target"
         [unitEntry]="getTotalUnitEntry()"
@@ -585,7 +537,7 @@
     <div class="col-12 col-md-6 col-xl-3">
       <app-kpi-card-as
         title="JASA SERVICE PDC REALISASI vs TOTAL"
-        headerColor="#0447D9"
+        headerColor="#3B00A0"
         [realisasi]="kpiData()!.jasaServicePdc.realisasi"
         [target]="kpiData()!.jasaServicePdc.target"
         [unitEntry]="getTotalUnitEntry()"

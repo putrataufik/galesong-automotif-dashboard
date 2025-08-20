@@ -1,0 +1,32 @@
+/* Popover wrapper */
+.legend-popover {
+  z-index: 1050;
+  min-width: 280px;
+  max-width: 420px;
+  /* Opsional: animasi lembut saat muncul */
+  animation: legend-fade-in 120ms ease-out;
+}
+
+/* Segitiga kecil di atas popover */
+.legend-popover::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 16px;            /* default: panah di kiri */
+  right: auto;
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent var(--bs-card-bg) transparent;
+}
+
+/* Jika diposisikan di sisi kanan tombol */
+.end-0.legend-popover::before {
+  left: auto;
+  right: 16px;
+}
+
+/* Animasi opsional */
+@keyframes legend-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

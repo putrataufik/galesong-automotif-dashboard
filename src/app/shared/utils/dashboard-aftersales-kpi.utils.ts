@@ -104,6 +104,45 @@ export function buildDescendingDayOptions(n: number): Option[] {
   });
 }
 
+export interface Series {
+  labels: string[];
+  data: number[];
+}
+export function buildRevenueChartData(
+  rows: AfterSalesItem[] | null | undefined,
+  opts?: {
+    cabang?: string;               // 'all-cabang' | id cabang
+    includeEmptyMonths?: boolean;  // default: false → hanya bulan yang ada datanya
+  }
+): Series | null {
+  const data = (rows ?? []).slice();
+  if (!data.length) return null;
+
+  // Filter cabang (opsional)
+  const cabang = opts?.cabang;
+  const filtered = cabang && cabang !== 'all-cabang'
+    ? data.filter(x => x.cabang_id === cabang)
+    : data;
+
+  if (!filtered.length) return { labels: [], data: [] };
+
+  // Group sum per bulan (1..12)
+  const monthSum = new Map<number, number>();
+  for (const r of filtered) {
+    const m = normalizeMonth(r.month);
+    monthSum.set(m, (monthSum.get(m) ?? 0) + num(r.total_revenue_realisasi));
+  }
+
+  // Tentukan urutan bulan
+  const months = opts?.includeEmptyMonths
+    ? Array.from({ length: 12 }, (_, i) => i + 1)                   // 1..12
+    : Array.from(monthSum.keys()).sort((a, b) => a - b);            // hanya yang ada
+
+  const labels = months.map(m => getMonthLabel(m));
+  const series = months.map(m => monthSum.get(m) ?? 0);
+
+  return { labels, data: series };
+}
 /* =========================================================
  *  FILTER & KPI PROCESSING (AFTERSALES)
  * =======================================================*/
@@ -249,15 +288,6 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
       rows,
       (r) => num(r.after_sales_target) - (num(r.jasa_service_target) + num(r.part_bengkel_target)))
   }
-
-  console.table(
-    rows.map(r => ({
-      cabang: r.cabang_id,
-      afterSalesTarget: r.after_sales_target,
-      jasaServiceTarget: r.jasa_service_target,
-      partBengkelTarget: r.part_bengkel_target,
-    }))
-  )
   // CPUS SERVICE 
   const jasaServiceBerat = {
     realisasi: sumBy(rows, r => r.jasa_service_berat_realisasi),
@@ -382,7 +412,6 @@ export function processAftersalesToKpi(
   filter: AfterSalesFilterLike
 ): KpiResult {
   const filtered = filterAftersales(rows, filter);
-  console.log('🔍 Filtered After Sales Rows:', filtered);
   return buildKpiForComponent(filtered);
 }
 

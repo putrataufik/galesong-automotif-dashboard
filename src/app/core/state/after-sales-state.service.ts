@@ -418,10 +418,6 @@ export class AfterSalesStateService {
     return this._state();
   }
 
-  logState() {
-    console.log('📊 After Sales State:', this._state());
-  }
-
   // ====== STORAGE (hydrate) ======
   private hydrate(): AfterSalesState | null {
     try {

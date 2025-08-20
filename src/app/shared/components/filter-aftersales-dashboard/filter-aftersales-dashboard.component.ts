@@ -51,10 +51,10 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
   cabangOptions: Option[] = [
     { value: 'all-cabang', name: 'Semua Cabang' },
     { value: '0050', name: 'PETTARANI' },
-    // { value: '0051', name: 'PALU' },
-    // { value: '0052', name: 'KENDARI' },
-    // { value: '0053', name: 'GORONTALO' },
-    // { value: '0054', name: 'PALOPO' },
+    { value: '0051', name: 'PALU' },
+    { value: '0052', name: 'KENDARI' },
+    { value: '0053', name: 'GORONTALO' },
+    { value: '0054', name: 'PALOPO' },
     // { value: '0055', name: 'SUNGGUMINASA' },
   ];
 

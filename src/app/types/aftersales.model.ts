@@ -101,7 +101,58 @@ export interface KpiResult {
   partBengkelSedang: KpiGroup;
   
 }
+export interface KpiData {
+  afterSales: { realisasi: number; target: number };
+  serviceCabang: { realisasi: number; target: number };
+  jasaService: { realisasi: number; target: number };
+  unitEntry: { realisasi: number; target: number };
+  sparepartTunai: { realisasi: number; target: number };
+  sparepartBengkel: { realisasi: number; target: number };
+  oli: { realisasi: number; target: number };
 
+  // CPUS SERVICE
+  jasaServiceBerat: { realisasi: number; target: number };
+  jasaServiceBodyRepair: { realisasi: number; target: number };
+  jasaServiceExpress: { realisasi: number; target: number };
+  jasaServiceKelistrikan: { realisasi: number; target: number };
+  jasaServiceOli: { realisasi: number; target: number };
+  jasaServiceOverSize: { realisasi: number; target: number };
+  jasaServiceOverhoul: { realisasi: number; target: number };
+  jasaServicePdc: { realisasi: number; target: number };
+  jasaServiceRutin: { realisasi: number; target: number };
+  jasaServiceSedang: { realisasi: number; target: number };
+
+  // Non CPUS Service
+  jasaServiceClaim: { realisasi: number; target: number };
+  jasaServiceKupon: { realisasi: number; target: number };
+  jasaServiceCvt: { realisasi: number; target: number };
+
+  totalUnitEntry: number;
+  profit: number;
+
+  //CPUS SPAREPART BENGKEL #1
+  partBengkelExpress: { realisasi: number; target: number };
+  partBengkelOli: { realisasi: number; target: number };
+  partBengkelOverhoul: { realisasi: number; target: number };
+  partBengkelRutin: { realisasi: number; target: number };
+  partBengkelSedang: { realisasi: number; target: number };
+  partBengkelBerat: { realisasi: number; target: number };
+}
+
+// Interface untuk KPI tambahan
+export interface AdditionalKpiData {
+  jumlahMekanik: number;
+  jumlahHariKerja: number;
+  totalBiayaUsaha: number;
+  totalProfit: number;
+  totalRevenueRealisasi: number;
+  totalProfitRealisasi: number;
+}
+
+export interface SisaHariOption {
+  value: string;
+  name: string;
+}
   
   export interface AfterSalesResponse {
     filterInfo: FilterInfo[];

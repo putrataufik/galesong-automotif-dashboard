@@ -1,10 +1,27 @@
 /* Hanya styling yang tidak bisa dilakukan dengan Bootstrap */
 .card:hover {
-    transform: translateY(-2px);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  .section-sep {
-    border-top: 3px groove rgba(0,0,0,.15);
-    margin: .5rem 0 1.5rem;
-  }
-  
+  transform: translateY(-2px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.section-sep {
+  border-top: 3px groove rgba(0, 0, 0, 0.15);
+  margin: 0.5rem 0 1.5rem;
+}
+
+.legend-popover {
+  z-index: 1050;
+  min-width: 280px;
+  max-width: 420px;
+}
+
+/* Segitiga kecil di atas popover */
+.legend-popover::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 16px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent var(--bs-card-bg) transparent;
+}
+    

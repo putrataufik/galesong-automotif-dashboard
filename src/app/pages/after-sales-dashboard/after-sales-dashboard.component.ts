@@ -7,6 +7,7 @@ import {
   computed,
   OnInit,
   ChangeDetectionStrategy,
+  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,6 +26,9 @@ import { AfterSalesStateService } from '../../core/state/after-sales-state.servi
 import {
   AfterSalesResponse,
   AfterSalesItem,
+  KpiData,
+  AdditionalKpiData,
+  SisaHariOption,
 } from '../../types/aftersales.model';
 import {
   buildDescendingDayOptions,
@@ -35,63 +39,11 @@ import {
   formatCompactNumber,
   sumBy,
   num,
+  buildRevenueChartData,
 } from '../../shared/utils/dashboard-aftersales-kpi.utils';
 import { ChartData } from '../../types/sales.model';
-import { getMonthLabel } from '../../shared/utils/dashboard-chart.utils';
-import { LineChartCardComponent } from "../../shared/components/line-chart-card/line-chart-card.component";
-
-interface KpiData {
-  afterSales: { realisasi: number; target: number };
-  serviceCabang: { realisasi: number; target: number };
-  jasaService: { realisasi: number; target: number };
-  unitEntry: { realisasi: number; target: number };
-  sparepartTunai: { realisasi: number; target: number };
-  sparepartBengkel: { realisasi: number; target: number };
-  oli: { realisasi: number; target: number };
-
-  // CPUS SERVICE
-  jasaServiceBerat: { realisasi: number; target: number };
-  jasaServiceBodyRepair: { realisasi: number; target: number };
-  jasaServiceExpress: { realisasi: number; target: number };
-  jasaServiceKelistrikan: { realisasi: number; target: number };
-  jasaServiceOli: { realisasi: number; target: number };
-  jasaServiceOverSize: { realisasi: number; target: number };
-  jasaServiceOverhoul: { realisasi: number; target: number };
-  jasaServicePdc: { realisasi: number; target: number };
-  jasaServiceRutin: { realisasi: number; target: number };
-  jasaServiceSedang: { realisasi: number; target: number };
-
-  // Non CPUS Service
-  jasaServiceClaim: { realisasi: number; target: number };
-  jasaServiceKupon: { realisasi: number; target: number };
-  jasaServiceCvt: { realisasi: number; target: number };
-
-  totalUnitEntry: number;
-  profit: number;
-
-  //CPUS SPAREPART BENGKEL #1
-  partBengkelExpress: { realisasi: number; target: number };
-  partBengkelOli: { realisasi: number; target: number };
-  partBengkelOverhoul: { realisasi: number; target: number };
-  partBengkelRutin: { realisasi: number; target: number };
-  partBengkelSedang: { realisasi: number; target: number };
-  partBengkelBerat: { realisasi: number; target: number };
-}
-
-// Interface untuk KPI tambahan
-interface AdditionalKpiData {
-  jumlahMekanik: number;
-  jumlahHariKerja: number;
-  totalBiayaUsaha: number;
-  totalProfit: number;
-  totalRevenueRealisasi: number;
-  totalProfitRealisasi: number;
-}
-
-interface SisaHariOption {
-  value: string;
-  name: string;
-}
+import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
+import { KpiLegendButtonComponent } from '../../shared/components/kpi-legend-button/kpi-legend-button.component';
 
 @Component({
   selector: 'app-after-sales-dashboard',
@@ -102,8 +54,9 @@ interface SisaHariOption {
     FilterAftersalesDashboardComponent,
     KpiCardAsComponent,
     KpiCardComponent,
-    LineChartCardComponent
-],
+    LineChartCardComponent,
+    KpiLegendButtonComponent 
+  ],
   templateUrl: './after-sales-dashboard.component.html',
   styleUrls: ['./after-sales-dashboard.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -141,6 +94,18 @@ export class AfterSalesDashboardComponent implements OnInit {
     return true;
   });
 
+  legendOpen = false;
+
+  toggleLegend(event: MouseEvent) {
+    event.stopPropagation(); // cegah close karena click document
+    this.legendOpen = !this.legendOpen;
+  }
+
+  @HostListener('document:click')
+  closeLegendOnOutsideClick() {
+    if (this.legendOpen) this.legendOpen = false;
+  }
+
   // Computed
   hasData = computed(() => !!this.kpiData());
 
@@ -154,40 +119,14 @@ export class AfterSalesDashboardComponent implements OnInit {
     this.hydrateFromState();
   }
 
-  private processRevenueChart(response: AfterSalesResponse): ChartData | null {
-    const rawData = response.aftersales || [];
-    if (!rawData.length) return null;
-
-    // TIDAK filter by bulan - ambil semua data dalam tahun
-    let dataToProcess = [...rawData];
-    
-    // TETAP filter by cabang jika ada
-    const filter = this.currentFilter();
-    if (filter?.cabang && filter.cabang !== 'all-cabang') {
-      dataToProcess = dataToProcess.filter(item => item.cabang_id === filter.cabang);
-    }
-
-    // Group by month - SEMUA bulan dalam tahun
-    const monthlyRevenue = dataToProcess.reduce((acc: any, item: any) => {
-      const month = item.month;
-      if (!acc[month]) {
-        acc[month] = 0;
-      }
-      // Sum total_revenue_realisasi untuk bulan tersebut
-      acc[month] += sumBy([item], x => x.total_revenue_realisasi);
-      return acc;
-    }, {});
-
-    // Sort by month (1-12) dan convert ke format chart
-    const sortedMonths = Object.keys(monthlyRevenue).sort((a, b) => Number(a) - Number(b));
-    
-    const chartLabels = sortedMonths.map(month => getMonthLabel(month)); // Jan, Feb, Mar...
-    const revenueData = sortedMonths.map(month => monthlyRevenue[month]);
-
-    return {
-      labels: chartLabels,
-      data: revenueData
-    };
+  private makeRevenueChart(
+    response: AfterSalesResponse,
+    filter: AfterSalesFilter
+  ): ChartData | null {
+    return buildRevenueChartData(response.aftersales, {
+      cabang: filter.cabang,
+      includeEmptyMonths: false,
+    });
   }
 
   // --------------------------
@@ -212,7 +151,7 @@ export class AfterSalesDashboardComponent implements OnInit {
         next: (response) => {
           this.updateSisaHariKerjaOptions(filter, response.aftersales);
 
-          const revenueChart = this.processRevenueChart(response);
+          const revenueChart = this.makeRevenueChart(response, filter);
           const processed = this.processAfterSalesData(response, filter);
           const additionalKpi = this.calculateAdditionalKpi(response, filter);
 
@@ -220,14 +159,10 @@ export class AfterSalesDashboardComponent implements OnInit {
           this.additionalKpiData.set(additionalKpi);
           this.totalRevenueChart.set(revenueChart);
 
-          console.log('data Chart:', revenueChart);
-
           // ✅ Simpan ke state
           this.afterSalesState.saveKpi(processed);
           this.afterSalesState.saveAdditionalKpi(additionalKpi);
-          this.afterSalesState.saveTotalRevenueChart(revenueChart); // ✅ Simpan chart ke state
-
-          console.log('Processed KPI Data:', processed);
+          this.afterSalesState.saveTotalRevenueChart(revenueChart);
         },
         error: (err) => {
           console.error('Error fetching after sales data:', err);
@@ -270,7 +205,6 @@ export class AfterSalesDashboardComponent implements OnInit {
     filter: AfterSalesFilter
   ): AdditionalKpiData {
     const rawData = response.aftersales || [];
-    console.log('Raw After Sales Data:', rawData);
 
     // Filter data sesuai dengan filter yang diterapkan
     let filteredData = [...rawData];
@@ -324,12 +258,9 @@ export class AfterSalesDashboardComponent implements OnInit {
   // Method untuk menghitung jumlah mekanik unik
   private calculateJumlahMekanik(data: AfterSalesItem[]): number {
     if (data.length === 0) return 0;
-
-    // Opsi 1: Jika 'mekanik' adalah total mekanik per cabang/bulan, ambil sum
     const totalMekanik = sumBy(data, (item) => item.mekanik);
     return totalMekanik;
   }
-
   // --------------------------
   // Util: Sisa Hari Kerja (DRY)
   // --------------------------
@@ -419,7 +350,8 @@ export class AfterSalesDashboardComponent implements OnInit {
 
     // ✅ Hydrate chart data
     const savedTotalRevenueChart = this.afterSalesState.getTotalRevenueChart();
-    if (savedTotalRevenueChart) this.totalRevenueChart.set(savedTotalRevenueChart);
+    if (savedTotalRevenueChart)
+      this.totalRevenueChart.set(savedTotalRevenueChart);
 
     const sisaHariState = this.afterSalesState.getSisaHariKerjaState();
     this.sisaHariKerjaOptions = sisaHariState.options;
@@ -429,15 +361,15 @@ export class AfterSalesDashboardComponent implements OnInit {
   // --------------------------
   // Debug & Reset
   // --------------------------
-  logCurrentState(): void {
-    this.afterSalesState.logState();
-  }
+  // logCurrentState(): void {
+  //   this.afterSalesState.logState();
+  // }
 
   clearAllData(): void {
     this.afterSalesState.clearAll();
     this.kpiData.set(null);
     this.additionalKpiData.set(null);
-    this.totalRevenueChart.set(null); // ✅ Reset chart data
+    this.totalRevenueChart.set(null);
     this.currentFilter.set(null);
     this.sisaHariKerjaOptions = [];
     this.sisaHariKerja = '';

@@ -78,9 +78,6 @@ export class AppComponent {
       case '/dashboard':
         this._currentPageTitle.set('Dashboard');
         break;
-      case '/financial-tracking':
-        this._currentPageTitle.set('Financial Tracking');
-        break;
       case '/after-sales-dashboard':
         this._currentPageTitle.set('After Sales Dashboard');
         break;

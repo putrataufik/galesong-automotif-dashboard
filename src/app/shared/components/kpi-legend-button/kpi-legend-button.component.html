@@ -1,0 +1,72 @@
+<div class="position-relative d-inline-block">
+  <!-- Tombol bulat sempurna -->
+  <button
+    type="button"
+    class="rounded-circle d-inline-flex align-items-center justify-content-center"
+    [ngClass]="buttonClass"
+    [style.width.px]="diameter"
+    [style.height.px]="diameter"
+    [style.lineHeight.px]="diameter"
+    [attr.aria-expanded]="opened"
+    aria-label="Lihat legenda KPI"
+    (click)="toggle($event)"
+  >
+    <i class="bi bi-info-circle fs-5"></i>
+  </button>
+
+  <!-- Popover legenda -->
+  @if (opened) {
+    <div
+      class="legend-popover card shadow border-0 position-absolute mt-2"
+      [ngClass]="{ 'start-0': placement === 'start', 'end-0': placement === 'end' }"
+      role="dialog"
+      aria-label="Legenda KPI"
+      (click)="stop($event)"
+    >
+      <div class="card-body p-3 small">
+        <!-- Deviasi Target -->
+        <div class="d-flex align-items-start mb-2">
+          <i class="bi bi-arrow-left-right text-secondary me-2"></i>
+          <div>
+            <div class="fw-semibold">Deviasi Target</div>
+            <div class="text-body-secondary">
+              Selisih antara <span class="fw-semibold">Realisasi</span> dan
+              <span class="fw-semibold">Target</span>;
+              <span class="text-success">Positif</span> = di atas target,
+              <span class="text-danger">Negatif</span> = di bawah target.
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-2" />
+
+        <!-- Rata-rata -->
+        <div class="d-flex align-items-start mb-2">
+          <i class="bi bi-calculator text-secondary me-2"></i>
+          <div>
+            <div class="fw-semibold">Rata-rata</div>
+            <div class="text-body-secondary">
+              Nilai <span class="fw-semibold">Realisasi ÷ Unit Entry</span> (indikator nilai per unit).
+            </div>
+          </div>
+        </div>
+
+        @if (showSisaHariKerja) {
+          <hr class="my-2" />
+
+          <!-- Harapan Target -->
+          <div class="d-flex align-items-start">
+            <i class="bi bi-bullseye text-secondary me-2"></i>
+            <div>
+              <div class="fw-semibold">Harapan Target</div>
+              <div class="text-body-secondary">
+                Kebutuhan per hari agar target tercapai
+                (<span class="fw-semibold">Deviasi Target ÷ sisa hari kerja</span>).
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

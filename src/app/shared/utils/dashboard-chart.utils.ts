@@ -52,14 +52,12 @@ export function processPieChartData(unitsData: any, limit = 8): ChartData | null
 // === AFTER SALES CHART PROCESSING ===
 export function processAfterSalesRealisasiVsTargetData(afterSalesData: any): ChartData | null {
   const aftersales = afterSalesData?.aftersales ?? [];
-  console.log('after sales raw data: ', aftersales)
   
   if (!aftersales.length) return null;
 
   // Group by month dan sum realisasi + target
   const monthlyData = aftersales.reduce((acc: any, item: any) => {
     const month = item.month;
-    console.log('Processing month:', month, ' | item:', item);
     if (!acc[month]) {
       acc[month] = {
         realisasi: 0,
@@ -99,39 +97,59 @@ export function processAfterSalesRealisasiVsTargetData(afterSalesData: any): Cha
       }
     ]
   };
-
-  console.log('Final chart result:', result);
-  console.log('=== END DEBUG ===');
   
   return result;
 }
 
 export function processAfterSalesProfitByBranchData(
-  afterSalesData: any, 
+  afterSalesData: any,
   cabangMap: Record<string, string>
 ): ChartData | null {
   const aftersales = afterSalesData?.aftersales ?? [];
   if (!aftersales.length) return null;
 
-  // Group by cabang dan sum profit
-  const branchData = aftersales.reduce((acc: any, item: any) => {
-    const cabangId = item.cabang_id;
-    if (!acc[cabangId]) {
-      acc[cabangId] = 0;
+  // helper angka aman (boleh ganti ke util num() milikmu)
+  const toNum = (v: unknown): number => {
+    if (v == null) return 0;
+    if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
+    if (typeof v === 'string') {
+      const n = Number(v.replace(/[^\d.-]/g, ''));
+      return Number.isFinite(n) ? n : 0;
     }
-    acc[cabangId] += Number(item.profit);
+    return 0;
+  };
+
+  // Akumulasi profit per cabang (sum dari profit tiap row)
+  const branchData: Record<string, number> = aftersales.reduce((acc: Record<string, number>, item: any) => {
+    const cabangId = String(item?.cabang_id ?? 'unknown');
+
+    const jasaService = toNum(item?.jasa_service_realisasi);
+    const afterSales  = toNum(item?.after_sales_realisasi);
+    const partBengkel = toNum(item?.part_bengkel_realisasi);
+    const partTunai   = toNum(item?.part_tunai_realisasi);
+    const biayaUsaha  = toNum(item?.biaya_usaha);
+
+    // Rumus profit (per baris)
+    const profit =
+      jasaService +
+      0.20 * (afterSales - (jasaService + partBengkel)) +
+      0.17 * partBengkel +
+      0.17 * partTunai -
+      biayaUsaha;
+
+    acc[cabangId] = (acc[cabangId] ?? 0) + profit;
     return acc;
   }, {});
 
-  // Sort by profit descending
-  const sortedBranches = Object.entries(branchData)
-    .sort(([,a], [,b]) => (b as number) - (a as number));
+  // Urutkan desc berdasarkan profit
+  const sortedBranches = Object.entries(branchData).sort(([, a], [, b]) => b - a);
 
   return {
     labels: sortedBranches.map(([cabangId]) => cabangMap[cabangId] || cabangId),
-    data: sortedBranches.map(([, profit]) => profit as number)
+    data: sortedBranches.map(([, profit]) => profit),
   };
 }
+
 
 
 // === AFTER SALES CHART PROCESSING ===

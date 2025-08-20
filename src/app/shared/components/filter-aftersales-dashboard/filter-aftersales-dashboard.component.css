@@ -1,0 +1,11 @@
+/* Menyamakan tinggi input-group select dengan tampilan compact */
+.input-group > .form-select {
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+  }
+  
+  /* Biar card filter terlihat “menempel” rapi pada layout */
+  :host ::ng-deep .bg-white.rounded-3.shadow-sm {
+    border: 1px solid rgba(0,0,0,.05);
+  }
+  

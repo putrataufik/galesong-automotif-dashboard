@@ -15,7 +15,6 @@ interface AfterSalesEndpointBuilders {
 
 @Injectable({ providedIn: 'root' })
 export class AfterSalesService extends BaseApiService {
-
   private readonly cfg: Record<CompanyKey, AfterSalesEndpointBuilders> = {
     // HYUNDAI
     'sinar-galesong-mobilindo': {
@@ -42,16 +41,19 @@ export class AfterSalesService extends BaseApiService {
   private use(company: string): AfterSalesEndpointBuilders {
     const key = company as CompanyKey;
     const conf = this.cfg[key];
-    if (!conf) throw new Error(`Config aftersales untuk company '${company}' belum diset`);
+    if (!conf)
+      throw new Error(
+        `Config aftersales untuk company '${company}' belum diset`
+      );
     return conf;
   }
 
   getAfterSalesMonthly(company: string, year: string) {
     const c = this.use(company);
-    return this.get<AfterSalesResponse>(company, c.monthlyPath(year), c.monthlyParams(year)).pipe(
-      tap((res) => {
-        console.log('📦 RAW After Sales API Response:', res);
-      })
+    return this.get<AfterSalesResponse>(
+      company,
+      c.monthlyPath(year),
+      c.monthlyParams(year)
     );
   }
-}   
+}
