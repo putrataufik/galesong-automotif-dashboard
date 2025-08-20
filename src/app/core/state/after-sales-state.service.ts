@@ -4,6 +4,7 @@
 import { Injectable, signal, effect, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { AfterSalesFilter } from '../../shared/components/filter-aftersales-dashboard/filter-aftersales-dashboard.component';
+import { ChartData } from '../../types/sales.model';
 
 // === TYPES: After Sales KPI ===
 export interface AfterSalesKpiSnapshot {
@@ -60,11 +61,12 @@ export interface SisaHariKerjaState {
   isVisible: boolean;
 }
 
-// === TYPES: Charts (untuk future development) ===
+// === TYPES: Charts ===
 export interface AfterSalesChartsState {
-  realisasiVsTarget: any | null;
-  profitByBranch: any | null;
-  trendOverTime: any | null;
+  realisasiVsTarget: ChartData | null;
+  profitByBranch: ChartData | null;
+  totalRevenue: ChartData | null; // ✅ Tambah chart total revenue
+  trendOverTime: ChartData | null;
 }
 
 // === STATE ROOT ===
@@ -131,20 +133,21 @@ const initialSisaHariKerja: SisaHariKerjaState = {
 const initialCharts: AfterSalesChartsState = {
   realisasiVsTarget: null,
   profitByBranch: null,
+  totalRevenue: null, // ✅ Initial null untuk total revenue chart
   trendOverTime: null,
 };
 
 const initialState: AfterSalesState = {
   filter: null,
   kpi: initialKpi,
-  additionalKpi: initialAdditionalKpi, // ✅ Include additional KPI
+  additionalKpi: initialAdditionalKpi,
   sisaHariKerja: initialSisaHariKerja,
   charts: initialCharts,
   lastUpdated: null,
 };
 
 // ====== STORAGE CONFIG ======
-const STORAGE_KEY = 'afterSalesState:v2'; // ✅ Bump version untuk schema change
+const STORAGE_KEY = 'afterSalesState:v3'; // ✅ Bump version untuk schema change
 
 @Injectable({ providedIn: 'root' })
 export class AfterSalesStateService {
@@ -191,7 +194,6 @@ export class AfterSalesStateService {
     }));
   }
 
-  // ✅ Patch helper for additional KPI
   private patchAdditionalKpi(partial: Partial<AdditionalKpiSnapshot>) {
     this._state.update((s) => ({ 
       ...s, 
@@ -260,7 +262,6 @@ export class AfterSalesStateService {
       partBengkelSedang: kpi.partBengkelSedang ?? this._state().kpi.partBengkelSedang,
       partBengkelBerat: kpi.partBengkelBerat ?? this._state().kpi.partBengkelBerat,
 
-
       totalUnitEntry: kpi.totalUnitEntry ?? this._state().kpi.totalUnitEntry,
       profit: kpi.profit ?? this._state().kpi.profit,
     });
@@ -282,7 +283,7 @@ export class AfterSalesStateService {
     this.patchKpi(initialKpi);
   }
 
-  // ✅ ADDITIONAL KPI MANAGEMENT
+  // ====== ADDITIONAL KPI MANAGEMENT ======
   saveAdditionalKpi(additionalKpi: Partial<AdditionalKpiSnapshot>) {
     this.patchAdditionalKpi({
       jumlahMekanik: additionalKpi.jumlahMekanik ?? this._state().additionalKpi.jumlahMekanik,
@@ -303,8 +304,8 @@ export class AfterSalesStateService {
     return k.jumlahMekanik > 0 || 
            k.jumlahHariKerja > 0 || 
            k.totalBiayaUsaha > 0 || 
-           k.totalProfit !== 0; // profit bisa negatif, jadi cek !== 0
-           k.totalRevenueRealisasi > 0; // Tambah cek totalRevenueRealisasi
+           k.totalProfit !== 0 ||
+           k.totalRevenueRealisasi > 0;
   }
 
   clearAdditionalKpi() {
@@ -342,16 +343,37 @@ export class AfterSalesStateService {
   }
 
   // ====== CHARTS MANAGEMENT ======
-  saveRealisasiVsTargetChart(data: any) {
+  saveRealisasiVsTargetChart(data: ChartData | null) {
     this.patchCharts({ realisasiVsTarget: data });
   }
 
-  saveProfitByBranchChart(data: any) {
+  getRealisasiVsTargetChart(): ChartData | null {
+    return this._state().charts.realisasiVsTarget;
+  }
+
+  saveProfitByBranchChart(data: ChartData | null) {
     this.patchCharts({ profitByBranch: data });
   }
 
-  saveTrendOverTimeChart(data: any) {
+  getProfitByBranchChart(): ChartData | null {
+    return this._state().charts.profitByBranch;
+  }
+
+  // ✅ TOTAL REVENUE CHART MANAGEMENT
+  saveTotalRevenueChart(data: ChartData | null) {
+    this.patchCharts({ totalRevenue: data });
+  }
+
+  getTotalRevenueChart(): ChartData | null {
+    return this._state().charts.totalRevenue;
+  }
+
+  saveTrendOverTimeChart(data: ChartData | null) {
     this.patchCharts({ trendOverTime: data });
+  }
+
+  getTrendOverTimeChart(): ChartData | null {
+    return this._state().charts.trendOverTime;
   }
 
   getCharts(): AfterSalesChartsState {
@@ -443,7 +465,6 @@ export class AfterSalesStateService {
           totalUnitEntry: parsed.kpi?.totalUnitEntry ?? 0,
           profit: parsed.kpi?.profit ?? 0,
         },
-        // ✅ Hydrate additional KPI
         additionalKpi: {
           jumlahMekanik: parsed.additionalKpi?.jumlahMekanik ?? 0,
           jumlahHariKerja: parsed.additionalKpi?.jumlahHariKerja ?? 0,
@@ -460,12 +481,13 @@ export class AfterSalesStateService {
         charts: {
           realisasiVsTarget: parsed.charts?.realisasiVsTarget ?? null,
           profitByBranch: parsed.charts?.profitByBranch ?? null,
+          totalRevenue: parsed.charts?.totalRevenue ?? null, // ✅ Hydrate total revenue chart
           trendOverTime: parsed.charts?.trendOverTime ?? null,
         },
         lastUpdated: parsed.lastUpdated ?? null,
       };
     } catch {
-      return null; // korup/blocked → abaikan agar app tetap jalan
+      return null;
     }
   }
 }

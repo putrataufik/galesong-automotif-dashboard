@@ -78,7 +78,7 @@ interface KpiData {
   partBengkelBerat: { realisasi: number; target: number };
 }
 
-// ✅ Interface baru untuk KPI tambahan
+// Interface untuk KPI tambahan
 interface AdditionalKpiData {
   jumlahMekanik: number;
   jumlahHariKerja: number;
@@ -118,7 +118,7 @@ export class AfterSalesDashboardComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
   kpiData = signal<KpiData | null>(null);
-  additionalKpiData = signal<AdditionalKpiData | null>(null); // ✅ Signal baru
+  additionalKpiData = signal<AdditionalKpiData | null>(null);
   currentFilter = signal<AfterSalesFilter | null>(null);
   totalRevenueChart = signal<ChartData | null>(null);
 
@@ -127,14 +127,14 @@ export class AfterSalesDashboardComponent implements OnInit {
   sisaHariKerjaOptions: SisaHariOption[] = [];
   showSisaHariKerja = signal(false);
 
-  // ✅ Computed untuk menentukan apakah tampilkan Jumlah Mekanik
+  // Computed untuk menentukan apakah tampilkan Jumlah Mekanik
   showJumlahMekanik = computed(() => {
     const filter = this.currentFilter();
     if (!filter?.month || filter.month === 'all-month') return false;
     return true;
   });
 
-  // ✅ Computed untuk menentukan apakah tampilkan Jumlah Hari Kerja
+  // Computed untuk menentukan apakah tampilkan Jumlah Hari Kerja
   showJumlahHariKerja = computed(() => {
     const filter = this.currentFilter();
     if (!filter?.cabang || filter.cabang === 'all-cabang') return false;
@@ -153,41 +153,42 @@ export class AfterSalesDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.hydrateFromState();
   }
+
   private processRevenueChart(response: AfterSalesResponse): ChartData | null {
-  const rawData = response.aftersales || [];
-  if (!rawData.length) return null;
+    const rawData = response.aftersales || [];
+    if (!rawData.length) return null;
 
-  // ✅ TIDAK filter by bulan - ambil semua data dalam tahun
-  let dataToProcess = [...rawData];
-  
-  // ✅ TETAP filter by cabang jika ada
-  const filter = this.currentFilter();
-  if (filter?.cabang && filter.cabang !== 'all-cabang') {
-    dataToProcess = dataToProcess.filter(item => item.cabang_id === filter.cabang);
-  }
-
-  // Group by month - SEMUA bulan dalam tahun
-  const monthlyRevenue = dataToProcess.reduce((acc: any, item: any) => {
-    const month = item.month;
-    if (!acc[month]) {
-      acc[month] = 0;
+    // TIDAK filter by bulan - ambil semua data dalam tahun
+    let dataToProcess = [...rawData];
+    
+    // TETAP filter by cabang jika ada
+    const filter = this.currentFilter();
+    if (filter?.cabang && filter.cabang !== 'all-cabang') {
+      dataToProcess = dataToProcess.filter(item => item.cabang_id === filter.cabang);
     }
-    // Sum total_revenue_realisasi untuk bulan tersebut
-    acc[month] += sumBy([item], x => x.total_revenue_realisasi);
-    return acc;
-  }, {});
 
-  // Sort by month (1-12) dan convert ke format chart
-  const sortedMonths = Object.keys(monthlyRevenue).sort((a, b) => Number(a) - Number(b));
-  
-  const chartLabels = sortedMonths.map(month => getMonthLabel(month)); // Jan, Feb, Mar...
-  const revenueData = sortedMonths.map(month => monthlyRevenue[month]);
+    // Group by month - SEMUA bulan dalam tahun
+    const monthlyRevenue = dataToProcess.reduce((acc: any, item: any) => {
+      const month = item.month;
+      if (!acc[month]) {
+        acc[month] = 0;
+      }
+      // Sum total_revenue_realisasi untuk bulan tersebut
+      acc[month] += sumBy([item], x => x.total_revenue_realisasi);
+      return acc;
+    }, {});
 
-  return {
-    labels: chartLabels,
-    data: revenueData
-  };
-}
+    // Sort by month (1-12) dan convert ke format chart
+    const sortedMonths = Object.keys(monthlyRevenue).sort((a, b) => Number(a) - Number(b));
+    
+    const chartLabels = sortedMonths.map(month => getMonthLabel(month)); // Jan, Feb, Mar...
+    const revenueData = sortedMonths.map(month => monthlyRevenue[month]);
+
+    return {
+      labels: chartLabels,
+      data: revenueData
+    };
+  }
 
   // --------------------------
   // Public: Aksi & Events
@@ -212,21 +213,21 @@ export class AfterSalesDashboardComponent implements OnInit {
           this.updateSisaHariKerjaOptions(filter, response.aftersales);
 
           const revenueChart = this.processRevenueChart(response);
-
-
           const processed = this.processAfterSalesData(response, filter);
-          const additionalKpi = this.calculateAdditionalKpi(response, filter); // ✅ Hitung KPI tambahan
+          const additionalKpi = this.calculateAdditionalKpi(response, filter);
 
           this.kpiData.set(processed);
-          this.additionalKpiData.set(additionalKpi); // ✅ Set KPI tambahan
+          this.additionalKpiData.set(additionalKpi);
           this.totalRevenueChart.set(revenueChart);
 
-          console.log('data Chart, ',revenueChart )
+          console.log('data Chart:', revenueChart);
 
           // ✅ Simpan ke state
           this.afterSalesState.saveKpi(processed);
-          console.log('Processed KPI Data:', processed);
           this.afterSalesState.saveAdditionalKpi(additionalKpi);
+          this.afterSalesState.saveTotalRevenueChart(revenueChart); // ✅ Simpan chart ke state
+
+          console.log('Processed KPI Data:', processed);
         },
         error: (err) => {
           console.error('Error fetching after sales data:', err);
@@ -289,7 +290,7 @@ export class AfterSalesDashboardComponent implements OnInit {
       );
     }
 
-    // Hitung ADDTIONAL KPI
+    // Hitung ADDITIONAL KPI
     const jumlahMekanik = this.calculateJumlahMekanik(filteredData);
     const jumlahHariKerja = sumBy(filteredData, (item) => item.hari_kerja);
     const totalBiayaUsaha = sumBy(filteredData, (item) => item.biaya_usaha);
@@ -320,20 +321,12 @@ export class AfterSalesDashboardComponent implements OnInit {
     };
   }
 
-  // ✅ Method untuk menghitung jumlah mekanik unik
+  // Method untuk menghitung jumlah mekanik unik
   private calculateJumlahMekanik(data: AfterSalesItem[]): number {
-    // Untuk menghitung jumlah mekanik unik, kita ambil unique values dari field 'mekanik'
-    // Asumsi: field 'mekanik' berisi angka total mekanik per baris
-    // Jika data struktur berbeda, sesuaikan logic ini
-
     if (data.length === 0) return 0;
 
     // Opsi 1: Jika 'mekanik' adalah total mekanik per cabang/bulan, ambil sum
     const totalMekanik = sumBy(data, (item) => item.mekanik);
-
-    // Opsi 2: Jika 'mekanik' adalah identifier dan kita perlu unique count
-    // const uniqueMekanik = new Set(data.map(item => item.mekanik)).size;
-
     return totalMekanik;
   }
 
@@ -419,17 +412,20 @@ export class AfterSalesDashboardComponent implements OnInit {
     const savedKpi = this.afterSalesState.getKpi();
     if (this.afterSalesState.hasKpi()) this.kpiData.set(savedKpi);
 
-    // ✅ Hydrate additional KPI
+    // Hydrate additional KPI
     const savedAdditionalKpi = this.afterSalesState.getAdditionalKpi();
     if (this.afterSalesState.hasAdditionalKpi())
       this.additionalKpiData.set(savedAdditionalKpi);
+
+    // ✅ Hydrate chart data
+    const savedTotalRevenueChart = this.afterSalesState.getTotalRevenueChart();
+    if (savedTotalRevenueChart) this.totalRevenueChart.set(savedTotalRevenueChart);
 
     const sisaHariState = this.afterSalesState.getSisaHariKerjaState();
     this.sisaHariKerjaOptions = sisaHariState.options;
     this.sisaHariKerja = sisaHariState.selectedValue;
     this.showSisaHariKerja.set(sisaHariState.isVisible);
   }
-
   // --------------------------
   // Debug & Reset
   // --------------------------
@@ -440,10 +436,11 @@ export class AfterSalesDashboardComponent implements OnInit {
   clearAllData(): void {
     this.afterSalesState.clearAll();
     this.kpiData.set(null);
-    this.additionalKpiData.set(null); // ✅ Reset KPI tambahan
+    this.additionalKpiData.set(null);
+    this.totalRevenueChart.set(null); // ✅ Reset chart data
     this.currentFilter.set(null);
     this.sisaHariKerjaOptions = [];
     this.sisaHariKerja = '';
-    this.showSisaHariKerja.set(false);
+    this.totalRevenueChart.set(null);
   }
 }
