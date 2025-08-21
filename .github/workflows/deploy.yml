@@ -2,7 +2,7 @@ name: Build & Deploy (SFTP — no delete)
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -17,8 +17,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install deps
         run: npm ci
@@ -39,10 +39,12 @@ jobs:
       - name: Deploy via SFTP (SCP)
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SFTP_HOST }}
-          port: ${{ secrets.SFTP_PORT }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASS }}
-          source: "${{ steps.dist.outputs.DIR }}/*"
-          target: "/home/automotive/public_html"
-          overwrite: true
+            host: ${{ secrets.SFTP_HOST }}
+            port: ${{ secrets.SFTP_PORT }}
+            username: ${{ secrets.SFTP_USER }}
+            password: ${{ secrets.SFTP_PASS }}
+            source: "${{ steps.dist.outputs.DIR }}/**/*"
+            target: "/home/automotive/public_html"
+            overwrite: true
+            strip_components: 3 # <— kunci agar TIDAK membuat folder dist/<app>/browser di server
+
