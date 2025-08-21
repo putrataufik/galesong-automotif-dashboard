@@ -43,8 +43,12 @@ jobs:
             port: ${{ secrets.SFTP_PORT }}
             username: ${{ secrets.SFTP_USER }}
             password: ${{ secrets.SFTP_PASS }}
-            source: "${{ steps.dist.outputs.DIR }}/**/*"
+             # kirim file level atas + isi subfolder + dotfile (.htaccess)
+            source: |
+                ${{ steps.dist.outputs.DIR }}/*
+                ${{ steps.dist.outputs.DIR }}/**/*
+                ${{ steps.dist.outputs.DIR }}/.htaccess
             target: "/home/automotive/public_html"
             overwrite: true
-            strip_components: 3 # <— kunci agar TIDAK membuat folder dist/<app>/browser di server
+            strip_components: 3   # buang "dist/<app>/browser" agar file jatuh ke public_html/
 
