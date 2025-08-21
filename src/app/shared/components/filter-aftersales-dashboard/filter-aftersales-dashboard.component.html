@@ -1,94 +1,96 @@
 @if (showAlert) {
+<div
+  class="position-fixed bottom-0 start-50 translate-middle-x mb-3"
+  style="z-index: 1050; width: 90%; max-width: 500px"
+>
   <div
-    class="position-fixed bottom-0 start-50 translate-middle-x mb-3"
-    style="z-index: 1050; width: 90%; max-width: 500px"
+    class="alert alert-{{ alertType }} alert-dismissible fade show shadow"
+    role="alert"
   >
-    <div
-      class="alert alert-{{ alertType }} alert-dismissible fade show shadow"
-      role="alert"
-    >
-      <i
-        class="bi {{
-          alertType === 'success'
-            ? 'bi-check-circle-fill'
-            : 'bi-exclamation-triangle-fill'
-        }} me-2"
-      ></i>
-      {{ alertMessage }}
-      <button type="button" class="btn-close" (click)="hideAlert()"></button>
-    </div>
+    <i
+      class="bi {{
+        alertType === 'success'
+          ? 'bi-check-circle-fill'
+          : 'bi-exclamation-triangle-fill'
+      }} me-2"
+    ></i>
+    {{ alertMessage }}
+    <button type="button" class="btn-close" (click)="hideAlert()"></button>
   </div>
-  }
-  
-  <!-- FILTER -->
-  <div class="bg-white shadow-sm rounded-3 p-3">
-    <div class="row justify-content-center align-items-end g-3 mb-3">
-      <div class="col-md-3">
-        <label for="company" class="form-label small text-muted">Perusahaan</label>
-        <select
-          id="company"
-          class="form-select"
-          [(ngModel)]="company"
-          (change)="onFilterChange()"
-        >
-          <option value="">Pilih Perusahaan</option>
-          @for (c of companies; track c.value) {
-            <option [value]="c.value">{{ c.name }}</option>
-          }
-        </select>
-      </div>
-  
-      <div class="col-md-3">
-        <label for="cabang" class="form-label small text-muted">Cabang</label>
-        <select
-          id="cabang"
-          class="form-select"
-          [(ngModel)]="cabang"
-          (change)="onFilterChange()"
-        >
-          @for (cb of cabangOptions; track cb.value) {
-            <option [value]="cb.value">{{ cb.name }}</option>
-          }
-        </select>
-      </div>
-  
-      <div class="col-md-2">
-        <label for="period" class="form-label small text-muted">Tahun</label>
-        <select
-          id="period"
-          class="form-select"
-          [(ngModel)]="period"
-          (change)="onPeriodChange()"
-        >
-          @for (p of periods; track p.value) {
-            <option [value]="p.value">{{ p.name }}</option>
-          }
-        </select>
-      </div>
-  
-      <div class="col-md-2">
-        <label for="month" class="form-label small text-muted">Bulan</label>
-        <select
-          id="month"
-          class="form-select"
-          [(ngModel)]="month"
-          (change)="onFilterChange()"
-        >
-          @for (m of months; track m.value) {
-            <option [value]="m.value">{{ m.name }}</option>
-          }
-        </select>
-      </div>
+</div>
+}
 
-      <div class="col-md-2">
-        <button
-          type="button"
-          class="btn btn-success px-4 py-2 w-100"
-          (click)="onSearchClick()"
-          [disabled]="loading"
-        >
-          <i class="bi bi-search me-1"></i> Cari Data
-        </button>
-      </div>
+<!-- FILTER -->
+<div class="bg-white shadow-sm rounded-3 p-3">
+  <div class="row justify-content-center align-items-end g-3 mb-3">
+    <div class="col-md-3">
+      <label for="company" class="form-label small text-muted"
+        >Perusahaan</label
+      >
+      <select
+        id="company"
+        class="form-select"
+        [(ngModel)]="company"
+        (change)="onFilterChange()"
+      >
+        <option value="">Pilih Perusahaan</option>
+        @for (c of companies; track c.value) {
+        <option [value]="c.value">{{ c.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label for="cabang" class="form-label small text-muted">Cabang</label>
+      <select
+        id="cabang"
+        class="form-select"
+        [(ngModel)]="cabang"
+        (change)="onFilterChange()"
+      >
+        @for (cb of cabangOptions; track cb.value) {
+        <option [value]="cb.value">{{ cb.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label for="period" class="form-label small text-muted">Tahun</label>
+      <select
+        id="period"
+        class="form-select"
+        [(ngModel)]="period"
+        (change)="onPeriodChange()"
+      >
+        @for (p of periods; track p.value) {
+        <option [value]="p.value">{{ p.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label for="month" class="form-label small text-muted">Bulan</label>
+      <select
+        id="month"
+        class="form-select"
+        [(ngModel)]="month"
+        (change)="onFilterChange()"
+      >
+        @for (m of months; track m.value) {
+        <option [value]="m.value">{{ m.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <button
+        type="button"
+        class="btn btn-success px-4 py-2 w-100"
+        (click)="onSearchClick()"
+        [disabled]="loading"
+      >
+        <i class="bi bi-search me-1"></i> Cari Data
+      </button>
     </div>
   </div>
+</div>

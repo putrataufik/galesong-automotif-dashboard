@@ -7,6 +7,8 @@ import {
   OnInit,
   OnChanges,
   OnDestroy,
+  NgZone,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -73,6 +75,7 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
   alertMessage = '';
   alertType: 'success' | 'danger' = 'danger';
   private alertTimeoutId: any;
+  constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {}
 
   // ✅ Method untuk mendapatkan bulan saat ini dalam format "MM"
   private getCurrentMonth(): string {
@@ -181,24 +184,24 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
       period: this.period,
       month: this.month,
     });
-
-    // Tampilkan notifikasi
-    this.show('Pencarian berhasil! Data After Sales sedang dimuat…', 'success');
   }
 
   // Sembunyikan alert secara manual
-  hideAlert() {
-    this.showAlert = false;
-  }
-
-  // Tampilkan alert dengan pesan dan tipe
   private show(msg: string, type: 'success' | 'danger') {
     this.alertMessage = msg;
     this.alertType = type;
     this.showAlert = true;
 
-    // Auto-hide dalam 4 detik
     clearTimeout(this.alertTimeoutId);
-    this.alertTimeoutId = setTimeout(() => this.hideAlert(), 1000);
+    this.alertTimeoutId = setTimeout(() => {
+      this.ngZone.run(() => {
+        this.hideAlert();
+        this.cdr.markForCheck(); // aman untuk OnPush/zoneless
+      });
+    }, 4000); // atau 4000ms jika ingin lebih lama
+  }
+
+  hideAlert() {
+    this.showAlert = false;
   }
 }

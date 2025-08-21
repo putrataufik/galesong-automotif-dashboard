@@ -144,9 +144,6 @@ export class FilterMainDashboardComponent implements OnInit, OnChanges, OnDestro
       period: this.period,
       month: this.month,
     });
-
-    // Tampilkan notifikasi
-    this.show('Pencarian berhasil! Data sedang dimuat…', 'success');
   }
 
   // Sembunyikan alert secara manual
