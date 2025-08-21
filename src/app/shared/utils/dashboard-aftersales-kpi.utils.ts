@@ -196,6 +196,7 @@ export interface AfterSalesKpiData {
   afterSalesRealisasi: number;
   unitEntryRealisasi: number;
   sparepartTunaiRealisasi: number;
+  sparepartBengkelRealisasi: number;
 }
 
 /** Hitung KPI After Sales agregat (versi dashboard utama) */
@@ -212,6 +213,7 @@ export function calculateAfterSalesKpi(
       afterSalesRealisasi: 0,
       unitEntryRealisasi: 0,
       sparepartTunaiRealisasi: 0,
+      sparepartBengkelRealisasi: 0,
     };
   }
 
@@ -226,6 +228,7 @@ export function calculateAfterSalesKpi(
     aftersales,
     (x) => x.part_tunai_realisasi
   );
+  const sparepartBengkelRealisasi = sumBy(aftersales, (x) => x.part_bengkel_realisasi);
   const unitEntryRealisasi = sumBy(aftersales, (x) => x.unit_entry_realisasi);
   const totalHariKerja = sumBy(aftersales, (x) => x.hari_kerja);
   const serviceCabang = sumBy(
@@ -246,6 +249,7 @@ export function calculateAfterSalesKpi(
     afterSalesRealisasi,
     unitEntryRealisasi,
     sparepartTunaiRealisasi,
+    sparepartBengkelRealisasi
   };
 }
 

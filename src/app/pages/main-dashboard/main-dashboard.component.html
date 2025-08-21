@@ -6,7 +6,11 @@
         Dashboard <span class="text-primary">Galesong Otomotif</span>
       </h2>
 
-      <app-filter-main-dashboard [initialFilter]="prefilledFilter" [loading]="loading()" (search)="onSearch($event)" />
+      <app-filter-main-dashboard
+        [initialFilter]="prefilledFilter"
+        [loading]="loading()"
+        (search)="onSearch($event)"
+      />
     </div>
   </div>
 
@@ -26,8 +30,15 @@
   @if (loading()) {
   <div class="row">
     <div class="col-12">
-      <div class="d-flex justify-content-center align-items-center p-5" style="min-height: 400px">
-        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem" role="status">
+      <div
+        class="d-flex justify-content-center align-items-center p-5"
+        style="min-height: 400px"
+      >
+        <div
+          class="spinner-border text-primary"
+          style="width: 3rem; height: 3rem"
+          role="status"
+        >
           <span class="visually-hidden">Memuat dashboard...</span>
         </div>
       </div>
@@ -36,8 +47,8 @@
   }
 
   <!-- SALES SECTION -->
-  @if (prefilledFilter?.category === 'sales' || prefilledFilter?.category === 'all-category') {
-  @if (hasData()) {
+  @if (prefilledFilter?.category === 'sales' || prefilledFilter?.category ===
+  'all-category') { @if (hasData()) {
 
   <!-- Sales KPI Section -->
   <div class="row g-4 mb-4">
@@ -50,26 +61,47 @@
 
     <!-- Total Unit Sales -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Total Unit Sales'" [value]="kpiTotalUnitSales() || 0" unit="unit"
-        [subtitle]="'Akumulasi penjualan per tahun'" icon="icons/car.png" iconBgClass="bg-primary bg-opacity-10" />
+      <app-kpi-card
+        [title]="'Total Unit Sales'"
+        [value]="kpiTotalUnitSales() || 0"
+        unit="unit"
+        [subtitle]="'Akumulasi penjualan per tahun'"
+        icon="bi bi-car-front"
+        iconColor="#0E3B9E"
+        iconBgColor="#D0EBFF"
+      />
     </div>
 
     <!-- Model Favorit -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Model Favorit'" [value]="kpiTopModel()?.name || '—'" [subtitle]="
-            kpiTopModel()
-              ? (kpiTopModel()!.unit || 0) + ' unit terjual'
-              : 'Belum ada data'
-          " icon="icons/wedding-car.png" iconBgClass="bg-warning bg-opacity-10" />
+      <app-kpi-card
+        [title]="'Model Favorit'"
+        [value]="kpiTopModel()?.name || '—'"
+        [subtitle]="
+          kpiTopModel()
+            ? (kpiTopModel()!.unit || 0) + ' unit terjual'
+            : 'Belum ada data'
+        "
+        icon="bi bi-star-fill"
+        iconColor="#FFD700"
+        iconBgColor="#FFEDD0"
+      />
     </div>
 
     <!-- Cabang Penjualan Tertinggi -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Cabang Penjualan Tertinggi'" [value]="kpiTopBranch()?.code || '—'" [subtitle]="
-            kpiTopBranch()
-              ? (kpiTopBranch()!.unit || 0) + ' unit terjual'
-              : 'Belum ada data'
-          " icon="icons/winner.png" iconBgClass="bg-success bg-opacity-10" />
+      <app-kpi-card
+        [title]="'Cabang Penjualan Tertinggi'"
+        [value]="kpiTopBranch()?.code || '—'"
+        [subtitle]="
+          kpiTopBranch()
+            ? (kpiTopBranch()!.unit || 0) + ' unit terjual'
+            : 'Belum ada data'
+        "
+        icon="bi bi-trophy-fill"
+        iconColor="#FFD400"
+        iconBgColor="#FFEDD0"
+      />
     </div>
   </div>
 
@@ -79,37 +111,54 @@
     <!-- Line Chart - Monthly Trend -->
     @if (lineMonthly()) {
     <div class="col-12 col-lg-6">
-      <app-line-chart-card [label]="'Unit Terjual'" [title]="'Trend Penjualan Unit per Bulan'"
-        [labels]="lineMonthly()!.labels" [data]="lineMonthly()!.data" [height]="300" [showLegend]="false"
-        [borderColor]="'#0d6efd'" [backgroundColor]="'rgba(13, 110, 253, 0.2)'" [pointBackgroundColor]="'#0d6efd'"
-        [fill]="true" />
+      <app-line-chart-card
+        [label]="'Unit Terjual'"
+        [title]="'Trend Penjualan Unit per Bulan'"
+        [labels]="lineMonthly()!.labels"
+        [data]="lineMonthly()!.data"
+        [height]="300"
+        [showLegend]="false"
+        [borderColor]="'#0d6efd'"
+        [backgroundColor]="'rgba(13, 110, 253, 0.2)'"
+        [pointBackgroundColor]="'#0d6efd'"
+        [fill]="true"
+      />
     </div>
     }
 
     <!-- Bar Chart - Branch Performance -->
     @if (branchPerformance()) {
     <div class="col-12 col-lg-6">
-      <app-bar-chart-card [title]="'Performa Penjualan per Cabang'" [labels]="branchPerformance()!.labels"
-        [data]="branchPerformance()!.data" [height]="300" [horizontal]="true" [showLegend]="false"
-        [label]="'Unit Terjual'" />
+      <app-bar-chart-card
+        [title]="'Performa Penjualan per Cabang'"
+        [labels]="branchPerformance()!.labels"
+        [data]="branchPerformance()!.data"
+        [height]="300"
+        [horizontal]="true"
+        [showLegend]="false"
+        [label]="'Unit Terjual'"
+      />
     </div>
     }
 
     <!-- Pie Chart - Model Distribution -->
     @if (modelDistribution()) {
     <div class="col-12 col-lg-3">
-      <app-pie-chart-card [title]="'Proporsi Penjualan per Model Unit'" [labels]="modelDistribution()!.labels"
-        [data]="modelDistribution()!.data" [height]="300" [showLegend]="true" />
+      <app-pie-chart-card
+        [title]="'Proporsi Penjualan per Model Unit'"
+        [labels]="modelDistribution()!.labels"
+        [data]="modelDistribution()!.data"
+        [height]="300"
+        [showLegend]="true"
+      />
     </div>
     }
   </div>
-  }
-  }
-  }
+  } } }
 
   <!-- AFTER SALES SECTION -->
-  @if (prefilledFilter?.category === 'after-sales' || prefilledFilter?.category === 'all-category') {
-  @if (hasData()) {
+  @if (prefilledFilter?.category === 'after-sales' || prefilledFilter?.category
+  === 'all-category') { @if (hasData()) {
 
   <!-- After Sales KPI Section -->
   @if (afterSalesKpi(); as kpi) {
@@ -121,43 +170,93 @@
       </div>
     </div>
 
-
     <!-- Total Biaya Usaha (BEP) -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Total Biaya Usaha'" [value]="formatCompactNumber(kpi.totalBiayaUsaha)" unit=""
-        [subtitle]="'Break Even Point'" icon="icons/money.png" iconBgClass="bg-warning bg-opacity-10" />
+      <app-kpi-card
+        [title]="'Total Biaya Usaha'"
+        [value]="formatCompactNumber(kpi.totalBiayaUsaha)"
+        unit=""
+        [subtitle]="'Break Even Point'"
+        icon="bi bi-cash-stack"
+        iconColor="#228000"
+        iconBgColor="#DCFFD0"
+      />
     </div>
 
     <!-- Total Profit -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Total Profit'" [value]="formatCompactNumber(kpi.totalProfit)" unit=""
-        [subtitle]="'Keuntungan bersih'" icon="icons/uptrend.png" iconBgClass="bg-primary bg-opacity-10" />
+      <app-kpi-card
+        [title]="'Total Profit'"
+        [value]="formatCompactNumber(kpi.totalProfit)"
+        unit=""
+        [subtitle]="'Keuntungan bersih'"
+        icon="bi bi-graph-up-arrow"
+        iconColor="#228000"
+        iconBgColor="#DCFFD0"
+      />
     </div>
 
     <!-- Total Revenue After Sales -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Total Revenue After Sales'" [value]="formatCompactNumber(kpi.totalRevenueRealisasi)"
-        [subtitle]="'Total pendapatan After Sales'" icon="icons/increase.png" iconBgClass="bg-success bg-opacity-10" />
+      <app-kpi-card
+        [title]="'Total Revenue After Sales'"
+        [value]="formatCompactNumber(kpi.totalRevenueRealisasi)"
+        [subtitle]="'Total pendapatan After Sales'"
+        icon="bi bi-cash"
+        iconColor="#2563EB"
+        iconBgColor="#DBEAFE"
+      />
     </div>
-
 
     <!-- Service Cabang -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Service Cabang'" [value]="formatCompactNumber(kpi.afterSalesRealisasi)" unit=""
-        [subtitle]="'Total Service'" icon="icons/service-provider.png"
-        iconBgClass="bg-purple bg-opacity-10" />
+      <app-kpi-card
+        [title]="'Service Cabang'"
+        [value]="formatCompactNumber(kpi.afterSalesRealisasi)"
+        unit=""
+        [subtitle]="'Total Service'"
+        icon="bi bi-tools"
+        iconColor="#9333EA"
+        iconBgColor="#F3E8FF"
+      />
     </div>
 
     <!-- Unit Entry -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Unit Entry'" [value]="kpi.unitEntryRealisasi" unit="unit"
-        [subtitle]="'Jumlah kendaraan masuk'" icon="icons/car-repair.png" iconBgClass="bg-success bg-opacity-10" />
+      <app-kpi-card
+        [title]="'Unit Entry'"
+        [value]="kpi.unitEntryRealisasi"
+        unit="unit"
+        [subtitle]="'Jumlah kendaraan masuk'"
+        icon="bi bi-car-front-fill"
+        iconColor="#0D9488"
+        iconBgColor="#CCFBF1"
+      />
     </div>
 
     <!-- Sparepart Tunai -->
     <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card [title]="'Sparepart Tunai'" [value]="formatCompactNumber(kpi.sparepartTunaiRealisasi)" unit=""
-        [subtitle]="'Penjualan sparepart cash'" icon="icons/spare-parts.png" iconBgClass="bg-primary bg-opacity-10" />
+      <app-kpi-card
+        [title]="'Sparepart Tunai'"
+        [value]="formatCompactNumber(kpi.sparepartTunaiRealisasi)"
+        unit=""
+        [subtitle]="'Penjualan sparepart cash'"
+        icon="bi bi-wrench-adjustable-circle-fill"
+        iconColor="#DC2626"
+        iconBgColor="#FEE2E2"
+      />
+    </div>
+    <!-- Sparepart Bengkel -->
+    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+      <app-kpi-card
+        [title]="'Sparepart Bengkel'"
+        [value]="formatCompactNumber(kpi.sparepartBengkelRealisasi)"
+        unit=""
+        [subtitle]="'Penjualan sparepart cash'"
+        icon="bi bi-gear-fill"
+        iconColor="#DC2626"
+        iconBgColor="#FEE2E2"
+      />
     </div>
   </div>
   }
@@ -168,24 +267,36 @@
     <!-- After Sales Realisasi vs Target Chart -->
     @if (afterSalesRealisasiVsTarget()) {
     <div class="col-12 col-lg-6">
-      <app-bar-chart-card [title]="'After Sales Realisasi vs Target per Bulan'"
-        [chartData]="afterSalesRealisasiVsTarget()!" [height]="300" [horizontal]="false" [showLegend]="true"
-        [isMultiDataset]="true" />
+      <app-bar-chart-card
+        [title]="'After Sales Realisasi vs Target per Bulan'"
+        [chartData]="afterSalesRealisasiVsTarget()!"
+        [height]="300"
+        [horizontal]="false"
+        [showLegend]="true"
+        [isMultiDataset]="true"
+      />
     </div>
     }
 
     <!-- Profit by Branch Chart -->
     @if (afterSalesProfitByBranch()) {
     <div class="col-12 col-lg-6">
-      <app-bar-chart-card [title]="'Profit per Cabang (After Sales)'" [labels]="afterSalesProfitByBranch()!.labels"
-        [data]="afterSalesProfitByBranch()!.data" [height]="300" [horizontal]="true" [showLegend]="false"
-        [label]="'Profit'" [chartType]="'currency'" [backgroundColor]="'#ffc107'" [borderColor]="'#ffc107'" />
+      <app-bar-chart-card
+        [title]="'Profit per Cabang (After Sales)'"
+        [labels]="afterSalesProfitByBranch()!.labels"
+        [data]="afterSalesProfitByBranch()!.data"
+        [height]="300"
+        [horizontal]="true"
+        [showLegend]="false"
+        [label]="'Profit'"
+        [chartType]="'currency'"
+        [backgroundColor]="'#ffc107'"
+        [borderColor]="'#ffc107'"
+      />
     </div>
     }
   </div>
-  }
-  }
-  }
+  } } }
 
   <!-- Empty State -->
   @if (!hasData() && !loading()) {

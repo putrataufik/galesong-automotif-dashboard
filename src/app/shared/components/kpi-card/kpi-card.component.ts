@@ -17,8 +17,9 @@ export class KpiCardComponent {
 
   @Input() unit?: string;
   @Input() subtitle?: string;
-  @Input() icon = 'icons/default.png';
-  @Input() iconBgClass = 'icon-bg-blue';
+  @Input() icon = 'bi bi-star';
+  @Input() iconColor = '#000000';
+  @Input() iconBgColor = '#868686ff';
   @Input() loading = false;
 
   // (opsional) samakan juga tipe ini jika dipakai
