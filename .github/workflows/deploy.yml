@@ -1,0 +1,48 @@
+name: Build & Deploy (SFTP — no delete)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      # Build CSR ke root domain (bukan subfolder)
+      - name: Build Angular
+        run: npm run build -- --configuration production --base-href / --deploy-url /
+
+      # Ambil folder dist/*/browser (output Angular)
+      - name: Locate dist
+        id: dist
+        run: echo "DIR=$(ls -d dist/*/browser | head -n 1)" >> $GITHUB_OUTPUT
+
+      - name: Preview files to deploy
+        run: ls -la "${{ steps.dist.outputs.DIR }}"
+
+      # Copy-only (overwrite), TIDAK menghapus apa pun di server
+      - name: Deploy via SFTP (SCP)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          port: ${{ secrets.SFTP_PORT }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASS }}
+          source: "${{ steps.dist.outputs.DIR }}/*"
+          target: "/home/automotive/public_html"
+          overwrite: true
