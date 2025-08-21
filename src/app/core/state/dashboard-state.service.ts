@@ -22,6 +22,7 @@ export interface AfterSalesKpiSnapshot {
   afterSalesRealisasi: number;
   unitEntryRealisasi: number;
   sparepartTunaiRealisasi: number;
+  sparepartBengkelRealisasi: number;
 }
 
 // === TYPES: CHARTS ===
@@ -71,6 +72,7 @@ const initialAfterSalesKpi: AfterSalesKpiSnapshot = {
   afterSalesRealisasi: 0,
   unitEntryRealisasi: 0,
   sparepartTunaiRealisasi: 0,
+  sparepartBengkelRealisasi: 0
 };
 const initialCharts: ChartsState = {
   lineMonthly: null,
@@ -161,6 +163,7 @@ export class DashboardStateService {
       afterSalesRealisasi:  snapshot.afterSalesRealisasi  ?? this._state().afterSalesKpi.afterSalesRealisasi,
       unitEntryRealisasi:   snapshot.unitEntryRealisasi   ?? this._state().afterSalesKpi.unitEntryRealisasi,
       sparepartTunaiRealisasi: snapshot.sparepartTunaiRealisasi ?? this._state().afterSalesKpi.sparepartTunaiRealisasi,
+      sparepartBengkelRealisasi: snapshot.sparepartBengkelRealisasi?? this._state().afterSalesKpi.sparepartBengkelRealisasi
     });
   }
   hasAfterSalesKpi(): boolean {
@@ -227,6 +230,7 @@ export class DashboardStateService {
           afterSalesRealisasi: parsed.afterSalesKpi?.afterSalesRealisasi ?? 0,
           unitEntryRealisasi: parsed.afterSalesKpi?.unitEntryRealisasi ?? 0,
           sparepartTunaiRealisasi: parsed.afterSalesKpi?.sparepartTunaiRealisasi ?? 0,
+          sparepartBengkelRealisasi: parsed.afterSalesKpi?. sparepartBengkelRealisasi ?? 0
         },
         charts: {
           lineMonthly: parsed.charts?.lineMonthly ?? null,

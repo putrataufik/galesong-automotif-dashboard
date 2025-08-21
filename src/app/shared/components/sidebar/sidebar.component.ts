@@ -21,17 +21,18 @@ export class SidebarComponent {
   toggleSidebar = output<void>();
 
   menuItems: MenuItem[] = [
-    {
-      path: '/dashboard',
-      label: 'Dashboard Utama',
-      icon: 'dashboard' // akan menjadi assets/icons/home.png
-    },
-    {
-      path: '/after-sales-dashboard',
-      label: 'After Sales Dashboard',
-      icon: 'service-provider' // akan menjadi assets/icons/service-provider.png
-    },
-  ];
+  {
+    path: '/dashboard',
+    label: 'Dashboard Utama',
+    icon: 'bi bi-bar-chart-fill'
+  },
+  {
+    path: '/after-sales-dashboard',
+    label: 'After Sales Dashboard',
+    icon: 'bi bi-gear-wide-connected'
+  },
+];
+
 
   onMenuClick(): void {
     // Close sidebar on mobile after menu click

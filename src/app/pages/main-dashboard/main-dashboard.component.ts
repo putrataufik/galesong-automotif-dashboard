@@ -123,6 +123,7 @@ export class MainDashboardComponent implements OnInit {
       afterSalesRealisasi: d.afterSalesKpi.afterSalesRealisasi,
       unitEntryRealisasi: d.afterSalesKpi.unitEntryRealisasi,
       sparepartTunaiRealisasi: d.afterSalesKpi.sparepartTunaiRealisasi,
+      sparepartBengkelRealisasi: d.afterSalesKpi.sparepartBengkelRealisasi
     });
     if (d.afterSalesRealisasiVsTarget) this.state.saveAfterSalesRealisasiVsTarget(d.afterSalesRealisasiVsTarget);
     if (d.afterSalesProfitByBranch) this.state.saveAfterSalesProfitByBranch(d.afterSalesProfitByBranch);

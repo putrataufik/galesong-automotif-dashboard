@@ -1,19 +1,28 @@
-<aside class="sidebar vh-100 bg-white shadow-sm border-end" 
-       [class.mobile-hidden]="isCollapsed()">
-  
+<aside
+  class="sidebar vh-100 bg-white shadow-sm border-end"
+  [class.mobile-hidden]="isCollapsed()"
+>
   <!-- Logo Section -->
   <div class="p-4 border-bottom">
     <!-- Mobile Close Button -->
-    <button 
+    <button
       class="btn btn-link text-dark p-1 position-absolute top-0 end-0 mt-2 me-2 d-md-none"
-      (click)="onMobileClose(); $event.stopPropagation()">
-      <img src="icons/close.png" alt="Close" width="12" height="12"> 
+      (click)="onMobileClose(); $event.stopPropagation()"
+    >
+      <i class="bi bi-x-lg" style="font-size: 12px;" aria-label="Close"></i>
+
+
     </button>
-    
+
     <!-- Logo -->
     <div class="flex align-items-center">
       <div class="">
-        <img src="logo/logo-galesong-2025.svg" alt="Galesong" width="150" height="50" >
+        <img
+          src="logo/logo-galesong-2025.svg"
+          alt="Galesong"
+          width="150"
+          height="50"
+        />
       </div>
     </div>
   </div>
@@ -22,20 +31,17 @@
   <nav class="flex-fill py-3">
     <ul class="list-unstyled mb-0">
       @for (item of menuItems; track item.path) {
-        <li class="px-3 mb-1">
-          <a 
-            [routerLink]="item.path"
-            routerLinkActive="active"
-            class="nav-link d-flex align-items-center px-3 py-2 text-decoration-none text-dark rounded-2"
-            (click)="onMenuClick(); $event.stopPropagation()">
-            <img [src]="'icons/' + item.icon + '.png'" 
-                 [alt]="item.label" 
-                 width="20" 
-                 height="20" 
-                 class="me-3">
-            <span class="fw-medium">{{ item.label }}</span>
-          </a>
-        </li>
+      <li class="px-3 mb-1">
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          class="nav-link d-flex align-items-center px-3 py-2 text-decoration-none text-dark rounded-2"
+          (click)="onMenuClick(); $event.stopPropagation()"
+        >
+          <i [class]="item.icon" class="me-3 fs-5"></i>
+          <span class="fw-medium">{{ item.label }}</span>
+        </a>
+      </li>
       }
     </ul>
   </nav>

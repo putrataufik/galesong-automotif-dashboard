@@ -65,8 +65,8 @@
   <div class="row g-4 mb-4">
     <div class="col-12">
       <div class="d-flex align-items-center mb-3">
-        <i class="bi bi-graph-up text-info me-2 fs-4"></i>
-        <h4 class="mb-0 fw-bold text-dark">After Sales Summary</h4>
+        <i class="bi bi-speedometer2 text-success me-2 fs-4"></i>
+        <h4 class="mb-0 fw-bold text-dark">After Sales Performance</h4>
       </div>
     </div>
 
@@ -78,8 +78,9 @@
         [value]="additionalKpiData()!.jumlahMekanik"
         unit="orang"
         [subtitle]="'Total mekanik aktif'"
-        icon="icons/service-provider.png"
-        iconBgClass="bg-info bg-opacity-10"
+        icon="bi bi-person-gear"
+        iconColor="#2563EB"
+        iconBgColor="#DBEAFE"
       />
     </div>
     }
@@ -92,8 +93,9 @@
         [value]="additionalKpiData()!.jumlahHariKerja"
         unit="hari"
         [subtitle]="'Total hari operasional'"
-        icon="icons/leave.png"
-        iconBgClass="bg-primary bg-opacity-10"
+        icon="bi bi-calendar-check-fill"
+        iconColor="#F59E0B"
+        iconBgColor="#FEF3C7"
       />
     </div>
     }
@@ -104,8 +106,9 @@
         [title]="'Total Biaya Usaha'"
         [value]="formatCompactNumber(additionalKpiData()!.totalBiayaUsaha)"
         [subtitle]="'Break Even Point (BEP)'"
-        icon="icons/money.png"
-        iconBgClass="bg-warning bg-opacity-10"
+        icon="bi bi-cash-stack"
+        iconColor="#228000"
+        iconBgColor="#DCFFD0"
       />
     </div>
 
@@ -117,8 +120,9 @@
           formatCompactNumber(additionalKpiData()!.totalRevenueRealisasi)
         "
         [subtitle]="'Total Pendapatan After Sales'"
-        icon="icons/increase.png"
-        iconBgClass="bg-success bg-opacity-10"
+        icon="bi bi-cash"
+        iconColor="#2563EB"
+        iconBgColor="#DBEAFE"
       />
     </div>
 
@@ -128,8 +132,9 @@
         [title]="'Total Profit'"
         [value]="formatCompactNumber(additionalKpiData()!.totalProfit)"
         [subtitle]="'Target'"
-        icon="icons/uptrend.png"
-        iconBgClass="bg-success bg-opacity-10"
+        icon="bi bi-bullseye"
+        iconColor="#228000"
+        iconBgColor="#DCFFD0"
       />
     </div>
 
@@ -139,8 +144,9 @@
         [title]="'Total Profit Realisasi'"
         [value]="formatCompactNumber(additionalKpiData()!.totalProfitRealisasi)"
         [subtitle]="'Keuntungan bersih'"
-        icon="icons/uptrend.png"
-        iconBgClass="bg-success bg-opacity-10"
+        icon="bi bi-graph-up-arrow"
+        iconColor="#16A34A"
+        iconBgColor="#DCFCE7"
       />
     </div>
   </div>
@@ -185,8 +191,8 @@
       <!-- SECTION 3: Pencapaian Cabang (KPI Cards AS yang sudah ada) -->
       <!-- ========================================================== -->
       <div class="d-flex align-items-center justify-content-between my-3">
-        <div class="d-flex align-items-center">
-          <i class="bi bi-speedometer2 text-success me-2 fs-4"></i>
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-flag-fill fs-4" style="color: #006e1a;"></i>
           <h4 class="mb-0 fw-bold text-dark">Pencapaian Cabang</h4>
         </div>
 
@@ -276,6 +282,7 @@
         [realisasi]="kpiData()!.unitEntry.realisasi"
         [target]="kpiData()!.unitEntry.target"
         [sisaHariKerja]="getSisaHariKerja()"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
         [loading]="loading()"
         [isUnit]="true"
         [isHarapanTarget]="true"
@@ -337,13 +344,13 @@
     <div class="col-12">
       <div class="d-flex align-items-center justify-content-start mb-3">
         <div class="d-flex align-items-center">
-          <i class="bi bi-tools text-primary me-2 fs-4"></i>
+          <i class="bi bi-tools me-2 fs-4" style="color: #006e1a"></i>
           <h4 class="mb-0 fw-bold text-dark">Pencapaian SRO</h4>
         </div>
       </div>
     </div>
     <div class="d-flex align-items-center">
-      <i class="bi bi-gear-wide-connected text-primary me-2 fs-4"></i>
+      <i class="bi bi-gear-wide-connected me-2 fs-4" style="color: #3b00a0"></i>
       <h6 class="mb-0 fw-bold text-dark">CPUS SERVICE</h6>
     </div>
     <!-- Jasa Service Express Realisasi vs Target -->
@@ -499,7 +506,8 @@
       </app-kpi-card-as>
     </div>
     <div class="d-flex align-items-center">
-      <i class="bi bi-ui-checks-grid text-secondary me-2 fs-4"></i>
+      <i class="bi bi-receipt-cutoff me-2 fs-4" style="color: #3b00a0"></i>
+
       <h6 class="mb-0 fw-bold text-dark">NON CPUS SERVICE</h6>
     </div>
 
@@ -550,7 +558,7 @@
     </div>
 
     <div class="d-flex align-items-center">
-      <i class="bi bi-nut text-danger me-2 fs-4"></i>
+      <i class="bi bi-gear-fill text-danger me-2 fs-4"></i>
       <h6 class="mb-0 fw-bold text-dark">CPUS SPAREPART BENGKEL</h6>
     </div>
 
@@ -639,6 +647,209 @@
         [sisaHariKerja]="getSisaHariKerja()"
         [loading]="loading()"
         [isUnit]="false"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+
+    <div class="d-flex align-items-center">
+      <i class="bi bi-car-front me-2 fs-4" style="color: #588000"></i>
+      <h6 class="mb-0 fw-bold text-dark">CPUS UNIT ENTRY</h6>
+    </div>
+
+    <!-- UNIT ENTRY GANTI OLI REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="UNIT ENTRY GANTI OLI REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntryOliRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+    <!-- UNIT ENTRY EXPRESS REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="UNIT ENTRY EXPRESS REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntryExpressRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+
+    <!-- UNIT ENTRY RUTIN REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="UNIT ENTRY RUTIN REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntryRutinRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+    <!-- UNIT ENTRY SEDANG REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="UNIT ENTRY SEDANG REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntrySedangRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+    <!-- UNIT ENTRY BERAT REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="UNIT ENTRY BERAT REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntryBeratRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+    <!-- UNIT ENTRY OVERHOUL REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="UNIT ENTRY OVERHOUL REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntryOverhoulRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+    <!-- UNIT ENTRY KELISTRIKAN REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="UNIT ENTRY KELISTRIKAN REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntryKelistrikanRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+    <!-- UNIT ENTRY OVERSIZE REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="SABLET UNIT ENTRY OVERSIZE REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntryOverSizeRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+    <!-- UNIT ENTRY BODY REPAIR REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="SABLET UNIT ENTRY BODY REPAIR REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntryBodyRepairRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+    <div class="d-flex align-items-center">
+      <i class="bi bi-receipt-cutoff me-2 fs-4" style="color: #588000"></i>
+      <h6 class="mb-0 fw-bold text-dark">NON CPUS UNIT ENTRY</h6>
+    </div>
+    <!-- UNIT ENTRY CLAIM REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="UNIT ENTRY CLAIM REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntryClaimRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+    <!-- UNIT ENTRY KUPON REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="UNIT ENTRY KUPON REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntryKuponRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
+        [isHarapanTarget]="false"
+      >
+      </app-kpi-card-as>
+    </div>
+    <!-- UNIT ENTRY PDC REALISASI vs TOTAL -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-kpi-card-as
+        title="UNIT ENTRY PDC REALISASI vs TOTAL"
+        headerColor="#588000"
+        [realisasi]="kpiData()!.unitEntryPdcRealisasi.realisasi"
+        [target]="kpiData()!.unitEntry.target"
+        [unitEntry]="getTotalUnitEntry()"
+        [sisaHariKerja]="getSisaHariKerja()"
+        [loading]="loading()"
+        [isUnit]="true"
+        [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
       >
       </app-kpi-card-as>

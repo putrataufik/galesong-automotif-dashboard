@@ -19,7 +19,8 @@ let __kpiCardAsUid = 0;
 })
 export class KpiCardAsComponent {
   @Input() title: string = '';
-  @Input() headerColor: string = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+  @Input() headerColor: string =
+    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
   @Input() realisasi: number = 0;
   @Input() target: number = 0;
   @Input() unitEntry?: number; // For rata-rata calculation
@@ -27,7 +28,7 @@ export class KpiCardAsComponent {
   @Input() loading: boolean = false;
   @Input() isUnit: boolean = false; // Flag: unit atau currency
   @Input() isHarapanTarget: boolean = false;
-
+  @Input() mekanik?: number;
 
   /** State popover */
   showInfo = false;
@@ -52,8 +53,12 @@ export class KpiCardAsComponent {
   }
 
   get rataRata(): number {
-    if (!this.unitEntry) return 0;
-    return this.unitEntry === 0 ? 0 : this.realisasi / this.unitEntry;
+    // Denominator tergantung isUnit:
+    // - isUnit true  -> mekanik
+    // - isUnit false -> unitEntry
+    const denom = this.isUnit ? this.mekanik ?? 0 : this.unitEntry ?? 0;
+    if (!denom) return 0;
+    return this.realisasi / denom;
   }
 
   // TAMPILKAN hanya bila flag true & sisa hari > 0
@@ -83,13 +88,27 @@ export class KpiCardAsComponent {
     } else if (abs >= 1_000) {
       return `${sign}Rp ${(abs / 1_000).toFixed(3)}Rb`;
     } else {
-      return `${sign}Rp ${abs.toLocaleString('id-ID', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
+      return `${sign}Rp ${abs.toLocaleString('id-ID', {
+        minimumFractionDigits: 3,
+        maximumFractionDigits: 3,
+      })}`;
     }
   }
 
   formatUnit(value: number): string {
     if (value === 0) return '0 unit';
-    return `${value.toLocaleString('id-ID')} unit`;
+    return `${value.toLocaleString('id-ID')} Unit`;
+  }
+
+  /** Format khusus untuk baris "Rata - Rata" */
+  formatRataRataDisplay(value: number): string {
+    const v = isFinite(value) ? value : 0;
+    return this.isUnit
+      ? `${v.toLocaleString('id-ID', {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })} unit / mekanik`
+      : `${this.formatCurrency(v)} / unit`;
   }
 
   formatValue(value: number): string {
@@ -109,12 +128,18 @@ export class KpiCardAsComponent {
   }
 
   getProgressBarStyle(): { [k: string]: string } {
-    const p = Math.max(0, Math.min(100, Number(this.clampedPercent ?? this.percentage) || 0));
+    const p = Math.max(
+      0,
+      Math.min(100, Number(this.clampedPercent ?? this.percentage) || 0)
+    );
     const color =
-      p >= 100 ? '#00A00D' :
-      p >= 75  ? '#0048A0' :
-      p >= 50  ? '#DA8001' :
-                 '#D00000';
+      p >= 100
+        ? '#00A00D'
+        : p >= 75
+        ? '#0048A0'
+        : p >= 50
+        ? '#DA8001'
+        : '#D00000';
     return { backgroundColor: color };
   }
 

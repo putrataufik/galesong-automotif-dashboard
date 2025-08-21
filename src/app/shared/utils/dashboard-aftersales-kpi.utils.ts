@@ -32,8 +32,18 @@ export const num = (v: unknown): number => {
  *  DATE & CALENDAR HELPERS
  * =======================================================*/
 export const MONTH_LABELS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-  'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'Mei',
+  'Jun',
+  'Jul',
+  'Agu',
+  'Sep',
+  'Okt',
+  'Nov',
+  'Des',
 ] as const;
 
 /** Normalisasi bulan apa pun (string/number) ke rentang 1..12 */
@@ -79,7 +89,8 @@ export function estimateRemainingWorkdays(
   if (!Number.isFinite(year) || !Number.isFinite(month1to12)) return 0;
 
   const dim = daysInMonth(year, month1to12);
-  const isCurrent = today.getFullYear() === year && today.getMonth() + 1 === month1to12;
+  const isCurrent =
+    today.getFullYear() === year && today.getMonth() + 1 === month1to12;
   const startDay = isCurrent ? today.getDate() : 1;
 
   const calendarRemaining = Math.max(0, dim - startDay);
@@ -94,7 +105,10 @@ export function estimateRemainingWorkdays(
 /* =========================================================
  *  OPTIONS / DROPDOWNS
  * =======================================================*/
-export interface Option { value: string; name: string; }
+export interface Option {
+  value: string;
+  name: string;
+}
 
 export function buildDescendingDayOptions(n: number): Option[] {
   const max = Math.max(0, Math.floor(n));
@@ -111,8 +125,8 @@ export interface Series {
 export function buildRevenueChartData(
   rows: AfterSalesItem[] | null | undefined,
   opts?: {
-    cabang?: string;               // 'all-cabang' | id cabang
-    includeEmptyMonths?: boolean;  // default: false → hanya bulan yang ada datanya
+    cabang?: string; // 'all-cabang' | id cabang
+    includeEmptyMonths?: boolean; // default: false → hanya bulan yang ada datanya
   }
 ): Series | null {
   const data = (rows ?? []).slice();
@@ -120,9 +134,10 @@ export function buildRevenueChartData(
 
   // Filter cabang (opsional)
   const cabang = opts?.cabang;
-  const filtered = cabang && cabang !== 'all-cabang'
-    ? data.filter(x => x.cabang_id === cabang)
-    : data;
+  const filtered =
+    cabang && cabang !== 'all-cabang'
+      ? data.filter((x) => x.cabang_id === cabang)
+      : data;
 
   if (!filtered.length) return { labels: [], data: [] };
 
@@ -135,11 +150,11 @@ export function buildRevenueChartData(
 
   // Tentukan urutan bulan
   const months = opts?.includeEmptyMonths
-    ? Array.from({ length: 12 }, (_, i) => i + 1)                   // 1..12
-    : Array.from(monthSum.keys()).sort((a, b) => a - b);            // hanya yang ada
+    ? Array.from({ length: 12 }, (_, i) => i + 1) // 1..12
+    : Array.from(monthSum.keys()).sort((a, b) => a - b); // hanya yang ada
 
-  const labels = months.map(m => getMonthLabel(m));
-  const series = months.map(m => monthSum.get(m) ?? 0);
+  const labels = months.map((m) => getMonthLabel(m));
+  const series = months.map((m) => monthSum.get(m) ?? 0);
 
   return { labels, data: series };
 }
@@ -147,8 +162,8 @@ export function buildRevenueChartData(
  *  FILTER & KPI PROCESSING (AFTERSALES)
  * =======================================================*/
 export interface AfterSalesFilterLike {
-  month?: string;   // 'all-month' | '1'..'12'
-  cabang?: string;  // 'all-cabang' | id cabang
+  month?: string; // 'all-month' | '1'..'12'
+  cabang?: string; // 'all-cabang' | id cabang
 }
 
 /** Filter baris aftersales berdasarkan bulan & cabang */
@@ -181,10 +196,13 @@ export interface AfterSalesKpiData {
   afterSalesRealisasi: number;
   unitEntryRealisasi: number;
   sparepartTunaiRealisasi: number;
+  sparepartBengkelRealisasi: number;
 }
 
 /** Hitung KPI After Sales agregat (versi dashboard utama) */
-export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSalesKpiData {
+export function calculateAfterSalesKpi(
+  aftersales: AfterSalesItem[]
+): AfterSalesKpiData {
   if (!aftersales?.length) {
     return {
       totalRevenueRealisasi: 0,
@@ -195,19 +213,31 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
       afterSalesRealisasi: 0,
       unitEntryRealisasi: 0,
       sparepartTunaiRealisasi: 0,
+      sparepartBengkelRealisasi: 0,
     };
   }
 
-  const totalRevenueRealisasi = sumBy(aftersales, x => x.total_revenue_realisasi);
-  const totalBiayaUsaha = sumBy(aftersales, x => x.biaya_usaha);
-  const totalProfit = sumBy(aftersales, x => x.profit);
-  const afterSalesRealisasi = sumBy(aftersales, x => x.after_sales_realisasi);
-  const sparepartTunaiRealisasi = sumBy(aftersales, x => x.part_tunai_realisasi);
-  const unitEntryRealisasi = sumBy(aftersales, x => x.unit_entry_realisasi);
-  const totalHariKerja = sumBy(aftersales, x => x.hari_kerja);
+  const totalRevenueRealisasi = sumBy(
+    aftersales,
+    (x) => x.total_revenue_realisasi
+  );
+  const totalBiayaUsaha = sumBy(aftersales, (x) => x.biaya_usaha);
+  const totalProfit = sumBy(aftersales, (x) => x.profit);
+  const afterSalesRealisasi = sumBy(aftersales, (x) => x.after_sales_realisasi);
+  const sparepartTunaiRealisasi = sumBy(
+    aftersales,
+    (x) => x.part_tunai_realisasi
+  );
+  const sparepartBengkelRealisasi = sumBy(aftersales, (x) => x.part_bengkel_realisasi);
+  const unitEntryRealisasi = sumBy(aftersales, (x) => x.unit_entry_realisasi);
+  const totalHariKerja = sumBy(aftersales, (x) => x.hari_kerja);
   const serviceCabang = sumBy(
     aftersales,
-    x => (num(x.jasa_service_realisasi) + (num(x.after_sales_realisasi) - (num(x.jasa_service_realisasi) + num(x.part_bengkel_realisasi))) + num(x.part_bengkel_realisasi))
+    (x) =>
+      num(x.jasa_service_realisasi) +
+      (num(x.after_sales_realisasi) -
+        (num(x.jasa_service_realisasi) + num(x.part_bengkel_realisasi))) +
+      num(x.part_bengkel_realisasi)
   );
 
   return {
@@ -219,6 +249,7 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
     afterSalesRealisasi,
     unitEntryRealisasi,
     sparepartTunaiRealisasi,
+    sparepartBengkelRealisasi
   };
 }
 
@@ -231,146 +262,218 @@ export function calculateAfterSalesKpi(aftersales: AfterSalesItem[]): AfterSales
 /** Bangun KpiResult dari baris aftersales yang SUDAH difilter */
 export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
   const afterSales = {
-    realisasi: sumBy(rows, r => num(r.after_sales_realisasi) + num(r.part_tunai_realisasi)),
-    target: sumBy(rows, r => num(r.after_sales_target) + num(r.part_tunai_target)),
+    realisasi: sumBy(
+      rows,
+      (r) => num(r.after_sales_realisasi) + num(r.part_tunai_realisasi)
+    ),
+    target: sumBy(
+      rows,
+      (r) => num(r.after_sales_target) + num(r.part_tunai_target)
+    ),
   };
 
-  const profit = sumBy(rows, r => r.profit);
+  const profit = sumBy(rows, (r) => r.profit);
 
-  
-  const profitRealisasi = sumBy(rows, r => (
-  num(r.jasa_service_realisasi) +
-  (0.20 * (num(r.after_sales_realisasi) - (num(r.jasa_service_realisasi) + num(r.part_bengkel_realisasi)))) +
-  (0.17 * num(r.part_bengkel_realisasi)) +
-  (0.17 * num(r.part_tunai_realisasi)) -
-  num(r.biaya_usaha)
-));
-
+  const profitRealisasi = sumBy(
+    rows,
+    (r) =>
+      num(r.jasa_service_realisasi) +
+      0.2 *
+        (num(r.after_sales_realisasi) -
+          (num(r.jasa_service_realisasi) + num(r.part_bengkel_realisasi))) +
+      0.17 * num(r.part_bengkel_realisasi) +
+      0.17 * num(r.part_tunai_realisasi) -
+      num(r.biaya_usaha)
+  );
 
   const serviceCabang = {
     realisasi: sumBy(
       rows,
-      (r) => (num(r.jasa_service_realisasi) + (num(r.after_sales_realisasi) - (num(r.jasa_service_realisasi) + num(r.part_bengkel_realisasi))) + num(r.part_bengkel_realisasi))
+      (r) =>
+        num(r.jasa_service_realisasi) +
+        (num(r.after_sales_realisasi) -
+          (num(r.jasa_service_realisasi) + num(r.part_bengkel_realisasi))) +
+        num(r.part_bengkel_realisasi)
     ),
     target: sumBy(
       rows,
-      (r) => (num(r.jasa_service_target) + (num(r.after_sales_target) - (num(r.jasa_service_target) + num(r.part_bengkel_target))) + num(r.part_bengkel_target))
+      (r) =>
+        num(r.jasa_service_target) +
+        (num(r.after_sales_target) -
+          (num(r.jasa_service_target) + num(r.part_bengkel_target))) +
+        num(r.part_bengkel_target)
     ),
   };
 
-
   const jasaService = {
-    realisasi: sumBy(rows, r => r.jasa_service_realisasi),
-    target: sumBy(rows, r => r.jasa_service_target),
+    realisasi: sumBy(rows, (r) => r.jasa_service_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_target),
   };
 
   const unitEntry = {
-    realisasi: sumBy(rows, r => r.unit_entry_realisasi),
-    target: sumBy(rows, r => r.unit_entry_target),
+    realisasi: sumBy(rows, (r) => r.unit_entry_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target),
   };
 
   const sparepartTunai = {
-    realisasi: sumBy(rows, r => r.part_tunai_realisasi),
-    target: sumBy(rows, r => r.part_tunai_target),
+    realisasi: sumBy(rows, (r) => r.part_tunai_realisasi),
+    target: sumBy(rows, (r) => r.part_tunai_target),
   };
 
   const sparepartBengkel = {
-    realisasi: sumBy(rows, r => r.part_bengkel_realisasi),
-    target: sumBy(rows, r => r.part_bengkel_target)
-  }
+    realisasi: sumBy(rows, (r) => r.part_bengkel_realisasi),
+    target: sumBy(rows, (r) => r.part_bengkel_target),
+  };
 
   const oli = {
     realisasi: sumBy(
       rows,
-      (r) => num(r.after_sales_realisasi) - (num(r.jasa_service_realisasi) + num(r.part_bengkel_realisasi))
+      (r) =>
+        num(r.after_sales_realisasi) -
+        (num(r.jasa_service_realisasi) + num(r.part_bengkel_realisasi))
     ),
     target: sumBy(
       rows,
-      (r) => num(r.after_sales_target) - (num(r.jasa_service_target) + num(r.part_bengkel_target)))
-  }
-  // CPUS SERVICE 
+      (r) =>
+        num(r.after_sales_target) -
+        (num(r.jasa_service_target) + num(r.part_bengkel_target))
+    ),
+  };
+  // CPUS SERVICE
   const jasaServiceBerat = {
-    realisasi: sumBy(rows, r => r.jasa_service_berat_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_berat_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServiceBodyRepair = {
-    realisasi: sumBy(rows, r => r.jasa_service_body_repair_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_body_repair_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServiceClaim = {
-    realisasi: sumBy(rows, r => r.jasa_service_claim_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_claim_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServiceCvt = {
-    realisasi: sumBy(rows, r => r.jasa_service_cvt_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_cvt_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServiceExpress = {
-    realisasi: sumBy(rows, r => r.jasa_service_express_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_express_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServiceKelistrikan = {
-    realisasi: sumBy(rows, r => r.jasa_service_kelistrikan_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_kelistrikan_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServiceKupon = {
-    realisasi: sumBy(rows, r => r.jasa_service_kupon_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_kupon_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServiceOli = {
-    realisasi: sumBy(rows, r => r.jasa_service_oli_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_oli_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServiceOverSize = {
-    realisasi: sumBy(rows, r => r.jasa_service_over_size_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_over_size_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServiceOverhoul = {
-    realisasi: sumBy(rows, r => r.jasa_service_overhoul_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_overhoul_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServicePdc = {
-    realisasi: sumBy(rows, r => r.jasa_service_pdc_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_pdc_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServiceRutin = {
-    realisasi: sumBy(rows, r => r.jasa_service_rutin_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_rutin_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
   const jasaServiceSedang = {
-    realisasi: sumBy(rows, r => r.jasa_service_sedang_realisasi),
-    target: sumBy(rows, r => r.jasa_service_realisasi),
-  }
+    realisasi: sumBy(rows, (r) => r.jasa_service_sedang_realisasi),
+    target: sumBy(rows, (r) => r.jasa_service_realisasi),
+  };
 
   const partBengkelExpress = {
-    realisasi: sumBy(rows, r => r.part_bengkel_express_realisasi),
-    target: sumBy(rows, r => r.part_bengkel_target),
-  }
+    realisasi: sumBy(rows, (r) => r.part_bengkel_express_realisasi),
+    target: sumBy(rows, (r) => r.part_bengkel_target),
+  };
   const partBengkelOli = {
-    realisasi: sumBy(rows, r => r.part_bengkel_oli_realisasi),
-    target: sumBy(rows, r => r.part_bengkel_target),
-  }
+    realisasi: sumBy(rows, (r) => r.part_bengkel_oli_realisasi),
+    target: sumBy(rows, (r) => r.part_bengkel_target),
+  };
 
   const partBengkelOverhoul = {
-    realisasi: sumBy(rows, r => r.part_bengkel_overhoul_realisasi),
-    target: sumBy(rows, r => r.part_bengkel_target),
-  }
+    realisasi: sumBy(rows, (r) => r.part_bengkel_overhoul_realisasi),
+    target: sumBy(rows, (r) => r.part_bengkel_target),
+  };
 
   const partBengkelRutin = {
-    realisasi: sumBy(rows, r => r.part_bengkel_rutin_realisasi),
-    target: sumBy(rows, r => r.part_bengkel_target),
-  }
+    realisasi: sumBy(rows, (r) => r.part_bengkel_rutin_realisasi),
+    target: sumBy(rows, (r) => r.part_bengkel_target),
+  };
 
   const partBengkelSedang = {
-    realisasi: sumBy(rows, r => r.part_bengkel_sedang_realisasi),
-    target: sumBy(rows, r => r.part_bengkel_target),
-  }
+    realisasi: sumBy(rows, (r) => r.part_bengkel_sedang_realisasi),
+    target: sumBy(rows, (r) => r.part_bengkel_target),
+  };
 
   const partBengkelBerat = {
-    realisasi: sumBy(rows, r => r.part_bengkel_berat_realisasi),
-    target: sumBy(rows, r => r.part_bengkel_target),
-  }
+    realisasi: sumBy(rows, (r) => r.part_bengkel_berat_realisasi),
+    target: sumBy(rows, (r) => r.part_bengkel_target),
+  };
 
+  const unitEntryOliRealisasi = {
+    realisasi: sumBy(rows, (r) => r.unit_entry_oli_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntryExpressRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_express_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntryRutinRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_rutin_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntrySedangRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_sedang_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntryBeratRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_berat_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntryOverhoulRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_overhoul_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntryClaimRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_claim_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntryKelistrikanRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_kelistrikan_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntryKuponRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_kupon_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntryOverSizeRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_over_size_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntryPdcRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_pdc_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntryCvtRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_cvt_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
+  const unitEntryBodyRepairRealisasi ={
+    realisasi: sumBy(rows, (r) => r.unit_entry_body_repair_realisasi),
+    target: sumBy(rows, (r) => r.unit_entry_target)
+  }
 
   return {
     afterSales,
@@ -403,6 +506,22 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
     partBengkelRutin,
     partBengkelSedang,
     partBengkelBerat,
+
+    unitEntryOliRealisasi,
+    unitEntryExpressRealisasi,
+    unitEntryRutinRealisasi,
+    unitEntrySedangRealisasi,
+    unitEntryBeratRealisasi,
+    unitEntryOverhoulRealisasi,
+    unitEntryClaimRealisasi,
+    unitEntryKelistrikanRealisasi,
+    unitEntryKuponRealisasi,
+    unitEntryOverSizeRealisasi,
+    unitEntryPdcRealisasi,
+    unitEntryCvtRealisasi,
+    unitEntryBodyRepairRealisasi
+
+    
   };
 }
 

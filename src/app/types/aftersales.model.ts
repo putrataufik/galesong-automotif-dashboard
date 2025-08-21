@@ -1,6 +1,6 @@
 // src/app/types/aftersales.model.ts
 
-import { FilterInfo } from "./filter.model";
+import { FilterInfo } from './filter.model';
 
 // After Sales Interfaces
 export interface AfterSalesItem {
@@ -22,48 +22,67 @@ export interface AfterSalesItem {
   after_sales_realisasi: string;
   after_sales_target: string;
 
-  // Unit entry
+  // Unit Entry (agregat)
   unit_entry_realisasi: string;
   unit_entry_target: string;
+
+  // ============================
+  // Unit Entry (breakdown) - BARU
+  // ============================
+  unit_entry_oli_realisasi: string;
+  unit_entry_express_realisasi: string;
+  unit_entry_rutin_realisasi: string;
+  unit_entry_sedang_realisasi: string;
+  unit_entry_berat_realisasi: string;
+  unit_entry_overhoul_realisasi: string;
+  unit_entry_claim_realisasi: string;
+  unit_entry_kelistrikan_realisasi: string;
+  unit_entry_kupon_realisasi: string;
+  unit_entry_over_size_realisasi: string;
+  unit_entry_pdc_realisasi: string;
+  unit_entry_cvt_realisasi: string;
+  unit_entry_body_repair_realisasi: string;
 
   // Sparepart tunai
   part_tunai_realisasi: string;
   part_tunai_target: string;
 
-  // Part bengkel (breakdown + agregat)
+  // Part bengkel (agregat)
   part_bengkel_realisasi: string;
   part_bengkel_target: string;
-  //cpus sparepart bengkel
-  part_bengkel_berat_realisasi: string;
-  part_bengkel_express_realisasi: string;
+
+  // Part bengkel (breakdown)
   part_bengkel_oli_realisasi: string;
-  part_bengkel_overhoul_realisasi: string;
+  part_bengkel_express_realisasi: string;
   part_bengkel_rutin_realisasi: string;
   part_bengkel_sedang_realisasi: string;
+  part_bengkel_berat_realisasi: string;
+  part_bengkel_overhoul_realisasi: string;
 
-  // Jasa service (breakdown + agregat)
+  // Jasa service (agregat)
   jasa_service_realisasi: string;
   jasa_service_target: string;
-  // cpus jasa service
-  jasa_service_berat_realisasi: string;
-  jasa_service_body_repair_realisasi: string;
-  jasa_service_claim_realisasi: string;
-  jasa_service_cvt_realisasi: string;
-  jasa_service_express_realisasi: string;
-  jasa_service_kelistrikan_realisasi: string;
-  jasa_service_kupon_realisasi: string;
+
+  // Jasa service (breakdown)
   jasa_service_oli_realisasi: string;
-  jasa_service_over_size_realisasi: string;
-  jasa_service_overhoul_realisasi: string;
-  jasa_service_pdc_realisasi: string;
+  jasa_service_express_realisasi: string;
   jasa_service_rutin_realisasi: string;
   jasa_service_sedang_realisasi: string;
-
-  
-
+  jasa_service_berat_realisasi: string;
+  jasa_service_overhoul_realisasi: string;
+  jasa_service_claim_realisasi: string;
+  jasa_service_kelistrikan_realisasi: string;
+  jasa_service_kupon_realisasi: string;
+  jasa_service_over_size_realisasi: string;
+  jasa_service_pdc_realisasi: string;
+  jasa_service_cvt_realisasi: string;
+  jasa_service_body_repair_realisasi: string;
 }
 
-export interface KpiGroup { realisasi: number; target: number; }
+export interface KpiGroup {
+  realisasi: number;
+  target: number;
+}
 
 export interface KpiResult {
   afterSales: KpiGroup;
@@ -87,7 +106,7 @@ export interface KpiResult {
   jasaServiceOverhoul: KpiGroup;
   jasaServiceRutin: KpiGroup;
   jasaServiceSedang: KpiGroup;
-  
+
   //Non CPUS Service
   jasaServiceClaim: KpiGroup;
   jasaServicePdc: KpiGroup;
@@ -99,7 +118,20 @@ export interface KpiResult {
   partBengkelOverhoul: KpiGroup;
   partBengkelRutin: KpiGroup;
   partBengkelSedang: KpiGroup;
-  
+
+  unitEntryExpressRealisasi: KpiGroup;
+  unitEntryRutinRealisasi: KpiGroup;
+  unitEntrySedangRealisasi: KpiGroup;
+  unitEntryBeratRealisasi: KpiGroup;
+  unitEntryOverhoulRealisasi: KpiGroup;
+  unitEntryClaimRealisasi: KpiGroup;
+  unitEntryKelistrikanRealisasi: KpiGroup;
+  unitEntryKuponRealisasi: KpiGroup;
+  unitEntryOverSizeRealisasi: KpiGroup;
+  unitEntryPdcRealisasi: KpiGroup;
+  unitEntryCvtRealisasi: KpiGroup;
+  unitEntryBodyRepairRealisasi: KpiGroup;
+  unitEntryOliRealisasi: KpiGroup;
 }
 export interface KpiData {
   afterSales: { realisasi: number; target: number };
@@ -137,6 +169,20 @@ export interface KpiData {
   partBengkelRutin: { realisasi: number; target: number };
   partBengkelSedang: { realisasi: number; target: number };
   partBengkelBerat: { realisasi: number; target: number };
+
+  unitEntryExpressRealisasi: { realisasi: number; target: number };
+  unitEntryRutinRealisasi: { realisasi: number; target: number };
+  unitEntrySedangRealisasi: { realisasi: number; target: number };
+  unitEntryBeratRealisasi: { realisasi: number; target: number };
+  unitEntryOverhoulRealisasi: { realisasi: number; target: number };
+  unitEntryClaimRealisasi: { realisasi: number; target: number };
+  unitEntryKelistrikanRealisasi: { realisasi: number; target: number };
+  unitEntryKuponRealisasi: { realisasi: number; target: number };
+  unitEntryOverSizeRealisasi: { realisasi: number; target: number };
+  unitEntryPdcRealisasi: { realisasi: number; target: number };
+  unitEntryCvtRealisasi: { realisasi: number; target: number };
+  unitEntryBodyRepairRealisasi: { realisasi: number; target: number };
+  unitEntryOliRealisasi: { realisasi: number; target: number };
 }
 
 // Interface untuk KPI tambahan
@@ -153,8 +199,8 @@ export interface SisaHariOption {
   value: string;
   name: string;
 }
-  
-  export interface AfterSalesResponse {
-    filterInfo: FilterInfo[];
-    aftersales: AfterSalesItem[];
-  }
+
+export interface AfterSalesResponse {
+  filterInfo: FilterInfo[];
+  aftersales: AfterSalesItem[];
+}
