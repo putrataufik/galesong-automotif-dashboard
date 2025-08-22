@@ -22,6 +22,7 @@ import {
   processAfterSalesRealisasiVsTargetData,
   processAfterSalesProfitByBranchData,
   processAfterSalesTotalRevenueData,
+  processAfterSalesDistribution,
 } from '../../shared/utils/dashboard-chart.utils';
 import {
   calculateTotalUnitSales,
@@ -46,7 +47,7 @@ export interface DashboardOverviewDTO {
   afterSalesRealisasiVsTarget: Maybe<ChartData>;
   afterSalesProfitByBranch: Maybe<ChartData>;
   afterSalesTotalRevenue: Maybe<ChartData>;
-
+  afterSalesDistribution: Maybe<ChartData>;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -127,7 +128,7 @@ export class MainDashboardService {
         const asRvT             = aftersales ? (processAfterSalesRealisasiVsTargetData(aftersales) ?? null) : null;
         const asProfitByBranch  = aftersales ? (processAfterSalesProfitByBranchData(aftersales, cabangMap) ?? null) : null;
         const asafterSalesTotalRevenue = aftersales ? (processAfterSalesTotalRevenueData(aftersales)?? null) : null;
-
+        const asAfterSalesDistribution = aftersales ? (processAfterSalesDistribution(aftersales)?? null) : null;
         const dto: DashboardOverviewDTO = {
           salesTrend,
           salesByModel,
@@ -138,7 +139,8 @@ export class MainDashboardService {
           afterSalesKpi: asKpi,
           afterSalesRealisasiVsTarget: asRvT,
           afterSalesProfitByBranch: asProfitByBranch,
-          afterSalesTotalRevenue: asafterSalesTotalRevenue
+          afterSalesTotalRevenue: asafterSalesTotalRevenue,
+          afterSalesDistribution: asAfterSalesDistribution
         };
         return dto;
       })

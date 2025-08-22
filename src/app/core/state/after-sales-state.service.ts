@@ -79,6 +79,7 @@ export interface AfterSalesChartsState {
   realisasiVsTarget: ChartData | null;
   profitByBranch: ChartData | null;
   totalRevenue: ChartData | null; // ✅ Tambah chart total revenue
+  
   trendOverTime: ChartData | null;
 }
 

@@ -4,6 +4,7 @@
 import { Injectable, signal, effect, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { AppFilter } from '../../types/filter.model';
+import { Chart } from 'chart.js';
 
 // === TYPES: KPI ===
 export interface KpiSnapshot {
@@ -48,6 +49,7 @@ interface ChartsState {
   afterSalesRealisasiVsTarget: ChartDataset | null;
   afterSalesProfitByBranch: ChartDataset | null;
   afterSalesTotalRevenue: ChartDataset | null;
+  afterSalesDistribution: ChartDataset | null;
 }
 
 interface DashboardState {
@@ -80,7 +82,8 @@ const initialCharts: ChartsState = {
   modelDistribution: null,
   afterSalesRealisasiVsTarget: null,
   afterSalesProfitByBranch: null,
-  afterSalesTotalRevenue: null
+  afterSalesTotalRevenue: null,
+  afterSalesDistribution: null
 };
 const initialState: DashboardState = {
   filter: null,
@@ -188,6 +191,9 @@ export class DashboardStateService {
   saveAfterSalesProfitByBranch(data: ChartDataset | null) { this.patchCharts({ afterSalesProfitByBranch: data }); }
   getAfterSalesProfitByBranch(): ChartDataset | null { return this._state().charts.afterSalesProfitByBranch; }
 
+  saveAfterSalesDistribution(data: ChartDataset | null) {this.patchCharts({afterSalesDistribution: data}); }
+  getAfterSalesDistribution(): ChartDataset | null {return this._state().charts.afterSalesDistribution;}
+
   // ====== RESET HELPERS ======
   clearSales() {
     this.patchKpi(initialKpi);
@@ -238,7 +244,8 @@ export class DashboardStateService {
           modelDistribution: parsed.charts?.modelDistribution ?? null,
           afterSalesRealisasiVsTarget: parsed.charts?.afterSalesRealisasiVsTarget ?? null,
           afterSalesProfitByBranch: parsed.charts?.afterSalesProfitByBranch ?? null,
-          afterSalesTotalRevenue: parsed.charts?.afterSalesTotalRevenue ?? null
+          afterSalesTotalRevenue: parsed.charts?.afterSalesTotalRevenue ?? null,
+          afterSalesDistribution: parsed.charts?.afterSalesDistribution ?? null 
         },
       };
     } catch {

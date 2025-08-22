@@ -53,6 +53,7 @@ export class MainDashboardComponent implements OnInit {
   modelDistribution = signal<any | null>(null);
   afterSalesRealisasiVsTarget = signal<any | null>(null);
   afterSalesProfitByBranch = signal<any | null>(null);
+  afterSalesDistribution = signal<any | null >(null);
 
   prefilledFilter: AppFilter | null = null;
 
@@ -63,7 +64,9 @@ export class MainDashboardComponent implements OnInit {
       || this.modelDistribution()
       || this.afterSalesKpi()
       || this.afterSalesRealisasiVsTarget()
-      || this.afterSalesProfitByBranch())
+      || this.afterSalesProfitByBranch()
+      || this.afterSalesDistribution()
+    )
   );
   isDataEmpty = computed(() => !this.hasData() && !this.loading());
 
@@ -102,6 +105,7 @@ export class MainDashboardComponent implements OnInit {
     this.modelDistribution.set(d.salesByModel);
     this.afterSalesRealisasiVsTarget.set(d.afterSalesRealisasiVsTarget);
     this.afterSalesProfitByBranch.set(d.afterSalesProfitByBranch);
+    this.afterSalesDistribution.set(d.afterSalesDistribution);
 
     // KPI
     this.kpiTotalUnitSales.set(d.totalUnitSales);
@@ -127,6 +131,7 @@ export class MainDashboardComponent implements OnInit {
     });
     if (d.afterSalesRealisasiVsTarget) this.state.saveAfterSalesRealisasiVsTarget(d.afterSalesRealisasiVsTarget);
     if (d.afterSalesProfitByBranch) this.state.saveAfterSalesProfitByBranch(d.afterSalesProfitByBranch);
+    if (d.afterSalesDistribution) this.state.saveAfterSalesDistribution(d.afterSalesDistribution);
   }
 
   private resetSignals(): void {
@@ -139,6 +144,7 @@ export class MainDashboardComponent implements OnInit {
     this.afterSalesKpi.set(null);
     this.afterSalesRealisasiVsTarget.set(null);
     this.afterSalesProfitByBranch.set(null);
+    this.afterSalesDistribution.set(null);
   }
 
   private hydrateFromState(): void {
@@ -162,7 +168,9 @@ export class MainDashboardComponent implements OnInit {
 
     const rvt = this.state.getAfterSalesRealisasiVsTarget();
     const pbb = this.state.getAfterSalesProfitByBranch();
+    const asd = this.state.getAfterSalesDistribution();
     if (rvt) this.afterSalesRealisasiVsTarget.set(rvt);
     if (pbb) this.afterSalesProfitByBranch.set(pbb);
+    if (asd) this.afterSalesDistribution.set(asd);
   }
 }

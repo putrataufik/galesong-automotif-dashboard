@@ -373,6 +373,5 @@ export class AfterSalesDashboardComponent implements OnInit {
     this.currentFilter.set(null);
     this.sisaHariKerjaOptions = [];
     this.sisaHariKerja = '';
-    this.totalRevenueChart.set(null);
   }
 }
