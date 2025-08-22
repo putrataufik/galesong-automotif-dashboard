@@ -140,6 +140,7 @@ export class AfterSalesDashboardComponent implements OnInit {
   ): ChartData | null {
     return processAfterSalesDistribution(response.aftersales,{
       cabang: filter.cabang,
+      month: filter.month,
       includeEmptyMonths: false,
     })
   }

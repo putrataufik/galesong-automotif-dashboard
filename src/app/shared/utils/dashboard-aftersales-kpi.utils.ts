@@ -165,19 +165,48 @@ type ChartData = { labels: string[]; data: number[] };
 export function processAfterSalesDistribution(
   rows: AfterSalesItem[] | null | undefined,
   opts?: {
-    cabang?: string; // 'all-cabang' | id cabang spesifik
-    includeEmptyMonths?: boolean; // tidak dipakai di fungsi ini (disimpan demi konsistensi)
+    cabang?: string;                 // 'all-cabang' | id cabang
+    month?: string | number;         // 'all-month' | 1..12 | '01' | 'Jan(uari)' dst.
+    includeEmptyMonths?: boolean;    // tidak dipakai di fungsi ini (disimpan demi konsistensi)
   }
 ): ChartData | null {
   const data = (rows ?? []).slice();
   if (!data.length) return null;
 
-  // Filter cabang (opsional), mengikuti pola buildRevenueChartData
+  // --- helper kecil untuk normalisasi bulan ---
+  const normalizeMonth = (m: unknown): number | null => {
+    if (m == null) return null;
+    // angka langsung
+    const n = Number(String(m).replace(/[^\d]/g, ''));
+    if (Number.isFinite(n) && n >= 1 && n <= 12) return n;
+
+    // dukungan teks singkat/ID
+    const key = String(m).toLowerCase().slice(0, 3);
+    const map: Record<string, number> = {
+      jan: 1, feb: 2, mar: 3, apr: 4, mei: 5, may: 5, jun: 6,
+      jul: 7, agu: 8, aug: 8, sep: 9, okt: 10, oct: 10, nov: 11, des: 12, dec: 12
+    };
+    return map[key] ?? null;
+  };
+
+  // --- Filter cabang (opsional) ---
   const cabang = opts?.cabang;
-  const filtered =
+  let filtered =
     cabang && cabang !== 'all-cabang'
       ? data.filter((x) => x.cabang_id === cabang)
       : data;
+
+  // --- Filter bulan (opsional) ---
+  const mOpt = opts?.month;
+  if (mOpt && mOpt !== 'all-month') {
+    const m = normalizeMonth(mOpt);
+    if (m != null) {
+      filtered = filtered.filter((r) => Number(r.month) === m);
+    } else {
+      // jika bulan tidak valid, hasilkan nol agar aman
+      filtered = [];
+    }
+  }
 
   if (!filtered.length) {
     return {
@@ -186,20 +215,22 @@ export function processAfterSalesDistribution(
     };
   }
 
-  // Agregasi komponen utama
+  // --- Agregasi komponen utama ---
   const jasaService = sumBy(filtered, (r) => num(r.jasa_service_realisasi));
   const sparepartTunai = sumBy(filtered, (r) => num(r.part_tunai_realisasi));
-  const sparepartBengkel = sumBy(filtered, (r) =>
-    num(r.part_bengkel_realisasi)
-  );
+  const sparepartBengkel = sumBy(filtered, (r) => num(r.part_bengkel_realisasi));
   const totalAfterSales = sumBy(filtered, (r) => num(r.after_sales_realisasi));
+console.log(jasaService)
+  // Oli = residual agar total komponen = total after_sales
   let oli = totalAfterSales - (jasaService + sparepartBengkel);
   if (!Number.isFinite(oli) || oli < 0) oli = 0;
+
   return {
     labels: ['Jasa Service', 'Part Tunai', 'Part Bengkel', 'Oli'],
     data: [jasaService, sparepartTunai, sparepartBengkel, oli],
   };
 }
+
 
 /* =========================================================
  *  FILTER & KPI PROCESSING (AFTERSALES)

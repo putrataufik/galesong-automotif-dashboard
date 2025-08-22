@@ -50,8 +50,8 @@ describe('KpiCardAsComponent', () => {
   });
 
   it('should format currency correctly', () => {
-    expect(component.formatCurrency(1500000)).toBe('Rp 1.5M');
-    expect(component.formatCurrency(2500000000)).toBe('Rp 2.5B');
-    expect(component.formatCurrency(-500000)).toBe('-Rp 500.0K');
+    expect(component.formatCompactNumber(1500000)).toBe('Rp 1,5M');
+    expect(component.formatCompactNumber(2500000000)).toBe('Rp 2,5B');
+    expect(component.formatCompactNumber(-500000)).toBe('-Rp 500,0K');
   });
 });

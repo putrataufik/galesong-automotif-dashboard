@@ -6,6 +6,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { formatCompactNumber } from '../../utils/dashboard-aftersales-kpi.utils';
 
 let __kpiCardAsUid = 0;
 
@@ -32,7 +33,7 @@ export class KpiCardAsComponent {
 
   /** State popover */
   showInfo = false;
-
+   formatCompactNumber = formatCompactNumber;
   /** ID unik untuk ARIA */
   componentId = `kpi-as-${++__kpiCardAsUid}`;
 
@@ -74,26 +75,6 @@ export class KpiCardAsComponent {
     return Math.max(0, gap / sisa);
   }
 
-  // --- Formatting ---
-  formatCurrency(value: number): string {
-    if (value === 0) return 'Rp 0';
-
-    const abs = Math.abs(value);
-    const sign = value < 0 ? '-' : '';
-
-    if (abs >= 1_000_000_000) {
-      return `${sign}Rp ${(abs / 1_000_000_000).toFixed(3)}M`;
-    } else if (abs >= 1_000_000) {
-      return `${sign}Rp ${(abs / 1_000_000).toFixed(3)}Jt`;
-    } else if (abs >= 1_000) {
-      return `${sign}Rp ${(abs / 1_000).toFixed(3)}Rb`;
-    } else {
-      return `${sign}Rp ${abs.toLocaleString('id-ID', {
-        minimumFractionDigits: 3,
-        maximumFractionDigits: 3,
-      })}`;
-    }
-  }
 
   formatUnit(value: number): string {
     if (value === 0) return '0 unit';
@@ -108,11 +89,11 @@ export class KpiCardAsComponent {
           minimumFractionDigits: 1,
           maximumFractionDigits: 1,
         })} unit / mekanik`
-      : `${this.formatCurrency(v)} / unit`;
+      : `${this.formatCompactNumber(v)} / unit`;
   }
 
   formatValue(value: number): string {
-    return this.isUnit ? this.formatUnit(value) : this.formatCurrency(value);
+    return this.isUnit ? this.formatUnit(value) : this.formatCompactNumber(value);
   }
 
   formatPercentage(value: number): string {
