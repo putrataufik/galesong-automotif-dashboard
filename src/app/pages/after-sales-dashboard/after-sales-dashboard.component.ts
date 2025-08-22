@@ -40,10 +40,12 @@ import {
   sumBy,
   num,
   buildRevenueChartData,
+  processAfterSalesDistribution,
 } from '../../shared/utils/dashboard-aftersales-kpi.utils';
 import { ChartData } from '../../types/sales.model';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { KpiLegendButtonComponent } from '../../shared/components/kpi-legend-button/kpi-legend-button.component';
+import { PieChartCardComponent } from "../../shared/components/pie-chart-card/pie-chart-card.component";
 
 @Component({
   selector: 'app-after-sales-dashboard',
@@ -55,8 +57,9 @@ import { KpiLegendButtonComponent } from '../../shared/components/kpi-legend-but
     KpiCardAsComponent,
     KpiCardComponent,
     LineChartCardComponent,
-    KpiLegendButtonComponent 
-  ],
+    KpiLegendButtonComponent,
+    PieChartCardComponent
+],
   templateUrl: './after-sales-dashboard.component.html',
   styleUrls: ['./after-sales-dashboard.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -74,6 +77,8 @@ export class AfterSalesDashboardComponent implements OnInit {
   additionalKpiData = signal<AdditionalKpiData | null>(null);
   currentFilter = signal<AfterSalesFilter | null>(null);
   totalRevenueChart = signal<ChartData | null>(null);
+  afterSalesDistribution = signal<ChartData | null>(null);
+
 
   // Sisa Hari Kerja (managed by state)
   sisaHariKerja = '';
@@ -129,6 +134,16 @@ export class AfterSalesDashboardComponent implements OnInit {
     });
   }
 
+  private makeAfterSalesDistribution(
+    response: AfterSalesResponse,
+    filter: AfterSalesFilter
+  ): ChartData | null {
+    return processAfterSalesDistribution(response.aftersales,{
+      cabang: filter.cabang,
+      includeEmptyMonths: false,
+    })
+  }
+
   // --------------------------
   // Public: Aksi & Events
   // --------------------------
@@ -154,15 +169,18 @@ export class AfterSalesDashboardComponent implements OnInit {
           const revenueChart = this.makeRevenueChart(response, filter);
           const processed = this.processAfterSalesData(response, filter);
           const additionalKpi = this.calculateAdditionalKpi(response, filter);
+          const afterSalesDistribution = this.makeAfterSalesDistribution(response, filter);
 
           this.kpiData.set(processed);
           this.additionalKpiData.set(additionalKpi);
           this.totalRevenueChart.set(revenueChart);
+          this.afterSalesDistribution.set(afterSalesDistribution);
 
           // ✅ Simpan ke state
           this.afterSalesState.saveKpi(processed);
           this.afterSalesState.saveAdditionalKpi(additionalKpi);
           this.afterSalesState.saveTotalRevenueChart(revenueChart);
+          this.afterSalesState.saveAfterSalesDistribution(afterSalesDistribution);
         },
         error: (err) => {
           console.error('Error fetching after sales data:', err);
@@ -199,6 +217,7 @@ export class AfterSalesDashboardComponent implements OnInit {
       cabang: filter.cabang,
     });
   }
+
 
   private calculateAdditionalKpi(
     response: AfterSalesResponse,
@@ -353,6 +372,9 @@ export class AfterSalesDashboardComponent implements OnInit {
     if (savedTotalRevenueChart)
       this.totalRevenueChart.set(savedTotalRevenueChart);
 
+    const savedAfterSalesDistribution = this.afterSalesState.getAfterSalesDistribution();
+    if(savedAfterSalesDistribution) this.afterSalesDistribution.set(savedAfterSalesDistribution);
+
     const sisaHariState = this.afterSalesState.getSisaHariKerjaState();
     this.sisaHariKerjaOptions = sisaHariState.options;
     this.sisaHariKerja = sisaHariState.selectedValue;
@@ -373,6 +395,5 @@ export class AfterSalesDashboardComponent implements OnInit {
     this.currentFilter.set(null);
     this.sisaHariKerjaOptions = [];
     this.sisaHariKerja = '';
-    this.totalRevenueChart.set(null);
   }
 }

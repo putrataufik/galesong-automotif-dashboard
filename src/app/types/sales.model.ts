@@ -7,7 +7,7 @@ export interface ChartData {
   labels: string[];
   data: number[];
   targetData?: number[];
-  datasets?: Array<{    // ← Tambah ini
+  datasets?: Array<{
     label: string;
     data: number[];
     backgroundColor: string;

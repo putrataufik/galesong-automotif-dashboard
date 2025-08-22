@@ -110,7 +110,7 @@
   <div class="row g-4 mb-5">
     <!-- Line Chart - Monthly Trend -->
     @if (lineMonthly()) {
-    <div class="col-12 col-lg-6">
+    <div class="col-12 col-lg-9">
       <app-line-chart-card
         [label]="'Unit Terjual'"
         [title]="'Trend Penjualan Unit per Bulan'"
@@ -126,32 +126,33 @@
     </div>
     }
 
-    <!-- Bar Chart - Branch Performance -->
-    @if (branchPerformance()) {
-    <div class="col-12 col-lg-6">
-      <app-bar-chart-card
-        [title]="'Performa Penjualan per Cabang'"
-        [labels]="branchPerformance()!.labels"
-        [data]="branchPerformance()!.data"
-        [height]="300"
-        [horizontal]="true"
-        [showLegend]="false"
-        [label]="'Unit Terjual'"
-      />
-    </div>
-    }
-
+    
     <!-- Pie Chart - Model Distribution -->
     @if (modelDistribution()) {
-    <div class="col-12 col-lg-3">
-      <app-pie-chart-card
+      <div class="col-12 col-lg-3">
+        <app-pie-chart-card
         [title]="'Proporsi Penjualan per Model Unit'"
         [labels]="modelDistribution()!.labels"
         [data]="modelDistribution()!.data"
         [height]="300"
         [showLegend]="true"
-      />
-    </div>
+        [chartType]="'unit'"
+        />
+      </div>
+      <!-- Bar Chart - Branch Performance -->
+      @if (branchPerformance()) {
+      <div class="col-12 col-lg-6">
+        <app-bar-chart-card
+          [title]="'Performa Penjualan per Cabang'"
+          [labels]="branchPerformance()!.labels"
+          [data]="branchPerformance()!.data"
+          [height]="300"
+          [horizontal]="true"
+          [showLegend]="false"
+          [label]="'Unit Terjual'"
+        />
+      </div>
+      }
     }
   </div>
   } } }
@@ -189,7 +190,7 @@
         [title]="'Total Profit'"
         [value]="formatCompactNumber(kpi.totalProfit)"
         unit=""
-        [subtitle]="'Keuntungan bersih'"
+        [subtitle]="'Target Profit'"
         icon="bi bi-graph-up-arrow"
         iconColor="#228000"
         iconBgColor="#DCFFD0"
@@ -266,7 +267,7 @@
   <div class="row g-4 mb-5">
     <!-- After Sales Realisasi vs Target Chart -->
     @if (afterSalesRealisasiVsTarget()) {
-    <div class="col-12 col-lg-6">
+    <div class="col-12 col-lg-9">
       <app-bar-chart-card
         [title]="'After Sales Realisasi vs Target per Bulan'"
         [chartData]="afterSalesRealisasiVsTarget()!"
@@ -276,6 +277,18 @@
         [isMultiDataset]="true"
       />
     </div>
+    }
+    @if (afterSalesDistribution()) {
+      <div class="col-12 col-lg-3">
+       <app-pie-chart-card
+        [title]="'Proporsi After Sales'"
+        [labels]="afterSalesDistribution()!.labels"
+        [data]="afterSalesDistribution()!.data"
+        [height]="300"
+        [showLegend]="true"
+        [chartType]="'currency'"
+      />
+      </div>
     }
 
     <!-- Profit by Branch Chart -->

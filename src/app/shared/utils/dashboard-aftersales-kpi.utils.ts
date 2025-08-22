@@ -158,6 +158,49 @@ export function buildRevenueChartData(
 
   return { labels, data: series };
 }
+
+// Keluaran sederhana untuk chart (labels + data)
+type ChartData = { labels: string[]; data: number[] };
+
+export function processAfterSalesDistribution(
+  rows: AfterSalesItem[] | null | undefined,
+  opts?: {
+    cabang?: string; // 'all-cabang' | id cabang spesifik
+    includeEmptyMonths?: boolean; // tidak dipakai di fungsi ini (disimpan demi konsistensi)
+  }
+): ChartData | null {
+  const data = (rows ?? []).slice();
+  if (!data.length) return null;
+
+  // Filter cabang (opsional), mengikuti pola buildRevenueChartData
+  const cabang = opts?.cabang;
+  const filtered =
+    cabang && cabang !== 'all-cabang'
+      ? data.filter((x) => x.cabang_id === cabang)
+      : data;
+
+  if (!filtered.length) {
+    return {
+      labels: ['Jasa Service', 'Sparepart Tunai', 'Sparepart Bengkel', 'Oli'],
+      data: [0, 0, 0, 0],
+    };
+  }
+
+  // Agregasi komponen utama
+  const jasaService = sumBy(filtered, (r) => num(r.jasa_service_realisasi));
+  const sparepartTunai = sumBy(filtered, (r) => num(r.part_tunai_realisasi));
+  const sparepartBengkel = sumBy(filtered, (r) =>
+    num(r.part_bengkel_realisasi)
+  );
+  const totalAfterSales = sumBy(filtered, (r) => num(r.after_sales_realisasi));
+  let oli = totalAfterSales - (jasaService + sparepartBengkel);
+  if (!Number.isFinite(oli) || oli < 0) oli = 0;
+  return {
+    labels: ['Jasa Service', 'Part Tunai', 'Part Bengkel', 'Oli'],
+    data: [jasaService, sparepartTunai, sparepartBengkel, oli],
+  };
+}
+
 /* =========================================================
  *  FILTER & KPI PROCESSING (AFTERSALES)
  * =======================================================*/
@@ -228,7 +271,10 @@ export function calculateAfterSalesKpi(
     aftersales,
     (x) => x.part_tunai_realisasi
   );
-  const sparepartBengkelRealisasi = sumBy(aftersales, (x) => x.part_bengkel_realisasi);
+  const sparepartBengkelRealisasi = sumBy(
+    aftersales,
+    (x) => x.part_bengkel_realisasi
+  );
   const unitEntryRealisasi = sumBy(aftersales, (x) => x.unit_entry_realisasi);
   const totalHariKerja = sumBy(aftersales, (x) => x.hari_kerja);
   const serviceCabang = sumBy(
@@ -249,7 +295,7 @@ export function calculateAfterSalesKpi(
     afterSalesRealisasi,
     unitEntryRealisasi,
     sparepartTunaiRealisasi,
-    sparepartBengkelRealisasi
+    sparepartBengkelRealisasi,
   };
 }
 
@@ -424,56 +470,56 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
 
   const unitEntryOliRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_oli_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntryExpressRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntryExpressRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_express_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntryRutinRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntryRutinRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_rutin_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntrySedangRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntrySedangRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_sedang_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntryBeratRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntryBeratRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_berat_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntryOverhoulRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntryOverhoulRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_overhoul_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntryClaimRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntryClaimRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_claim_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntryKelistrikanRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntryKelistrikanRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_kelistrikan_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntryKuponRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntryKuponRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_kupon_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntryOverSizeRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntryOverSizeRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_over_size_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntryPdcRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntryPdcRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_pdc_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntryCvtRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntryCvtRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_cvt_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
-  const unitEntryBodyRepairRealisasi ={
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
+  const unitEntryBodyRepairRealisasi = {
     realisasi: sumBy(rows, (r) => r.unit_entry_body_repair_realisasi),
-    target: sumBy(rows, (r) => r.unit_entry_target)
-  }
+    target: sumBy(rows, (r) => r.unit_entry_target),
+  };
 
   return {
     afterSales,
@@ -519,9 +565,7 @@ export function buildKpiForComponent(rows: AfterSalesItem[]): KpiResult {
     unitEntryOverSizeRealisasi,
     unitEntryPdcRealisasi,
     unitEntryCvtRealisasi,
-    unitEntryBodyRepairRealisasi
-
-    
+    unitEntryBodyRepairRealisasi,
   };
 }
 
