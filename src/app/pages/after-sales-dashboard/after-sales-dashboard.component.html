@@ -158,27 +158,40 @@
   <!-- ========================================================== -->
   <!-- SECTION 2: Chart Section -->
   <!-- ========================================================== -->
-  @if (totalRevenueChart(); as revenueChart) {
-  <div class="col-12 col-lg-6">
-    <app-line-chart-card
-      [label]="'Total Revenue'"
-      [title]="
-        'Trend Total Revenue After Sales per Bulan (Tahun ' +
-        currentFilter()?.period +
-        ')'
-      "
-      [labels]="totalRevenueChart()!.labels"
-      [data]="totalRevenueChart()!.data"
-      [height]="300"
-      [showLegend]="false"
-      [borderColor]="'#00821E'"
-      [backgroundColor]="'rgba(117, 255, 110, 0.30)'"
-      [pointBackgroundColor]="'#00821E'"
-      [fill]="true"
-    >
-    </app-line-chart-card>
+  <div class="row g-4 mb-5">
+    @if (totalRevenueChart(); as revenueChart) {
+    <div class="col-12 col-lg-9">
+      <app-line-chart-card
+        [label]="'Total Revenue'"
+        [title]="
+          'Trend Total Revenue After Sales per Bulan (Tahun ' +
+          currentFilter()?.period +
+          ')'
+        "
+        [labels]="totalRevenueChart()!.labels"
+        [data]="totalRevenueChart()!.data"
+        [height]="300"
+        [showLegend]="false"
+        [borderColor]="'#00821E'"
+        [backgroundColor]="'rgba(117, 255, 110, 0.30)'"
+        [pointBackgroundColor]="'#00821E'"
+        [fill]="true"
+      >
+      </app-line-chart-card>
+    </div>
+    } @if (afterSalesDistribution()) {
+    <div class="col-12 col-lg-3">
+      <app-pie-chart-card
+        [title]="'Proporsi After Sales'"
+        [labels]="afterSalesDistribution()!.labels"
+        [data]="afterSalesDistribution()!.data"
+        [height]="300"
+        [showLegend]="true"
+        [chartType]="'currency'"
+      />
+    </div>
+    }
   </div>
-  }
 
   <!-- ========================================================== -->
   <!-- SECTION 2: Chart Section -->
@@ -192,7 +205,7 @@
       <!-- ========================================================== -->
       <div class="d-flex align-items-center justify-content-between my-3">
         <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-flag-fill fs-4" style="color: #006e1a;"></i>
+          <i class="bi bi-flag-fill fs-4" style="color: #006e1a"></i>
           <h4 class="mb-0 fw-bold text-dark">Pencapaian Cabang</h4>
         </div>
 

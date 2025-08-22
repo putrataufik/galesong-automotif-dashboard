@@ -78,8 +78,8 @@ export interface SisaHariKerjaState {
 export interface AfterSalesChartsState {
   realisasiVsTarget: ChartData | null;
   profitByBranch: ChartData | null;
-  totalRevenue: ChartData | null; // ✅ Tambah chart total revenue
-  
+  totalRevenue: ChartData | null; 
+  afterSalesDistribution: ChartData | null;
   trendOverTime: ChartData | null;
 }
 
@@ -159,7 +159,8 @@ const initialSisaHariKerja: SisaHariKerjaState = {
 const initialCharts: AfterSalesChartsState = {
   realisasiVsTarget: null,
   profitByBranch: null,
-  totalRevenue: null, // ✅ Initial null untuk total revenue chart
+  totalRevenue: null, 
+  afterSalesDistribution: null,
   trendOverTime: null,
 };
 
@@ -462,6 +463,14 @@ export class AfterSalesStateService {
     return this._state().charts.totalRevenue;
   }
 
+  saveAfterSalesDistribution(data : ChartData | null) {
+    this.patchCharts({afterSalesDistribution: data});
+  }
+
+  getAfterSalesDistribution(): ChartData | null{
+    return this._state().charts.afterSalesDistribution;
+  }
+
   saveTrendOverTimeChart(data: ChartData | null) {
     this.patchCharts({ trendOverTime: data });
   }
@@ -652,7 +661,8 @@ export class AfterSalesStateService {
         charts: {
           realisasiVsTarget: parsed.charts?.realisasiVsTarget ?? null,
           profitByBranch: parsed.charts?.profitByBranch ?? null,
-          totalRevenue: parsed.charts?.totalRevenue ?? null, // ✅ Hydrate total revenue chart
+          totalRevenue: parsed.charts?.totalRevenue ?? null,
+          afterSalesDistribution: parsed.charts?.afterSalesDistribution ?? null,
           trendOverTime: parsed.charts?.trendOverTime ?? null,
         },
         lastUpdated: parsed.lastUpdated ?? null,
