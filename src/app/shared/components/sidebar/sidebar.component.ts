@@ -31,6 +31,11 @@ export class SidebarComponent {
     label: 'After Sales Dashboard',
     icon: 'bi bi-gear-wide-connected'
   },
+  {
+    path: '/finance-dashboard',
+    label: 'finance dahsboard',
+    icon: 'bi bi-bank'
+  },
 ];
 
 

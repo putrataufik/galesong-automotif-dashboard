@@ -81,6 +81,9 @@ export class AppComponent {
       case '/after-sales-dashboard':
         this._currentPageTitle.set('After Sales Dashboard');
         break;
+      case '/finance-dashboard':
+        this._currentPageTitle.set('Finance Dashboard');
+        break;
       default:
         this._currentPageTitle.set('Dashboard');
     }

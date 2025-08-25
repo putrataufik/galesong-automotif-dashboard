@@ -1,0 +1,103 @@
+/* ====== UTILITAS RINGAN ====== */
+.text-right,
+.text-end {
+  text-align: right;
+}
+.fw-semibold {
+  font-weight: 600;
+}
+
+/* Biar angka lebih rapi sejajar */
+.text-right,
+.text-end,
+td.text-right,
+td.text-end {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  white-space: nowrap;
+}
+
+/* ====== GAYA TABEL PRIME ====== */
+:host ::ng-deep .p-datatable {
+  width: 100%;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-header {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* center */
+  padding: 0.75rem 1rem; /* padding */
+  font-weight: 600;
+  font-size: 1.125rem;
+  border: none; /* ~text-xl */
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  font-weight: 600;
+  background: var(--surface-50, #f8fafc);
+  color: var(--text-color, #111827);
+  border: 1px solid var(--surface-200, #e5e7eb);
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem; /* lebih kecil */
+  line-height: 1.25;   /* opsional: rapikan */
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  border: 1px solid var(--surface-200, #e5e7eb);
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+  font-size: 0.75rem; /* lebih kecil */
+  line-height: 1.25;  /* opsional */
+}
+
+/* Hover row */
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+  background: var(--surface-100, #f3f4f6);
+}
+
+/* Ukuran compact sudah dibantu styleClass="p-datatable-sm" */
+
+/* ====== RESPONSIVE (STACK MODE) UNTUK HP ====== */
+/* Default: sembunyikan label p-column-title di desktop */
+:host ::ng-deep .p-datatable .p-datatable-tbody .p-column-title {
+  display: none;
+  font-weight: 300;
+  color: var(--text-color-secondary, #6b7280);
+  margin-bottom: 0.25rem;
+}
+
+/* Di layar kecil: sembunyikan thead, tampilkan label per kolom, jadikan baris “kartu” */
+@media screen and (max-width: 768px) {
+  :host ::ng-deep .p-datatable .p-datatable-thead {
+    display: none;
+  }
+
+  :host ::ng-deep .p-datatable .p-datatable-tbody > tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid var(--surface-200, #e5e7eb);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  :host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+    display: block;
+    border: none;
+    border-bottom: 1px solid var(--surface-200, #e5e7eb);
+    padding: 0.6rem 0.9rem; /* opsional: lebih ringkas di mobile */
+  }
+
+  :host ::ng-deep .p-datatable .p-datatable-tbody > tr > td:last-child {
+    border-bottom: none;
+  }
+
+  :host ::ng-deep .p-datatable .p-datatable-tbody .p-column-title {
+    display: block; /* tampilkan label kolom di atas nilai */
+  }
+
+  /* Rata kanan di mobile tetap rapi */
+  :host ::ng-deep .p-datatable .p-datatable-tbody > tr > td.text-right,
+  :host ::ng-deep .p-datatable .p-datatable-tbody > tr > td.text-end {
+    text-align: right;
+  }
+}

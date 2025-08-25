@@ -45,7 +45,7 @@ import {
 import { ChartData } from '../../types/sales.model';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { KpiLegendButtonComponent } from '../../shared/components/kpi-legend-button/kpi-legend-button.component';
-import { PieChartCardComponent } from "../../shared/components/pie-chart-card/pie-chart-card.component";
+import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
 
 @Component({
   selector: 'app-after-sales-dashboard',
@@ -58,8 +58,8 @@ import { PieChartCardComponent } from "../../shared/components/pie-chart-card/pi
     KpiCardComponent,
     LineChartCardComponent,
     KpiLegendButtonComponent,
-    PieChartCardComponent
-],
+    PieChartCardComponent,
+  ],
   templateUrl: './after-sales-dashboard.component.html',
   styleUrls: ['./after-sales-dashboard.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -79,12 +79,11 @@ export class AfterSalesDashboardComponent implements OnInit {
   totalRevenueChart = signal<ChartData | null>(null);
   afterSalesDistribution = signal<ChartData | null>(null);
 
-
   // Sisa Hari Kerja (managed by state)
   sisaHariKerja = '';
   sisaHariKerjaOptions: SisaHariOption[] = [];
   showSisaHariKerja = signal(false);
-
+  
   // Computed untuk menentukan apakah tampilkan Jumlah Mekanik
   showJumlahMekanik = computed(() => {
     const filter = this.currentFilter();
@@ -138,11 +137,11 @@ export class AfterSalesDashboardComponent implements OnInit {
     response: AfterSalesResponse,
     filter: AfterSalesFilter
   ): ChartData | null {
-    return processAfterSalesDistribution(response.aftersales,{
+    return processAfterSalesDistribution(response.aftersales, {
       cabang: filter.cabang,
       month: filter.month,
       includeEmptyMonths: false,
-    })
+    });
   }
 
   // --------------------------
@@ -170,7 +169,10 @@ export class AfterSalesDashboardComponent implements OnInit {
           const revenueChart = this.makeRevenueChart(response, filter);
           const processed = this.processAfterSalesData(response, filter);
           const additionalKpi = this.calculateAdditionalKpi(response, filter);
-          const afterSalesDistribution = this.makeAfterSalesDistribution(response, filter);
+          const afterSalesDistribution = this.makeAfterSalesDistribution(
+            response,
+            filter
+          );
 
           this.kpiData.set(processed);
           this.additionalKpiData.set(additionalKpi);
@@ -181,7 +183,9 @@ export class AfterSalesDashboardComponent implements OnInit {
           this.afterSalesState.saveKpi(processed);
           this.afterSalesState.saveAdditionalKpi(additionalKpi);
           this.afterSalesState.saveTotalRevenueChart(revenueChart);
-          this.afterSalesState.saveAfterSalesDistribution(afterSalesDistribution);
+          this.afterSalesState.saveAfterSalesDistribution(
+            afterSalesDistribution
+          );
         },
         error: (err) => {
           console.error('Error fetching after sales data:', err);
@@ -218,7 +222,6 @@ export class AfterSalesDashboardComponent implements OnInit {
       cabang: filter.cabang,
     });
   }
-
 
   private calculateAdditionalKpi(
     response: AfterSalesResponse,
@@ -373,8 +376,10 @@ export class AfterSalesDashboardComponent implements OnInit {
     if (savedTotalRevenueChart)
       this.totalRevenueChart.set(savedTotalRevenueChart);
 
-    const savedAfterSalesDistribution = this.afterSalesState.getAfterSalesDistribution();
-    if(savedAfterSalesDistribution) this.afterSalesDistribution.set(savedAfterSalesDistribution);
+    const savedAfterSalesDistribution =
+      this.afterSalesState.getAfterSalesDistribution();
+    if (savedAfterSalesDistribution)
+      this.afterSalesDistribution.set(savedAfterSalesDistribution);
 
     const sisaHariState = this.afterSalesState.getSisaHariKerjaState();
     this.sisaHariKerjaOptions = sisaHariState.options;
