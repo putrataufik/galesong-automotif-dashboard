@@ -1,8 +1,7 @@
 // src/app/shared/components/finance-transactions-table/finance-transactions-table.component.ts
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule} from '@angular/common';
-import { TableModule } from 'primeng/table';
-import { PaginatorModule } from 'primeng/paginator';
+import {TableModule} from 'primeng/table';
 
 export interface FinanceTxn {
   tanggal: Date;
@@ -18,7 +17,7 @@ export interface FinanceTxn {
 @Component({
   selector: 'app-finance-transactions-table',
   standalone: true,
-  imports: [CommonModule, TableModule, PaginatorModule],
+  imports: [CommonModule, TableModule],
   templateUrl: './finance-transactions-table.component.html',
   styleUrls: ['./finance-transactions-table.component.css'],
 })

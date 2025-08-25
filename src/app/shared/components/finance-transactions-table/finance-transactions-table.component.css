@@ -1,8 +1,11 @@
 /* ====== UTILITAS RINGAN ====== */
 .text-right,
-.text-end { text-align: right; }
-
-.fw-semibold { font-weight: 600; }
+.text-end {
+  text-align: right;
+}
+.fw-semibold {
+  font-weight: 600;
+}
 
 /* Biar angka lebih rapi sejajar */
 .text-right,
@@ -22,11 +25,11 @@ td.text-end {
 :host ::ng-deep .p-datatable .p-datatable-header {
   display: flex;
   align-items: center;
-  justify-content: center;  /* center */
-  padding: .75rem 1rem;     /* padding */
+  justify-content: center; /* center */
+  padding: 0.75rem 1rem; /* padding */
   font-weight: 600;
-  font-size: 1.125rem;  
-  border: none;    /* ~text-xl */
+  font-size: 1.125rem;
+  border: none; /* ~text-xl */
 }
 
 :host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
@@ -34,15 +37,17 @@ td.text-end {
   background: var(--surface-50, #f8fafc);
   color: var(--text-color, #111827);
   border: 1px solid var(--surface-200, #e5e7eb);
-  padding: .75rem 1rem;
+  padding: 0.75rem 1rem;
   font-size: 0.75rem; /* lebih kecil */
+  line-height: 1.25;   /* opsional: rapikan */
 }
 
 :host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
   border: 1px solid var(--surface-200, #e5e7eb);
-  padding: .75rem 1rem;
+  padding: 0.75rem 1rem;
   vertical-align: middle;
   font-size: 0.75rem; /* lebih kecil */
+  line-height: 1.25;  /* opsional */
 }
 
 /* Hover row */
@@ -52,14 +57,13 @@ td.text-end {
 
 /* Ukuran compact sudah dibantu styleClass="p-datatable-sm" */
 
-
 /* ====== RESPONSIVE (STACK MODE) UNTUK HP ====== */
 /* Default: sembunyikan label p-column-title di desktop */
 :host ::ng-deep .p-datatable .p-datatable-tbody .p-column-title {
   display: none;
   font-weight: 300;
   color: var(--text-color-secondary, #6b7280);
-  margin-bottom: .25rem;
+  margin-bottom: 0.25rem;
 }
 
 /* Di layar kecil: sembunyikan thead, tampilkan label per kolom, jadikan baris “kartu” */
@@ -72,7 +76,7 @@ td.text-end {
     display: block;
     margin-bottom: 1rem;
     border: 1px solid var(--surface-200, #e5e7eb);
-    border-radius: .5rem;
+    border-radius: 0.5rem;
     overflow: hidden;
   }
 
@@ -80,7 +84,7 @@ td.text-end {
     display: block;
     border: none;
     border-bottom: 1px solid var(--surface-200, #e5e7eb);
-    padding: .75rem 1rem;
+    padding: 0.6rem 0.9rem; /* opsional: lebih ringkas di mobile */
   }
 
   :host ::ng-deep .p-datatable .p-datatable-tbody > tr > td:last-child {
@@ -97,108 +101,3 @@ td.text-end {
     text-align: right;
   }
 }
-
-/* ===== PAGINATOR BUTTONS ===== */
-:host ::ng-deep .p-paginator {
-  border-top: 1px solid var(--surface-200, #e5e7eb);
-  padding: .5rem;
-  gap: .5rem; /* jarak antar blok */
-  font-size: .875rem; /* compact */
-}
-
-:host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page:not(:last-child) {
-  margin-right: .375rem;          /* jarak antar angka */ 
-}
-
-:host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page,
-:host ::ng-deep .p-paginator .p-paginator-first,
-:host ::ng-deep .p-paginator .p-paginator-prev,
-:host ::ng-deep .p-paginator .p-paginator-next,
-:host ::ng-deep .p-paginator .p-paginator-last {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2.25rem;
-  height: 2.25rem;
-  padding: 0 .5rem;
-  border-radius: .5rem;
-  border: 1px solid var(--surface-300, #d1d5db);
-  background: #fff;
-  color: var(--text-color, #111827);
-  transition: all .15s ease;
-}
-
-/* Hover */
-:host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page:hover,
-:host ::ng-deep .p-paginator .p-paginator-first:hover,
-:host ::ng-deep .p-paginator .p-paginator-prev:hover,
-:host ::ng-deep .p-paginator .p-paginator-next:hover,
-:host ::ng-deep .p-paginator .p-paginator-last:hover {
-  background: var(--surface-100, #f3f4f6);
-  border-color: var(--surface-400, #9ca3af);
-}
-
-/* Current / active page */
-:host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
-  background: var(--p-primary-color, #16a34a);
-  border-color: var(--p-primary-color, #16a34a);
-  color: #fff;
-}
-:host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page.p-highlight:hover {
-  filter: brightness(0.95);
-}
-
-/* Disabled */
-:host ::ng-deep .p-paginator .p-paginator-first.p-disabled,
-:host ::ng-deep .p-paginator .p-paginator-prev.p-disabled,
-:host ::ng-deep .p-paginator .p-paginator-next.p-disabled,
-:host ::ng-deep .p-paginator .p-paginator-last.p-disabled {
-  opacity: .5;
-  cursor: default;
-}
-
-/* Focus ring (aksesibilitas) */
-:host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page:focus,
-:host ::ng-deep .p-paginator .p-paginator-first:focus,
-:host ::ng-deep .p-paginator .p-paginator-prev:focus,
-:host ::ng-deep .p-paginator .p-paginator-next:focus,
-:host ::ng-deep .p-paginator .p-paginator-last:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--p-primary-color, #16a34a) 25%, transparent);
-}
-
-/* "Rows per page" dropdown */
-:host ::ng-deep .p-paginator .p-paginator-rpp-options .p-dropdown {
-  min-width: 7rem;
-  height: 2.25rem;
-  border-radius: .5rem;
-}
-:host ::ng-deep .p-paginator .p-dropdown .p-inputtext {
-  padding: 0 .75rem;
-  height: 2.25rem;
-  font-size: .875rem;
-}
-:host ::ng-deep .p-paginator .p-dropdown .p-dropdown-trigger {
-  width: 2rem;
-}
-
-/* Info teks (e.g. "1–10 of 120") */
-:host ::ng-deep .p-paginator .p-paginator-current {
-  color: var(--text-color-secondary, #6b7280);
-  padding: 0 .25rem;
-}
-
-/* ===== MOBILE: rapikan paginator saat sempit ===== */
-@media (max-width: 640px) {
-  :host ::ng-deep .p-paginator {
-    flex-wrap: wrap;
-    justify-content: center;
-    row-gap: .5rem;
-  }
-  :host ::ng-deep .p-paginator .p-paginator-current {
-    width: 100%;
-    text-align: center;
-    order: 3;
-  }
-}
-

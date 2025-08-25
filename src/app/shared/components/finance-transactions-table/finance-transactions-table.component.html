@@ -2,14 +2,9 @@
   <p-table
     [value]="rows"
     [paginator]="true"
-    [rows]="10"               
-    [rowsPerPageOptions]="[5, 10, 15]"
-    [responsiveLayout]="'scroll'"
-    [rowHover]="true"
+    [rows]="5"
     [tableStyle]="{ 'min-width': '50rem' }"
-    sortMode="single"
-    sortField="tanggal"
-    styleClass="p-datatable-sm"
+    [rowsPerPageOptions]="[5, 10, 20]"
   >
     <!-- (Opsional) Caption ala dokumentasi -->
     <ng-template pTemplate="caption">
@@ -49,7 +44,7 @@
       <tr>
         <td>
           <span class="p-column-title">Tanggal</span>
-          {{ row.tanggal | date: 'dd MMM yyyy' }}
+          {{ row.tanggal | date : "dd MMM yyyy" }}
         </td>
         <td>
           <span class="p-column-title">Perusahaan</span>
@@ -69,15 +64,15 @@
         </td>
         <td class="text-end text-right">
           <span class="p-column-title">Pemasukan</span>
-          {{ row.pemasukan | currency:'IDR':'symbol':'1.0-0' }}
+          {{ row.pemasukan | currency : "IDR" : "symbol" : "1.0-0" }}
         </td>
         <td class="text-end text-right">
           <span class="p-column-title">Pengeluaran</span>
-          {{ row.pengeluaran | currency:'IDR':'symbol':'1.0-0' }}
+          {{ row.pengeluaran | currency : "IDR" : "symbol" : "1.0-0" }}
         </td>
         <td class="text-end text-right fw-semibold">
           <span class="p-column-title">Saldo</span>
-          {{ row.saldo | currency:'IDR':'symbol':'1.0-0' }}
+          {{ row.saldo | currency : "IDR" : "symbol" : "1.0-0" }}
         </td>
       </tr>
     </ng-template>
