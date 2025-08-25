@@ -220,7 +220,7 @@ export function processAfterSalesDistribution(
   const sparepartTunai = sumBy(filtered, (r) => num(r.part_tunai_realisasi));
   const sparepartBengkel = sumBy(filtered, (r) => num(r.part_bengkel_realisasi));
   const totalAfterSales = sumBy(filtered, (r) => num(r.after_sales_realisasi));
-console.log(jasaService)
+  
   // Oli = residual agar total komponen = total after_sales
   let oli = totalAfterSales - (jasaService + sparepartBengkel);
   if (!Number.isFinite(oli) || oli < 0) oli = 0;
