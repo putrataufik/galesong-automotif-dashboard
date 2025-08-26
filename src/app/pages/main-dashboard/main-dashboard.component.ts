@@ -1,20 +1,41 @@
-// src/app/pages/dashboard/main-dashboard.component.ts
-import { Component, OnInit, inject, signal, DestroyRef, computed } from '@angular/core';
+// src/app/pages/main-dashboard/main-dashboard.component.ts
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize } from 'rxjs/operators';
 
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
-import { FilterMainDashboardComponent } from '../../shared/components/filter-main-dashboard/filter-main-dashboard.component';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
 import { BarChartCardComponent } from '../../shared/components/bar-chart-card/bar-chart-card.component';
-
-import { DashboardOverviewDTO, MainDashboardService } from '../../core/services/main-dashboard.service';
-import { DashboardStateService } from '../../core/state/dashboard-state.service';
-
+import { FilterMainDashboardComponent } from '../../shared/components/filter-main-dashboard/filter-main-dashboard.component';
 import { AppFilter } from '../../types/filter.model';
-import { formatCompactNumber } from '../../shared/utils/dashboard-aftersales-kpi.utils';
+
+interface SingleChartData {
+  labels: string[];
+  data: number[];
+}
+
+interface MultiChartData {
+  labels: string[];
+  datasets: Array<{
+    label: string;
+    data: number[];
+    backgroundColor: string;
+    borderColor: string;
+    borderWidth?: number;
+  }>;
+}
+
+type ChartData = SingleChartData | MultiChartData;
+
+interface TopItem {
+  name: string;
+  unit: number;
+}
+
+interface TopBranch {
+  code: string;
+  unit: number;
+}
 
 @Component({
   selector: 'app-main-dashboard',
@@ -22,155 +43,174 @@ import { formatCompactNumber } from '../../shared/utils/dashboard-aftersales-kpi
   imports: [
     CommonModule,
     KpiCardComponent,
-    FilterMainDashboardComponent,
     LineChartCardComponent,
     PieChartCardComponent,
     BarChartCardComponent,
+    FilterMainDashboardComponent,
   ],
   templateUrl: './main-dashboard.component.html',
   styleUrl: './main-dashboard.component.css',
 })
 export class MainDashboardComponent implements OnInit {
-  private api = inject(MainDashboardService);
-  private state = inject(DashboardStateService);
-  private destroyRef = inject(DestroyRef);
-
-  formatCompactNumber = formatCompactNumber;
-
   // UI state
   loading = signal(false);
   error = signal<string | null>(null);
 
-  // KPI signals
-  kpiTotalUnitSales = signal<number>(0);
-  kpiTopModel = signal<{ name: string; unit: number } | null>(null);
-  kpiTopBranch = signal<{ code: string; unit: number } | null>(null);
-  afterSalesKpi = signal<any | null>(null);
+  // KPI signals with dummy data
+  kpiTotalUnitSales = signal<number>(1250);
+  kpiTopModel = signal<TopItem | null>({ name: 'Tipe A', unit: 85 });
+  kpiTopBranch = signal<TopBranch | null>({ code: 'Pettarani', unit: 120 });
 
-  // Charts
-  lineMonthly = signal<any | null>(null);
-  branchPerformance = signal<any | null>(null);
-  modelDistribution = signal<any | null>(null);
-  afterSalesRealisasiVsTarget = signal<any | null>(null);
-  afterSalesProfitByBranch = signal<any | null>(null);
-  afterSalesDistribution = signal<any | null >(null);
+  // After Sales KPI dummy data
+  afterSalesKpi = signal<any | null>({
+    totalBiayaUsaha: 150000000,
+    totalProfit: 75000000,
+    totalRevenueRealisasi: 225000000,
+    afterSalesRealisasi: 180000000,
+    unitEntryRealisasi: 450,
+    sparepartTunaiRealisasi: 45000000,
+    sparepartBengkelRealisasi: 38000000,
+  });
 
-  prefilledFilter: AppFilter | null = null;
+  // Charts dummy data
+  currYear = 2025;
+  prevYear = this.currYear - 1;
 
-  // ✅ computed signals (gantikan getter)
-  hasData = computed(() =>
-    !!(this.lineMonthly()
-      || this.branchPerformance()
-      || this.modelDistribution()
-      || this.afterSalesKpi()
-      || this.afterSalesRealisasiVsTarget()
-      || this.afterSalesProfitByBranch()
-      || this.afterSalesDistribution()
-    )
-  );
-  isDataEmpty = computed(() => !this.hasData() && !this.loading());
+  // Data tahun ini (punya kamu)
+  dataTY = [85, 92, 78, 105, 118, 95, 132, 88, 110, 125, 98, 140];
+
+  // Contoh data tahun lalu (silakan ganti sesuai sumbermu)
+  dataLY = [80, 88, 74, 98, 110, 90, 120, 84, 104, 118, 93, 130];
+
+  lineMonthly = signal<MultiChartData | null>({
+    labels: [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ],
+    datasets: [
+      {
+        label: `Tahun ${this.currYear}`,
+        data: this.dataTY,
+        backgroundColor: 'rgba(13,110,253,0.20)', // biru transparan
+        borderColor: '#0d6efd',
+        borderWidth: 2,
+      },
+      {
+        label: `Tahun ${this.prevYear}`,
+        data: this.dataLY,
+        backgroundColor: 'rgba(148,163,184,0.20)', // abu2 transparan
+        borderColor: '#94a3b8',
+        borderWidth: 1,
+      },
+    ],
+  });
+
+  branchPerformance = signal<ChartData | null>({
+    labels: ['PETTARANI', 'PALU', 'KENDARI', 'GORONTALO', 'PALOPO'],
+    data: [120, 85, 95, 70, 80],
+  });
+
+  modelDistribution = signal<ChartData | null>({
+    labels: ['Tipe A', 'Tipe B', 'Tipe C', 'Tipe D', 'Tipe E', 'Tipe F'],
+    data: [285, 220, 180, 165, 145, 125],
+  });
+
+  afterSalesRealisasiVsTarget = signal<MultiChartData | null>({
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
+    datasets: [
+      {
+        label: 'Realisasi',
+        data: [18500000, 19200000, 17800000, 20100000, 21500000, 19800000],
+        backgroundColor: '#5191ffff',
+        borderColor: '#5191ffff',
+        borderWidth: 1,
+      },
+      {
+        label: 'Target',
+        data: [20000000, 20000000, 20000000, 20000000, 20000000, 20000000],
+        backgroundColor: '#000262ff',
+        borderColor: '#000262ff',
+        borderWidth: 1,
+      },
+    ],
+  });
+
+  afterSalesProfitByBranch = signal<ChartData | null>({
+    labels: ['PETTARANI', 'PALU', 'KENDARI', 'GORONTALO', 'PALOPO'],
+    data: [25000000, 18500000, 15200000, 12800000, 14500000],
+  });
+
+  afterSalesDistribution = signal<ChartData | null>({
+    labels: ['Jasa Service', 'Part Tunai', 'Part Bengkel', 'Oli'],
+    data: [85000000, 45000000, 38000000, 22000000],
+  });
+
+  prefilledFilter: AppFilter = {
+    company: 'sinar-galesong-mobilindo',
+    category: 'all-category',
+    period: '2025',
+    month: 'all-month',
+  };
+
+  // Computed
+  hasData = signal(true); // Always true for dummy data
+  isDataEmpty = signal(false);
+
+  // Helper methods for template
+  isSingleDataset(chart: ChartData | null): chart is SingleChartData {
+    return chart !== null && 'data' in chart;
+  }
+
+  isMultiDataset(chart: ChartData | null): chart is MultiChartData {
+    return chart !== null && 'datasets' in chart;
+  }
+
+  getChartData(chart: ChartData | null): number[] {
+    if (this.isSingleDataset(chart)) {
+      return chart.data;
+    }
+    return [];
+  }
+
+  getChartDatasets(chart: ChartData | null): any[] {
+    if (this.isMultiDataset(chart)) {
+      return chart.datasets;
+    }
+    return [];
+  }
+
+  // Formatter for compact numbers
+  formatCompactNumber(value: number): string {
+    if (value >= 1_000_000_000) {
+      return `Rp ${(value / 1_000_000_000).toFixed(1)}B`;
+    }
+    if (value >= 1_000_000) {
+      return `Rp ${(value / 1_000_000).toFixed(1)}M`;
+    }
+    if (value >= 1_000) {
+      return `Rp ${(value / 1_000).toFixed(0)}K`;
+    }
+    return `Rp ${value.toLocaleString('id-ID')}`;
+  }
 
   ngOnInit(): void {
-    this.hydrateFromState();
+    // No API calls needed for dummy data
+    console.log('Main Dashboard loaded with dummy data');
   }
 
-  onSearch(filter: AppFilter): void {
-    this.error.set(null);
-
-    if (!['sales', 'after-sales', 'all-category'].includes(filter.category)) {
-      this.error.set('Kategori belum didukung. Pilih Sales, After Sales, atau All Category.');
-      return;
-    }
-
-    this.state.saveFilter(filter);
-    this.prefilledFilter = filter;
-    this.resetSignals();
-
-    this.loading.set(true);
-    this.api.getDashboardOverview(filter.company as any, filter.period, filter.category as any)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.loading.set(false)) // ✅ tutup loading pada success maupun error
-      )
-      .subscribe({
-        next: (dto) => this.applyOverview(dto),
-        error: () => this.error.set('Gagal memuat data. Silakan coba lagi.'),
-      });
-  }
-
-  private applyOverview(d: DashboardOverviewDTO): void {
-    // Charts
-    this.lineMonthly.set(d.salesTrend);
-    this.branchPerformance.set(d.salesByBranch);
-    this.modelDistribution.set(d.salesByModel);
-    this.afterSalesRealisasiVsTarget.set(d.afterSalesRealisasiVsTarget);
-    this.afterSalesProfitByBranch.set(d.afterSalesProfitByBranch);
-    this.afterSalesDistribution.set(d.afterSalesDistribution);
-
-    // KPI
-    this.kpiTotalUnitSales.set(d.totalUnitSales);
-    this.kpiTopModel.set(d.topModel);
-    this.kpiTopBranch.set(d.topBranch);
-    this.afterSalesKpi.set(d.afterSalesKpi);
-
-    // Persist once
-    if (d.salesTrend) this.state.saveLineMonthly(d.salesTrend);
-    if (d.salesByBranch) this.state.saveBranchPerformance(d.salesByBranch);
-    if (d.salesByModel) this.state.saveModelDistribution(d.salesByModel);
-    this.state.saveKpi({ totalUnitSales: d.totalUnitSales, topModel: d.topModel, topBranch: d.topBranch });
-    if (d.afterSalesKpi) this.state.saveAfterSalesKpi({
-      totalRevenueRealisasi: d.afterSalesKpi.totalRevenueRealisasi,
-      totalBiayaUsaha: d.afterSalesKpi.totalBiayaUsaha,
-      totalProfit: d.afterSalesKpi.totalProfit,
-      totalHariKerja: d.afterSalesKpi.totalHariKerja,
-      serviceCabang: d.afterSalesKpi.serviceCabang,
-      afterSalesRealisasi: d.afterSalesKpi.afterSalesRealisasi,
-      unitEntryRealisasi: d.afterSalesKpi.unitEntryRealisasi,
-      sparepartTunaiRealisasi: d.afterSalesKpi.sparepartTunaiRealisasi,
-      sparepartBengkelRealisasi: d.afterSalesKpi.sparepartBengkelRealisasi
-    });
-    if (d.afterSalesRealisasiVsTarget) this.state.saveAfterSalesRealisasiVsTarget(d.afterSalesRealisasiVsTarget);
-    if (d.afterSalesProfitByBranch) this.state.saveAfterSalesProfitByBranch(d.afterSalesProfitByBranch);
-    if (d.afterSalesDistribution) this.state.saveAfterSalesDistribution(d.afterSalesDistribution);
-  }
-
-  private resetSignals(): void {
-    this.kpiTotalUnitSales.set(0);
-    this.kpiTopModel.set(null);
-    this.kpiTopBranch.set(null);
-    this.lineMonthly.set(null);
-    this.branchPerformance.set(null);
-    this.modelDistribution.set(null);
-    this.afterSalesKpi.set(null);
-    this.afterSalesRealisasiVsTarget.set(null);
-    this.afterSalesProfitByBranch.set(null);
-    this.afterSalesDistribution.set(null);
-  }
-
-  private hydrateFromState(): void {
-    const f = this.state.getFilter();
-    if (f) this.prefilledFilter = f;
-
-    const line = this.state.getLineMonthly();
-    const bar = this.state.getBranchPerformance();
-    const pie = this.state.getModelDistribution();
-    if (line) this.lineMonthly.set(line);
-    if (bar) this.branchPerformance.set(bar);
-    if (pie) this.modelDistribution.set(pie);
-
-    if (this.state.hasKpi()) {
-      const k = this.state.getKpi();
-      this.kpiTotalUnitSales.set(k.totalUnitSales ?? 0);
-      this.kpiTopModel.set(k.topModel);
-      this.kpiTopBranch.set(k.topBranch);
-    }
-    if (this.state.hasAfterSalesKpi()) this.afterSalesKpi.set(this.state.getAfterSalesKpi());
-
-    const rvt = this.state.getAfterSalesRealisasiVsTarget();
-    const pbb = this.state.getAfterSalesProfitByBranch();
-    const asd = this.state.getAfterSalesDistribution();
-    if (rvt) this.afterSalesRealisasiVsTarget.set(rvt);
-    if (pbb) this.afterSalesProfitByBranch.set(pbb);
-    if (asd) this.afterSalesDistribution.set(asd);
+  // Mock search handler (does nothing with dummy data)
+  onSearch(filter: any): void {
+    console.log('Search clicked with filter:', filter);
+    console.log(this.prefilledFilter);
   }
 }

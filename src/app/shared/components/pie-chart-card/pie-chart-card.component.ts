@@ -229,17 +229,17 @@ export class PieChartCardComponent
         ],
       },
       options: {
-        responsive: true,
+        responsive: false,
         maintainAspectRatio: false,
         plugins: {
           legend: {
             display: this.showLegend,
-            position: 'bottom',
+            position: 'top',
             labels: {
-              padding: 4,
+              padding: 6,
               usePointStyle: true,
               font: {
-                size: 8,
+                size: 12,
               },
             },
           },

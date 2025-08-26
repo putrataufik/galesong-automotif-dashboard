@@ -106,17 +106,39 @@ export class BarChartCardComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (!this.isBrowser) return;
-    if (changes['labels'] || changes['data']) {
-      if (this.chart) {
-        this.chart.data.labels = this.labels;
-        this.chart.data.datasets[0].data = this.data;
-        this.chart.data.datasets[0].backgroundColor =
-          this.getBackgroundColors();
-        this.chart.update();
-      }
+  if (!this.isBrowser) return;
+
+  const needsRebuild =
+    changes['datasets'] ||
+    changes['chartData'] ||
+    changes['isMultiDataset'] ||
+    changes['horizontal'] ||
+    changes['title'];
+
+  const simpleUpdate =
+    !needsRebuild && (changes['labels'] || changes['data'] || changes['backgroundColor']);
+
+  if (this.chart && simpleUpdate) {
+    // mode single dataset
+    if (!this.isMultiDataset && !this.chartData?.datasets) {
+      this.chart.data.labels = this.labels;
+      this.chart.data.datasets[0].data = this.data;
+      this.chart.data.datasets[0].backgroundColor = this.getBackgroundColors();
+      this.chart.update();
+      return;
     }
   }
+
+  // untuk multi-dataset / perubahan besar → rebuild
+  if (needsRebuild) {
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = undefined;
+    }
+    this.buildChart();
+  }
+}
+
 
   ngOnDestroy(): void {
     if (this.chart) {

@@ -1,83 +1,62 @@
 @if (showAlert) {
-<div
-  class="position-fixed bottom-0 start-50 translate-middle-x mb-3"
-  style="z-index: 1050; width: 90%; max-width: 500px"
->
   <div
-    class="alert alert-{{ alertType }} alert-dismissible fade show shadow"
-    role="alert"
+    class="position-fixed bottom-0 start-50 translate-middle-x mb-2"
+    style="z-index:1050;width:90%;max-width:480px"
   >
-    <i
-      class="bi {{
-        alertType === 'success'
-          ? 'bi-check-circle-fill'
-          : 'bi-exclamation-triangle-fill'
-      }} me-2"
-    ></i>
-    {{ alertMessage }}
-    <button type="button" class="btn-close" (click)="hideAlert()"></button>
+    <div
+      class="alert alert-{{alertType}} alert-dismissible fade show shadow-sm py-2 px-3 small"
+      role="alert"
+    >
+      <i class="bi {{ alertType === 'success'
+            ? 'bi-check-circle-fill'
+            : 'bi-exclamation-triangle-fill' }} me-2"></i>
+      <span class="me-3">{{ alertMessage }}</span>
+      <button type="button" class="btn-close" (click)="hideAlert()"></button>
+    </div>
   </div>
-</div>
 }
 
-<!-- FILTER -->
-<div class="bg-white shadow-sm rounded-3 p-3">
-  <div class="row justify-content-center align-items-end g-3 mb-3">
+<!-- FILTER (compact) -->
+<div class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3">
+  <div class="row g-2 align-items-end">
     <!-- Perusahaan -->
-    <div class="col-md-3">
-      <label for="company" class="form-label small text-muted"
-        >Perusahaan</label
-      >
-      <select
-        id="company"
-        class="form-select"
-        [(ngModel)]="company"
-        (change)="onFilterChange()"
-      >
+    <div class="col-6 col-md-3">
+      <label for="company" class="form-label text-muted mb-1 small">Perusahaan</label>
+      <select id="company" class="form-select form-select-sm" [(ngModel)]="company" (change)="onFilterChange()">
         <option value="">Pilih Perusahaan</option>
         @for (c of companies; track c.value) {
-        <option [value]="c.value">{{ c.name }}</option>
+          <option [value]="c.value">{{ c.name }}</option>
         }
       </select>
     </div>
 
     <!-- Kategori -->
-    <div class="col-md-3">
-      <label for="category" class="form-label small text-muted">Kategori</label>
-      <select
-        id="category"
-        class="form-select"
-        [(ngModel)]="category"
-        (change)="onFilterChange()"
-      >
+    <div class="col-6 col-md-3">
+      <label for="category" class="form-label text-muted mb-1 small">Kategori</label>
+      <select id="category" class="form-select form-select-sm" [(ngModel)]="category" (change)="onFilterChange()">
         <option value="">Pilih Kategori</option>
         @for (k of categories; track k.value) {
-        <option [value]="k.value">{{ k.name }}</option>
+          <option [value]="k.value">{{ k.name }}</option>
         }
       </select>
     </div>
 
     <!-- Tahun -->
-    <div class="col-md-3">
-      <label for="period" class="form-label small text-muted">Tahun</label>
-      <select
-        id="period"
-        class="form-select"
-        [(ngModel)]="period"
-        (change)="onFilterChange()"
-      >
+    <div class="col-6 col-md-3">
+      <label for="period" class="form-label text-muted mb-1 small">Tahun</label>
+      <select id="period" class="form-select form-select-sm" [(ngModel)]="period" (change)="onFilterChange()">
         @for (p of periods; track p.value) {
-        <option [value]="p.value">{{ p.name }}</option>
+          <option [value]="p.value">{{ p.name }}</option>
         }
       </select>
     </div>
 
     <!-- Tombol Cari -->
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
       <div class="d-grid d-md-flex justify-content-md-end">
         <button
           type="button"
-          class="btn btn-primary px-4 py-2 w-100 w-md-auto"
+          class="btn btn-primary btn-sm w-100 w-md-auto px-3"
           (click)="onSearchClick()"
           [disabled]="loading"
         >

@@ -1,11 +1,33 @@
-/* Menyamakan tinggi input-group select dengan tampilan compact */
-.input-group > .form-select {
-    padding-top: .5rem;
-    padding-bottom: .5rem;
-  }
-  
-  /* Biar card filter terlihat “menempel” rapi pada layout */
-  :host ::ng-deep .bg-white.rounded-3.shadow-sm {
-    border: 1px solid rgba(0,0,0,.05);
-  }
-  
+/* Kecilkan gutter horizontal seluruh row di komponen ini */
+:host {
+  --bs-gutter-x: .5rem;
+}
+
+/* Kartu filter tampak rapat & rapi */
+.filter-card.compact {
+  border: 1px solid rgba(0,0,0,.06);
+}
+
+/* Label lebih kecil & rapat */
+.filter-card.compact .form-label {
+  margin-bottom: .25rem;
+  font-size: .8rem;
+}
+
+/* Kontrol input versi kecil */
+.filter-card.compact .form-select.form-select-sm {
+  padding: .25rem .5rem;     /* lebih tipis dari default */
+  line-height: 1.25;
+}
+
+/* Tombol kecil & rapat */
+.filter-card.compact .btn.btn-sm {
+  padding: .35rem .6rem;
+  line-height: 1.2;
+}
+
+/* Alert lebih compact */
+.alert.small {
+  font-size: .875rem;
+  padding: .5rem .75rem !important;
+}

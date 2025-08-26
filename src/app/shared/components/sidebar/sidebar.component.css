@@ -1,6 +1,6 @@
-/* Sidebar tanpa delay/transition */
+/* Compact Sidebar - Icon Only */
 .sidebar {
-  width: 200px !important;
+  width: 70px !important; /* Much smaller width */
   position: fixed !important;
   left: 0 !important;
   top: 0 !important;
@@ -10,29 +10,210 @@
   box-shadow: 2px 0 10px rgba(0,0,0,0.1) !important;
 }
 
-.nav-link:hover {
-  background-color: #f8f9fa !important;
+/* Logo Section */
+.logo-section {
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
-.nav-link.active {
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-favicon {
+  transition: transform 0.2s ease;
+}
+
+.logo-favicon:hover {
+  transform: scale(1.1);
+}
+
+/* Navigation Links - Icon Only */
+.nav-link-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.nav-link-icon:hover {
+  background-color: #f8f9fa !important;
+  transform: translateX(2px);
+}
+
+.nav-link-icon.active {
   background-color: #e3f2fd !important;
   color: #1976d2 !important;
 }
 
-.nav-link.active .pi {
+.nav-link-icon.active i {
   color: #1976d2 !important;
 }
 
-/* Mobile specific styles - TANPA TRANSITION */
+/* CSS-only Tooltip */
+.nav-tooltip {
+  position: absolute;
+  left: 60px; /* Position to the right of icon */
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #2c3e50;
+  color: white;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1060;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Tooltip arrow */
+.nav-tooltip::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 6px 6px 6px 0;
+  border-color: transparent #2c3e50 transparent transparent;
+}
+
+/* Show tooltip on hover - but NOT when active */
+.nav-link-icon:hover:not(.active) .nav-tooltip {
+  opacity: 1;
+  visibility: visible;
+  left: 65px; /* Slide in effect */
+}
+
+/* Mobile specific styles - TOP NAVIGATION */
 @media (max-width: 767.98px) {
-  .sidebar.mobile-hidden {
-    transform: translateX(-100%) !important;
-    /* Hapus transition untuk response instant */
+  .sidebar {
+    width: 100vw !important; /* Full width */
+    height: 70px !important; /* Fixed height */
+    left: 0 !important;
+    top: 0 !important;
+    bottom: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+    transform: none !important; /* Always visible */
   }
 
-  .sidebar:not(.mobile-hidden) {
-    transform: translateX(0) !important;
-    z-index: 1050 !important;
-    /* Hapus transition untuk response instant */
+  .sidebar.mobile-hidden {
+    transform: none !important; /* Override - always show */
+  }
+
+  /* Mobile: Horizontal layout */
+  .logo-section {
+    height: 70px;
+    position: absolute;
+    left: 16px;
+    width: auto;
+    border-bottom: none;
+  }
+
+  .logo-container {
+    justify-content: flex-start;
+  }
+
+  /* Mobile Navigation - Horizontal */
+  nav {
+    padding: 0 !important;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  nav ul {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+  }
+
+  nav li {
+    margin: 0 !important;
+    padding: 0 4px !important;
+  }
+
+  .nav-link-icon {
+    width: 48px !important;
+    height: 48px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    position: relative;
+  }
+
+  .nav-link-icon i {
+    font-size: 1.25rem !important;
+  }
+
+  /* Mobile tooltip - show below */
+  .nav-tooltip {
+    left: 50% !important;
+    top: 100% !important;
+    transform: translateX(-50%) translateY(8px) !important;
+    font-size: 0.75rem !important;
+    padding: 4px 8px !important;
+  }
+
+  /* Mobile tooltip arrow - point up */
+  .nav-tooltip::before {
+    left: 50% !important;
+    top: -6px !important;
+    transform: translateX(-50%) !important;
+    border-width: 0 6px 6px 6px !important;
+    border-color: transparent transparent #2c3e50 transparent !important;
+  }
+
+  /* Show mobile tooltip on hover (non-active) */
+  .nav-link-icon:hover:not(.active) .nav-tooltip {
+    opacity: 1;
+    visibility: visible;
+    left: 50% !important;
+    top: 100% !important;
+    transform: translateX(-50%) translateY(12px) !important;
+  }
+
+  /* Hide close button on mobile since we don't need it */
+  .btn[aria-label="Close"] {
+    display: none !important;
+  }
+}
+
+/* Focus states for accessibility - but NOT when active */
+.nav-link-icon:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+.nav-link-icon:focus:not(.active) .nav-tooltip {
+  opacity: 1;
+  visibility: visible;
+  left: 65px;
+}
+
+@media (max-width: 767.98px) {
+  .nav-link-icon:focus:not(.active) .nav-tooltip {
+    left: 50% !important;
+    top: 100% !important;
+    transform: translateX(-50%) translateY(12px) !important;
   }
 }

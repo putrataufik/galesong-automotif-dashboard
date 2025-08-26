@@ -165,7 +165,7 @@ export class LineChartCardComponent
         label: ds.label,
         data: ds.data,
         tension: ds.tension ?? 0.4,
-        fill: ds.fill ?? true,
+        fill: ds.fill ?? false,
         borderWidth: ds.borderWidth ?? 3,
         borderColor: ds.borderColor ?? (idx === 0 ? '#3b82f6' : '#ef4444'),
         backgroundColor:

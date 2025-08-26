@@ -1,8 +1,4 @@
 /* Hanya styling yang tidak bisa dilakukan dengan Bootstrap */
-.card:hover {
-  transform: translateY(-2px);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
 .section-sep {
   border-top: 3px groove rgba(0, 0, 0, 0.15);
   margin: 0.5rem 0 1.5rem;
@@ -25,3 +21,117 @@
   border-color: transparent transparent var(--bs-card-bg) transparent;
 }
     
+/* Fix Horizontal Scroll Issues */
+
+/* 1. Ensure body and html don't overflow */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* 2. Container fluid should not exceed viewport */
+.container-fluid {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.row > * {
+  padding-left: calc(var(--bs-gutter-x) * 0.5);
+  padding-right: calc(var(--bs-gutter-x) * 0.5);
+}
+
+/* 4. Fix potential text overflow in KPI cards */
+.kpi-card-compact {
+  overflow: hidden;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.kpi-card-compact * {
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+/* 5. Ensure titles don't cause overflow */
+.kpi-title-compact,
+.kpi-subtitle-compact {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 6. Fix chart containers */
+.chart-container {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* 7. Responsive adjustments for small screens */
+@media (max-width: 576px) {
+  
+  /* Reduce gap on small screens */
+  .row.g-2 {
+    --bs-gutter-x: 0.5rem;
+    --bs-gutter-y: 0.5rem;
+  }
+  
+  /* Ensure KPI cards don't overflow */
+  .kpi-card-compact {
+    min-width: 0; /* Allow shrinking */
+    flex-shrink: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Adjust gutters for tablet */
+  .row.g-4 {
+    --bs-gutter-x: 1rem;
+  }
+}
+
+/* Custom Bootstrap classes untuk 5 kolom */
+@media (min-width: 992px) {
+  .col-lg-5th {
+    flex: 0 0 auto;
+    width: 20%;
+  }
+}
+
+@media (min-width: 1200px) {
+  .col-xl-5th {
+    flex: 0 0 auto;
+    width: 20%;
+  }
+}
+
+@media (min-width: 1400px) {
+  .col-xxl-5th {
+    flex: 0 0 auto;
+    width: 20%;
+  }
+}
+
+/* 8. Fix potential filter component overflow */
+.form-select {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* 9. Ensure buttons don't cause overflow */
+.btn {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 10. Fix long titles in KPI cards */
+h4, h6 {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* 11. Chart responsive fix */
+canvas {
+  max-width: 100% !important;
+  height: auto !important;
+}

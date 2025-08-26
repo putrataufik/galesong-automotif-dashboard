@@ -2,7 +2,6 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
-import { HeaderComponent } from './shared/components/header/header.component';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -12,7 +11,7 @@ import { filter } from 'rxjs/operators';
     CommonModule, 
     RouterOutlet, 
     SidebarComponent,
-    HeaderComponent
+    // HeaderComponent removed - no longer needed
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
@@ -20,8 +19,8 @@ import { filter } from 'rxjs/operators';
 export class AppComponent {
   title = 'galesong-automotif-dashboard';
   
-  // Angular 19 signals untuk state management
-  private readonly _isSidebarCollapsed = signal(true); // Default collapsed di mobile
+  // Simplified - no need for sidebar collapsed state on mobile
+  private readonly _isSidebarCollapsed = signal(false);
   private readonly _isMobile = signal(false);
   private readonly _currentPageTitle = signal('Dashboard');
 
@@ -33,7 +32,7 @@ export class AppComponent {
       window.addEventListener('resize', () => this.checkIfMobile());
     }
 
-    // ✅ FIX: Listen untuk route changes untuk update page title
+    // Listen untuk route changes untuk update page title
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
@@ -46,17 +45,15 @@ export class AppComponent {
   isMobile = this._isMobile.asReadonly();
   currentPageTitle = this._currentPageTitle.asReadonly();
 
+  // Simplified toggle - no longer needed for mobile top nav
   toggleSidebar(): void {
-    // Hanya untuk mobile
-    if (this.isMobile()) {
-      this._isSidebarCollapsed.update(collapsed => !collapsed);
-    }
+    // No action needed since mobile uses top navigation
+    // Desktop sidebar is always visible
   }
 
+  // No longer needed
   closeSidebar(): void {
-    if (this.isMobile()) {
-      this._isSidebarCollapsed.set(true);
-    }
+    // No action needed
   }
 
   private checkIfMobile(): void {
@@ -64,12 +61,8 @@ export class AppComponent {
       const isMobile = window.innerWidth < 768;
       this._isMobile.set(isMobile);
       
-      // Set sidebar state berdasarkan device
-      if (isMobile) {
-        this._isSidebarCollapsed.set(true); // Collapsed di mobile
-      } else {
-        this._isSidebarCollapsed.set(false); // Always visible di desktop
-      }
+      // Desktop sidebar is always visible, mobile uses top nav
+      this._isSidebarCollapsed.set(false);
     }
   }
 
