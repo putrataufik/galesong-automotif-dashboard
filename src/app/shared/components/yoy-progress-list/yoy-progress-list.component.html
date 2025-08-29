@@ -1,0 +1,76 @@
+<div class="card border-0 shadow-sm p-2" >
+  
+  <!-- Card Title -->
+  <div class="card-title mb-2 text-center fw-semibold small text-dark">
+    {{ title }}
+  </div>
+
+  <!-- Header Labels (Desktop Only) -->
+  <div class="row d-none d-md-flex mb-2 px-1">
+    <div class="col-3"></div>
+    <div class="col-3 text-center">
+      <span class="badge-pill curr">{{ labelCurr }}</span>
+    </div>
+    <div class="col-3 text-center">
+      <span class="badge-pill prevY">{{ labelPrevY }}</span>
+    </div>
+    <div class="col-3 text-center" *ngIf="showPrevM">
+      <span class="badge-pill prevM">{{ labelPrevM }}</span>
+    </div>
+  </div>
+
+  <!-- Data Rows -->
+  <div class="list">
+    @for (item of rows; track item.name) {
+      <div class="row align-items-center py-1 px-1">
+        
+        <!-- Item Name -->
+        <div class="col-12 col-md-3 mb-1 mb-md-0">
+          <div class="text-truncate fw-semibold small" [title]="item.name">
+            {{ item.name }}
+          </div>
+        </div>
+
+        <!-- Current Period Bar -->
+        <div class="col-12 col-md-3 mb-1 mb-md-0">
+          <div class="bar bg-curr">
+            <div class="fill curr"
+                 [class.up]="item.curr >= (item.prevY || 0)"
+                 [class.down]="item.curr < (item.prevY || 0)"
+                 [style.width.%]="pctCurr(item.curr)">
+            </div>
+            <span class="val val-center">
+              {{ item.curr }} {{ unit }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Previous Year Bar -->
+        <div class="col-12 col-md-3 mb-1 mb-md-0">
+          <div class="bar bg-prevY">
+            <div class="fill prev" 
+                 [style.width.%]="pctPrevY(item.prevY || 0)">
+            </div>
+            <span class="val val-center">
+              {{ (item.prevY ?? '-') }} {{ unit }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Previous Month Bar (Optional) -->
+        <div class="col-12 col-md-3" *ngIf="showPrevM">
+          <div class="bar bg-prevM">
+            <div class="fill prevM" 
+                 [style.width.%]="pctPrevM(item.prevM || 0)">
+            </div>
+            <span class="val val-center">
+              {{ (item.prevM ?? '-') }} {{ unit }}
+            </span>
+          </div>
+        </div>
+        
+      </div>
+    }
+  </div>
+  
+</div>

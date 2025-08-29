@@ -44,8 +44,8 @@ Chart.register(
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body p-3">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-2">
         <div class="chart-container" [style.height.px]="height">
           <canvas #canvasRef></canvas>
         </div>
@@ -62,6 +62,7 @@ export class BarChartCardComponent
   @Input() data: number[] = [];
   @Input() height = 300;
   @Input() showLegend = false;
+  @Input() xTitle?: string; // ← New input for x-axis title
   @Input() backgroundColor?: string | string[]; // Allow single color or array
   @Input() borderColor?: string | string[];
   @Input() label = 'Data';
@@ -248,6 +249,10 @@ export class BarChartCardComponent
         },
         scales: {
           x: {
+            title: {
+              display: true,
+              text: this.xTitle || 'X-Axis',
+            },
             beginAtZero: this.horizontal ? true : false,
             grid: {
               display: this.horizontal ? true : false,

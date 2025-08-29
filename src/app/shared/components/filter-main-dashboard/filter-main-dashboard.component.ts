@@ -7,11 +7,13 @@ import {
   OnInit,
   OnChanges,
   OnDestroy,
+  NgZone,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppFilter, CategoryFilter } from '../../../types/filter.model';
 
-// Interface untuk opsi dropdown (company, category, period)
+// Interface opsi dropdown
 interface Option {
   value: string;
   name: string;
@@ -26,139 +28,166 @@ interface Option {
 })
 export class FilterMainDashboardComponent implements OnInit, OnChanges, OnDestroy {
   // Props dari parent
-  @Input() initialFilter: AppFilter | null = null;
+  @Input() currentFilter: AppFilter | null = null;   // ⬅️ renamed
   @Input() loading = false;
 
-  // Event emitter untuk mengirim filter ke parent
+  // Emit ke parent
   @Output() search = new EventEmitter<AppFilter>();
 
-  // Static data perusahaan
+  // Static data
   companies: Option[] = [
     { value: 'sinar-galesong-mobilindo', name: 'Sinar Galesong Mobilindo' },
   ];
 
-  // Static data kategori
   categories: Option[] = [
     { value: 'all-category', name: 'Semua Kategori' },
     { value: 'sales', name: 'Sales' },
     { value: 'after-sales', name: 'After Sales' },
   ];
 
-  // Periode tahun (generate dinamis)
-  periods: Option[] = this.generateYearPeriods();
+  // Branch/cabang (contoh statis; bisa diganti dari API)
+  branches: Option[] = [
+    { value: 'all-branch', name: 'Semua Cabang' },
+    { value: 'pettarani', name: 'Pettarani' },
+    { value: 'palu', name: 'Palu' },
+    { value: 'kendari', name: 'Kendari' },
+    { value: 'gorontalo', name: 'Gorontalo' },
+    { value: 'palopo', name: 'Palopo' },
+  ];
+
+  // Tahun & Bulan
+  years: Option[] = this.generateYearYears();
   months: Option[] = this.generateMonths();
 
-  // State untuk form filter (ngModel)
+  // State form (ngModel)
   company = '';
   category: CategoryFilter = 'all-category';
-  period = String(new Date().getFullYear());
-  month = 'all-month';
+  year = String(new Date().getFullYear());
+  month = 'all-month';     // default: Semua Bulan
+  branch = 'all-branch';   // default: Semua Cabang
+  compare = false; // ← baru
 
-  // State alert notifikasi
+  // Alert
   showAlert = false;
   alertMessage = '';
   alertType: 'success' | 'danger' = 'danger';
   private alertTimeoutId: any;
 
-  // Lifecycle: pertama kali komponen dibuat
+  constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {}
+
+  // Lifecycle
   ngOnInit() {
-    if (this.initialFilter) this.applyInitialFilter(this.initialFilter);
+    if (this.currentFilter) this.applyCurrentFilter(this.currentFilter);
   }
 
-  // Lifecycle: jika input berubah
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['initialFilter']) {
-      this.applyInitialFilter(changes['initialFilter'].currentValue);
+    if (changes['currentFilter']) {
+      this.applyCurrentFilter(changes['currentFilter'].currentValue);
     }
   }
 
-  // Lifecycle: sebelum komponen dihancurkan
   ngOnDestroy() {
     clearTimeout(this.alertTimeoutId);
   }
 
-  // Terapkan filter awal yang dikirim dari parent
-  private applyInitialFilter(filter: AppFilter | null) {
+  // Terapkan filter dari parent
+  private applyCurrentFilter(filter: AppFilter | null) {
     if (!filter) return;
 
-    this.company = filter.company ?? this.company;
+    this.company  = filter.company  ?? this.company;
     this.category = (filter.category ?? this.category) as CategoryFilter;
 
-    // Jika tahun dari filter tidak ada dalam list tahun, tambahkan secara dinamis
-    if (filter.period && !this.periods.find((p) => p.value === filter.period)) {
-      this.periods = [
-        { value: filter.period, name: filter.period },
-        ...this.periods,
-      ];
+    // Jika tahun tidak ada di list -> tambahkan
+    if (filter.year && !this.years.find((p) => p.value === filter.year)) {
+      this.years = [{ value: filter.year, name: filter.year }, ...this.years];
     }
 
-    this.period = filter.period ?? this.period;
-    this.month = filter.month ?? this.month;
+    this.year = filter.year ?? this.year;
+    this.month  = filter.month  ?? 'all-month';
+    this.branch = filter.branch ?? 'all-branch';
+    this.compare = !!filter.compare;
   }
 
-  // Buat daftar tahun (2022 - sekarang)
-  private generateYearPeriods(): Option[] {
+  // Generate list tahun (current -> 2022)
+  private generateYearYears(): Option[] {
     const currentYear = new Date().getFullYear();
-    const list: Option[] = [
-      { value: String(currentYear), name: `Tahun Ini (${currentYear})` },
-    ];
-
+    const list: Option[] = [{ value: String(currentYear), name: `Tahun Ini (${currentYear})` }];
     for (let y = currentYear - 1; y >= 2022; y--) {
       list.push({ value: String(y), name: String(y) });
     }
-
     return list;
   }
 
+  // Generate list bulan
   private generateMonths(): Option[] {
-    const names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const names = [
+      'Januari','Februari','Maret','April','Mei','Juni',
+      'Juli','Agustus','September','Oktober','November','Desember'
+    ];
     const opts: Option[] = [{ value: 'all-month', name: 'Semua Bulan' }];
     for (let i = 0; i < 12; i++) {
-      const v = String(i + 1).padStart(2, '0');
+      const v = String(i + 1).padStart(2, '0'); // "01".."12"
       opts.push({ value: v, name: names[i] });
     }
     return opts;
   }
 
-  // Saat salah satu filter diubah → reset alert
+  // Perubahan filter → reset alert
   onFilterChange() {
     if (this.showAlert) this.hideAlert();
   }
 
-  // Saat tombol cari ditekan
+  // Saat tahun berubah → set "Semua Bulan"
+  onYearChange() {
+    this.month = 'all-month';
+    this.onFilterChange();
+  }
+
+  // Saat perusahaan berubah → reset branch ke "Semua"
+  onCompanyChange() {
+    this.branch = 'all-branch';
+    this.onFilterChange();
+  }
+
+  // Klik cari
   onSearchClick() {
     const empty: string[] = [];
     if (!this.company) empty.push('Perusahaan');
-    if (!this.period) empty.push('Periode');
+    if (!this.year) empty.push('Tahun');
 
-    // Validasi: wajib pilih perusahaan dan periode
     if (empty.length) {
       this.show('Mohon lengkapi: ' + empty.join(', '), 'danger');
       return;
     }
 
-    // Emit ke parent
     this.search.emit({
       company: this.company,
       category: this.category,
-      period: this.period,
+      year: this.year,
       month: this.month,
+      branch: this.branch,
+      compare: this.compare,
     });
   }
 
-  // Sembunyikan alert secara manual
-  hideAlert() {
-    this.showAlert = false;
-  }
+  
 
-  // Tampilkan alert dengan pesan dan tipe
+  // Alert helpers
   private show(msg: string, type: 'success' | 'danger') {
     this.alertMessage = msg;
     this.alertType = type;
     this.showAlert = true;
 
-    // Auto-hide dalam 4 detik
     clearTimeout(this.alertTimeoutId);
-    this.alertTimeoutId = setTimeout(() => this.hideAlert(), 4000);
+    this.alertTimeoutId = setTimeout(() => {
+      this.ngZone.run(() => {
+        this.hideAlert();
+        this.cdr.markForCheck();
+      });
+    }, 4000);
+  }
+
+  hideAlert() {
+    this.showAlert = false;
   }
 }

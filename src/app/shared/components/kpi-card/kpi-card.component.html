@@ -1,41 +1,129 @@
-<!-- Compact KPI Card Component Template -->
-<div class="kpi-card-compact bg-white rounded-3 p-3 h-100 shadow-sm border-0 position-relative overflow-hidden">
-  
-  <!-- Icon positioned absolutely -->
-  <div
-    class="icon-badge position-absolute"
-    [style.background-color]="iconBgColor"
+<div
+  class="kpi-card-compact bg-white rounded-3 pt-4 px-3 pb-3 h-100 shadow-sm border-0 position-relative overflow-visible d-flex flex-column justify-content-center"
+>
+  <!-- Info button -->
+  <button
+    type="button"
+    class="btn btn-link p-0 m-0 info-btn position-absolute"
+    aria-label="Info"
+    (click)="toggleInfo($event)"
   >
-    <i [class]="icon" [style.color]="iconColor"></i>
+    <i class="bi bi-info-circle"></i>
+  </button>
+
+  <!-- Info bubble -->
+  <div class="info-bubble" *ngIf="showInfo()">
+    <div class="info-bubble__arrow"></div>
+    <div class="info-bubble__content">
+      <ng-container *ngIf="info && info.length; else defaultInfo">
+        {{ info }}
+      </ng-container>
+      <ng-template #defaultInfo>
+        {{ title }} — nilai saat ini dibandingkan YoY &amp; MoM mengikuti periode terpilih.
+      </ng-template>
+    </div>
   </div>
 
-  <!-- Content Container -->
-  <div class="content-compact">
-    <!-- Title -->
-    <div class="kpi-title-compact text-muted mb-1">
-      {{ title }}
-    </div>
+  <!-- === Compare ON === -->
+  <ng-container *ngIf="compare(); else normalBlock">
+    <div class="content-compact d-flex flex-column align-items-center justify-content-center gap-2 w-100">
+      <!-- Title -->
+      <div class="kpi-title-compact text-muted text-center text-uppercase">
+        {{ title }}
+      </div>
 
-    <!-- Value with Unit in same line -->
-    <div class="kpi-value-compact d-flex align-items-baseline justify-content-between">
-      <div class="value-section">
-        <span class="kpi-value fw-bold text-dark">
-          {{ formatValue(value) }}
-        </span>
-        <span class="kpi-unit text-muted ms-1" *ngIf="unit">
-          {{ unit }}
-        </span>
+      <!-- Current Value + Subtitle (inline) -->
+      <div class="text-center">
+        <div
+          class="d-flex justify-content-center align-items-center gap-1"
+          [ngClass]="selectedDir === 'up' ? 'kpi-up' : selectedDir === 'down' ? 'kpi-down' : 'kpi-flat'"
+        >
+          <span class="kpi-value">{{ formatValue(value) }}</span>
+          <small class="text-muted" *ngIf="subtitle">({{ subtitle }})</small>
+        </div>
+      </div>
+
+      <!-- Comparison -->
+      <div class="border-top pt-2 w-100">
+        <!-- YoY + MoM -->
+        <ng-container *ngIf="yoy && mom">
+          <div class="row g-2 text-center align-items-center">
+            <div class="col-6">
+              <div class="kpi-title-compact text-muted text-center text-uppercase">
+                {{ prevYearSubtitle || 'Prev Year' }}
+              </div>
+              <div class="d-flex justify-content-center align-items-center gap-1">
+                <ng-container *ngIf="prevYearLabel; else prevYValue">
+                  <span class="comparison-main-value">{{ prevYearLabel }}</span>
+                </ng-container>
+                <ng-template #prevYValue>
+                  <span class="comparison-main-value">{{ formatValueWithUnit(prevYearValue) }}</span>
+                </ng-template>
+              </div>
+            </div>
+            <div class="col-6 border-start">
+              <div class="kpi-title-compact text-muted text-center text-uppercase">
+                {{ prevMonthSubtitle || 'Prev Month' }}
+              </div>
+              <div class="d-flex justify-content-center align-items-center gap-1">
+                <ng-container *ngIf="prevMonthLabel; else prevMValue">
+                  <span class="comparison-main-value">{{ prevMonthLabel }}</span>
+                </ng-container>
+                <ng-template #prevMValue>
+                  <span class="comparison-main-value">{{ formatValueWithUnit(prevMonthValue) }}</span>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Hanya YoY (tahunan) -->
+        <ng-container *ngIf="yoy && !mom">
+          <div class="d-flex flex-column align-items-center text-center">
+            <div class="kpi-title-compact text-center">
+              {{ prevYearSubtitle || 'Prev Year' }}
+            </div>
+            <div class="d-flex justify-content-center align-items-center gap-1">
+              <ng-container *ngIf="prevYearLabel; else prevYOnlyValue">
+                <span class="comparison-main-value">{{ prevYearLabel }}</span>
+              </ng-container>
+              <ng-template #prevYOnlyValue>
+                <span class="comparison-main-value">{{ formatValueWithUnit(prevYearValue) }}</span>
+              </ng-template>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Keduanya tidak ada -->
+        <ng-container *ngIf="!yoy && !mom">
+          <div class="text-center text-muted">—</div>
+        </ng-container>
       </div>
     </div>
+  </ng-container>
 
-    <!-- Subtitle (smaller and minimal) -->
-    <div class="kpi-subtitle-compact text-muted mt-1" *ngIf="subtitle">
-      {{ subtitle }}
+  <!-- === Compare OFF === -->
+  <ng-template #normalBlock>
+    <div class="content-compact d-flex flex-column align-items-center justify-content-center gap-2 w-100 text-center">
+      <div class="kpi-title-compact text-muted text-uppercase">{{ title }}</div>
+      <div class="text-center">
+        <div
+          class="d-flex justify-content-center align-items-center gap-1"
+          [ngClass]="selectedDir === 'up' ? 'kpi-up' : selectedDir === 'down' ? 'kpi-down' : 'kpi-flat'"
+        >
+          <span class="kpi-value">{{ formatValue(value) }}</span>
+        </div>
+        <small class="text-muted" *ngIf="subtitle">{{ subtitle }}</small>
+      </div>
     </div>
-  </div>
+  </ng-template>
 
-  <!-- Loading State -->
-  <div *ngIf="loading" class="loading-overlay-compact position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75">
+  <!-- Loading -->
+  <div
+    *ngIf="loading"
+    class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
+    style="backdrop-filter: blur(1px)"
+  >
     <div class="spinner-border spinner-border-sm text-primary" role="status">
       <span class="visually-hidden">Loading...</span>
     </div>

@@ -1,40 +1,103 @@
 @if (showAlert) {
+<div
+  class="position-fixed bottom-0 start-50 translate-middle-x mb-2"
+  style="z-index: 1050; width: 90%; max-width: 420px"
+  role="status"
+  aria-live="polite"
+>
   <div
-    class="position-fixed bottom-0 start-50 translate-middle-x mb-2"
-    style="z-index:1050;width:90%;max-width:480px"
+    class="alert alert-{{
+      alertType
+    }} alert-dismissible fade show shadow-sm py-2 px-3 small"
   >
-    <div
-      class="alert alert-{{alertType}} alert-dismissible fade show shadow-sm py-2 px-3 small"
-      role="alert"
-    >
-      <i class="bi {{ alertType === 'success'
-            ? 'bi-check-circle-fill'
-            : 'bi-exclamation-triangle-fill' }} me-2"></i>
-      <span class="me-3">{{ alertMessage }}</span>
-      <button type="button" class="btn-close" (click)="hideAlert()"></button>
-    </div>
+    <i
+      class="bi {{
+        alertType === 'success'
+          ? 'bi-check-circle-fill'
+          : 'bi-exclamation-triangle-fill'
+      }} me-2"
+      aria-hidden="true"
+    ></i>
+    <span class="me-3">{{ alertMessage }}</span>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="hideAlert()"
+      aria-label="Tutup"
+    ></button>
   </div>
+</div>
 }
 
-<!-- FILTER (compact) -->
-<div class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3">
-  <div class="row g-2 align-items-end">
+<section
+  class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3"
+  role="search"
+  aria-label="Filter Dashboard"
+>
+  <!-- Header dengan toggle -->
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-funnel" aria-hidden="true"></i>
+      <span class="fw-semibold small">Filter</span>
+    </div>
+    <div class="form-check form-switch m-0">
+      <input
+        class="form-check-input form-check-input-sm"
+        type="checkbox"
+        id="compareSwitch"
+        [(ngModel)]="compare"
+        (change)="onFilterChange()"
+      />
+      <label class="form-check-label small ms-1" for="compareSwitch">
+        Komparasi
+      </label>
+    </div>
+  </div>
+
+  <!-- BARIS: 5 pilihan + 1 tombol, semuanya center -->
+  <div class="row g-1 g-md-2 align-items-end justify-content-center">
     <!-- Perusahaan -->
-    <div class="col-6 col-md-3">
-      <label for="company" class="form-label text-muted mb-1 small">Perusahaan</label>
-      <select id="company" class="form-select form-select-sm" [(ngModel)]="company" (change)="onFilterChange()">
-        <option value="">Pilih Perusahaan</option>
+    <div class="col-6 col-md-2">
+      <label for="company" class="form-label mb-1 small">
+        Perusahaan<span class="text-danger">*</span>
+      </label>
+      <select
+        id="company"
+        class="form-select form-select-sm"
+        [(ngModel)]="company"
+        (change)="onCompanyChange()"
+      >
+        <option value="">Pilih</option>
         @for (c of companies; track c.value) {
           <option [value]="c.value">{{ c.name }}</option>
         }
       </select>
     </div>
 
+    <!-- Cabang -->
+    <div class="col-6 col-md-2">
+      <label for="branch" class="form-label mb-1 small">Cabang</label>
+      <select
+        id="branch"
+        class="form-select form-select-sm"
+        [(ngModel)]="branch"
+        (change)="onFilterChange()"
+      >
+        @for (b of branches; track b.value) {
+          <option [value]="b.value">{{ b.name }}</option>
+        }
+      </select>
+    </div>
+
     <!-- Kategori -->
-    <div class="col-6 col-md-3">
-      <label for="category" class="form-label text-muted mb-1 small">Kategori</label>
-      <select id="category" class="form-select form-select-sm" [(ngModel)]="category" (change)="onFilterChange()">
-        <option value="">Pilih Kategori</option>
+    <div class="col-6 col-md-2">
+      <label for="category" class="form-label mb-1 small">Kategori</label>
+      <select
+        id="category"
+        class="form-select form-select-sm"
+        [(ngModel)]="category"
+        (change)="onFilterChange()"
+      >
         @for (k of categories; track k.value) {
           <option [value]="k.value">{{ k.name }}</option>
         }
@@ -42,27 +105,47 @@
     </div>
 
     <!-- Tahun -->
-    <div class="col-6 col-md-3">
-      <label for="period" class="form-label text-muted mb-1 small">Tahun</label>
-      <select id="period" class="form-select form-select-sm" [(ngModel)]="period" (change)="onFilterChange()">
-        @for (p of periods; track p.value) {
+    <div class="col-6 col-md-2">
+      <label for="year" class="form-label mb-1 small">
+        Tahun<span class="text-danger">*</span>
+      </label>
+      <select
+        id="year"
+        class="form-select form-select-sm"
+        [(ngModel)]="year"
+        (change)="onYearChange()"
+      >
+        @for (p of years; track p.value) {
           <option [value]="p.value">{{ p.name }}</option>
         }
       </select>
     </div>
 
+    <!-- Bulan -->
+    <div class="col-6 col-md-2">
+      <label for="month" class="form-label mb-1 small">Bulan</label>
+      <select
+        id="month"
+        class="form-select form-select-sm"
+        [(ngModel)]="month"
+        (change)="onFilterChange()"
+      >
+        @for (m of months; track m.value) {
+          <option [value]="m.value">{{ m.name }}</option>
+        }
+      </select>
+    </div>
+
     <!-- Tombol Cari -->
-    <div class="col-6 col-md-3">
-      <div class="d-grid d-md-flex justify-content-md-end">
-        <button
-          type="button"
-          class="btn btn-primary btn-sm w-100 w-md-auto px-3"
-          (click)="onSearchClick()"
-          [disabled]="loading"
-        >
-          <i class="bi bi-search me-1"></i> Cari
-        </button>
-      </div>
+    <div class="col-6 col-md-2 d-flex align-items-end">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm w-100"
+        (click)="onSearchClick()"
+        [disabled]="loading || !company || !year"
+      >
+        <i class="bi bi-search me-1"></i> Cari
+      </button>
     </div>
   </div>
-</div>
+</section>

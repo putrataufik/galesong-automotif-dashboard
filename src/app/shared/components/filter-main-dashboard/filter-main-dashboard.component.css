@@ -1,33 +1,8 @@
-/* Kecilkan gutter horizontal seluruh row di komponen ini */
-:host {
-  --bs-gutter-x: .5rem;
-}
+.filter-card.compact .form-label { margin-bottom: .125rem; font-weight: 600; }
+.filter-card.compact .form-select-sm { padding-top: .25rem; padding-bottom: .25rem; }
+.filter-card.compact .form-check-input { transform: scale(.9); }
 
-/* Kartu filter tampak rapat & rapi */
-.filter-card.compact {
-  border: 1px solid rgba(0,0,0,.06);
-}
-
-/* Label lebih kecil & rapat */
-.filter-card.compact .form-label {
-  margin-bottom: .25rem;
-  font-size: .8rem;
-}
-
-/* Kontrol input versi kecil */
-.filter-card.compact .form-select.form-select-sm {
-  padding: .25rem .5rem;     /* lebih tipis dari default */
-  line-height: 1.25;
-}
-
-/* Tombol kecil & rapat */
-.filter-card.compact .btn.btn-sm {
-  padding: .35rem .6rem;
-  line-height: 1.2;
-}
-
-/* Alert lebih compact */
-.alert.small {
-  font-size: .875rem;
-  padding: .5rem .75rem !important;
+.form-check-input-sm {
+  width: 2rem;
+  height: 1rem;
 }

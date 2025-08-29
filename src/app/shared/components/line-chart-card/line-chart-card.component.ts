@@ -78,6 +78,8 @@ export class LineChartCardComponent
 
   @Input() height = 280;
   @Input() showLegend = false;
+  @Input() xtitle = '';
+  @Input() ytitle = '';
 
   @ViewChild('canvasRef', { static: false })
   canvasRef?: ElementRef<HTMLCanvasElement>;
@@ -143,8 +145,8 @@ export class LineChartCardComponent
         },
         interaction: { mode: 'index', intersect: false },
         scales: {
-          x: { grid: { display: false }, ticks: { autoSkip: true, maxRotation: 0 } },
-          y: {
+          x: { title: { display: true, text: this.xtitle }, grid: { display: false }, ticks: { autoSkip: true, maxRotation: 0 } },
+          y: { title: { display: true, text: this.ytitle },
             beginAtZero: true,
             ticks: { precision: 0 },
             grid: { color: 'rgba(0,0,0,0.05)' },
