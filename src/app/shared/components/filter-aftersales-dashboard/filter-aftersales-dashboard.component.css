@@ -3,6 +3,25 @@
     padding-top: .5rem;
     padding-bottom: .5rem;
   }
+/* Bikin tampilan compact dan konsisten */
+.filter-item .form-label {
+  margin-bottom: .25rem;
+  font-weight: 600;
+}
+
+/* Supaya tidak terlalu sempit di layar kecil, tapi tetap fleksibel */
+.filter-item { min-width: 160px; }
+
+/* Rapikan switch agar sejajar vertikal dengan input lain */
+.form-check-input {
+  transform: scale(0.95);
+}
+
+/* Alert close button kecil */
+.alert .btn-close {
+  box-shadow: none;
+}
+
   
   /* Biar card filter terlihat “menempel” rapi pada layout */
   :host ::ng-deep .bg-white.rounded-3.shadow-sm {

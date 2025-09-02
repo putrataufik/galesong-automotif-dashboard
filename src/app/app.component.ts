@@ -27,16 +27,33 @@ export class AppComponent {
   constructor(private router: Router) {
     this.checkIfMobile();
     
-    // Listen untuk window resize
     if (typeof window !== 'undefined') {
       window.addEventListener('resize', () => this.checkIfMobile());
+      
+      // Fix tooltip issue
+      this.disableTooltips();
     }
 
-    // Listen untuk route changes untuk update page title
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.updatePageTitle(event.url);
+      // Re-disable tooltips after route change
+      setTimeout(() => this.disableTooltips(), 100);
+    });
+  }
+
+   private disableTooltips(): void {
+    // Remove all title attributes that cause native tooltips
+    const elementsWithTitle = document.querySelectorAll('[title]');
+    elementsWithTitle.forEach(element => {
+      element.removeAttribute('title');
+    });
+
+    // Disable Bootstrap tooltips if present
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipTriggerList.forEach(element => {
+      element.removeAttribute('data-bs-toggle');
     });
   }
 

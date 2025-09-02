@@ -28,33 +28,13 @@
   </div>
 </div>
 }
-
 <section
   class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3"
   role="search"
   aria-label="Filter Dashboard"
 >
-  <!-- Header dengan toggle -->
-  <div class="d-flex align-items-center justify-content-between mb-2">
-    <div class="d-flex align-items-center gap-2">
-      <i class="bi bi-funnel" aria-hidden="true"></i>
-      <span class="fw-semibold small">Filter</span>
-    </div>
-    <div class="form-check form-switch m-0">
-      <input
-        class="form-check-input form-check-input-sm"
-        type="checkbox"
-        id="compareSwitch"
-        [(ngModel)]="compare"
-        (change)="onFilterChange()"
-      />
-      <label class="form-check-label small ms-1" for="compareSwitch">
-        Komparasi
-      </label>
-    </div>
-  </div>
-
-  <!-- BARIS: 5 pilihan + 1 tombol, semuanya center -->
+  
+  <!-- BARIS: 5 pilihan + 1 toggle + 1 tombol, semuanya center -->
   <div class="row g-1 g-md-2 align-items-end justify-content-center">
     <!-- Perusahaan -->
     <div class="col-6 col-md-2">
@@ -69,11 +49,10 @@
       >
         <option value="">Pilih</option>
         @for (c of companies; track c.value) {
-          <option [value]="c.value">{{ c.name }}</option>
+        <option [value]="c.value">{{ c.name }}</option>
         }
       </select>
     </div>
-
     <!-- Cabang -->
     <div class="col-6 col-md-2">
       <label for="branch" class="form-label mb-1 small">Cabang</label>
@@ -84,11 +63,10 @@
         (change)="onFilterChange()"
       >
         @for (b of branches; track b.value) {
-          <option [value]="b.value">{{ b.name }}</option>
+        <option [value]="b.value">{{ b.name }}</option>
         }
       </select>
     </div>
-
     <!-- Kategori -->
     <div class="col-6 col-md-2">
       <label for="category" class="form-label mb-1 small">Kategori</label>
@@ -99,11 +77,10 @@
         (change)="onFilterChange()"
       >
         @for (k of categories; track k.value) {
-          <option [value]="k.value">{{ k.name }}</option>
+        <option [value]="k.value">{{ k.name }}</option>
         }
       </select>
     </div>
-
     <!-- Tahun -->
     <div class="col-6 col-md-2">
       <label for="year" class="form-label mb-1 small">
@@ -116,11 +93,10 @@
         (change)="onYearChange()"
       >
         @for (p of years; track p.value) {
-          <option [value]="p.value">{{ p.name }}</option>
+        <option [value]="p.value">{{ p.name }}</option>
         }
       </select>
     </div>
-
     <!-- Bulan -->
     <div class="col-6 col-md-2">
       <label for="month" class="form-label mb-1 small">Bulan</label>
@@ -131,13 +107,25 @@
         (change)="onFilterChange()"
       >
         @for (m of months; track m.value) {
-          <option [value]="m.value">{{ m.name }}</option>
+        <option [value]="m.value">{{ m.name }}</option>
         }
       </select>
     </div>
-
+    <!-- Toggle Komparasi -->
+    <div class="col-6 col-md-1">
+      <label class="form-label mb-1 small d-block">Komparasi</label>
+      <div class="form-check form-switch d-flex justify-content-start">
+        <input
+          class="form-check-input form-check-input-sm"
+          type="checkbox"
+          id="compareSwitch"
+          [(ngModel)]="compare"
+          (change)="onFilterChange()"
+        />
+      </div>
+    </div>
     <!-- Tombol Cari -->
-    <div class="col-6 col-md-2 d-flex align-items-end">
+    <div class="col-6 col-md-1 d-flex align-items-end">
       <button
         type="button"
         class="btn btn-primary btn-sm w-100"

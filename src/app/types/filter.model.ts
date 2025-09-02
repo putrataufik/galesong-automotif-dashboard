@@ -32,18 +32,20 @@ export interface AppFilter {
  * Informasi filter yang sudah terformat untuk ditampilkan ke UI.
  */
 export interface FilterInfo {
-  /** Tahun dalam format YYYY */
-  year: string;
-
-  /** Bulan dalam format "01".."12" atau "all-month" */
-  month: string;
-
-  /** Kategori dalam bentuk enum kapital untuk konsistensi tampilan */
+  year: string;                      // YYYY
+  month: string | null;                     // "01".."12" atau "all-month"
   category: 'SALES' | 'AFTER_SALES' | 'ALL';
-
-  /** Nama perusahaan yang ditampilkan di UI */
   companyName: string;
-
-  /** Nama cabang yang ditampilkan di UI */
   branchName: string;
+}
+
+export interface FilterInfoUI extends FilterInfo {
+  /** Jika month = 'all-month' → null */
+  month: string | null;
+  /** “Periode data 2025–Agustus” atau “Periode data 2025” */
+  periodLabel: string;
+  /** Compare flag dari filter */
+  compareActive: boolean;
+  /** “Aktif” | “Tidak Aktif” */
+  compareLabel: 'Aktif' | 'Tidak Aktif';
 }

@@ -65,7 +65,6 @@ export class MainDashboardComponent implements OnInit {
   error = signal<string | null>(null);
   hasData = signal(true);
   isDataEmpty = signal(false);
-
   readonly formatCompactCurrency = fmtCurrency;
   readonly stringifyUnit = stringifyUnitFn;
 
@@ -78,7 +77,6 @@ export class MainDashboardComponent implements OnInit {
     branch: 'all-branch',
     compare: false,
   };
-
   // ==== SALES KPI ====
   salesKpi = signal<any | null>(SALES_KPI_DUMMY);
 
@@ -259,13 +257,120 @@ getModelDistributionPrevLabels(): { prevY?: string; prevM?: string } {
 
   ngOnInit(): void {}
 
+  getCompanyDisplayName(company: string): string {
+    const companyMap: Record<string, string> = {
+      'sinar-galesong-mobilindo': 'Sinar Galesong Mobilindo',
+      'pt-galesong-otomotif': 'PT Galesong Otomotif',
+      'all-company': 'Semua Perusahaan'
+    };
+    return companyMap[company] || company;
+  }
+
+  /**
+   * Get display name for category filter
+   */
+  getCategoryDisplayName(category: string): string {
+    const categoryMap: Record<string, string> = {
+      'all-category': 'Semua Kategori',
+      'sales': 'Sales',
+      'after-sales': 'After Sales'
+    };
+    return categoryMap[category] || category;
+  }
+
+  /**
+   * Get display name for branch filter
+   */
+  getBranchDisplayName(branch: string): string {
+    const branchMap: Record<string, string> = {
+      'all-branch': 'Semua Cabang',
+      'pettarani': 'Pettarani',
+      'palopo': 'Palopo',
+      'kendari': 'Kendari',
+      'palu': 'Palu',
+      'manado': 'Manado'
+    };
+    return branchMap[branch] || branch;
+  }
+
+  /**
+   * Get display name for period (year + month)
+   */
+  getPeriodDisplayName(): string {
+    const year = this.currentFilter.year;
+    const month = this.currentFilter.month;
+
+    const monthMap: Record<string, string> = {
+      'all-month': 'Semua Bulan',
+      '01': 'Januari',
+      '02': 'Februari',
+      '03': 'Maret',
+      '04': 'April',
+      '05': 'Mei',
+      '06': 'Juni',
+      '07': 'Juli',
+      '08': 'Agustus',
+      '09': 'September',
+      '10': 'Oktober',
+      '11': 'November',
+      '12': 'Desember'
+    };
+
+    const yearDisplay = year || 'Semua Tahun';
+    const monthDisplay = monthMap[month || 'all-month'] || month;
+
+    if (month === 'all-month' || !month) {
+      return yearDisplay;
+    }
+
+    return `${monthDisplay} ${yearDisplay}`;
+  }
+
+  /**
+   * Override the onSearch method to include timestamp
+   */
   onSearch(filter: AppFilter): void {
     this.currentFilter = { ...filter };
+  
+    
     // ---- DEBUG LOGS ----
     console.group('[Dashboard] Filter applied');
     console.table(filter);
     console.log('As JSON:', JSON.stringify(filter, null, 2));
     console.log('Resolved periodForCards:', this.periodForCards);
     console.groupEnd();
+  }
+
+  /**
+   * Clear all filters (optional method for reset functionality)
+   */
+  clearFilters(): void {
+    this.currentFilter = {
+      company: 'sinar-galesong-mobilindo',
+      category: 'all-category',
+      year: '2025',
+      month: 'all-month',
+      branch: 'all-branch',
+      compare: false,
+    };
+  }
+
+  /**
+   * Get filter summary for display
+   */
+  getFilterSummary(): string {
+    const parts: string[] = [];
+    
+    if (this.currentFilter.category !== 'all-category') {
+      parts.push(this.getCategoryDisplayName(this.currentFilter.category));
+    }
+    
+    if (this.currentFilter.branch !== 'all-branch') {
+      parts.push(this.getBranchDisplayName(this.currentFilter.branch));
+    }
+    
+    parts.push(this.getPeriodDisplayName());
+    
+    return parts.join(' • ');
   }
 }

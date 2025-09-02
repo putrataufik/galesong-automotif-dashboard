@@ -1,10 +1,10 @@
 <div class="container-fluid p-4">
   <!-- Header -->
   <div class="row mb-2">
-    <div class="col-12">
-      <h6 class="fw-bold text-dark">
+    <div class="col-12 text-center">
+      <h5 class="fw-bold text-dark mb-3">
         Dashboard <span class="text-primary">Galesong Otomotif</span>
-      </h6>
+      </h5>
     </div>
   </div>
 
@@ -19,15 +19,49 @@
     </div>
   </div>
 
+  <!-- Alternative: Breadcrumb Style Filter Display -->
+  <div class="row">
+    <div class="col-12">
+      <nav aria-label="Filter breadcrumb">
+        <ol class="breadcrumb mb-0 bg-light rounded">
+          <li class="breadcrumb-item">
+            <i class="bi bi-funnel me-1"></i>
+            Filter
+          </li>
+          <li class="breadcrumb-item">
+            <strong>{{ getCompanyDisplayName(currentFilter.company) }}</strong>
+          </li>
+          <li class="breadcrumb-item">
+            {{ getBranchDisplayName(currentFilter.branch) }}
+          </li>
+          <li class="breadcrumb-item">
+            {{ getCategoryDisplayName(currentFilter.category) }}
+          </li>
+          <li class="breadcrumb-item" aria-current="page">
+            {{ getPeriodDisplayName() }}
+
+            @if (currentFilter.compare) { |
+            <span class="breadcrumb-item active">Komparasi Data</span>
+            }
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
   <!-- ===================== SALES SECTION ===================== -->
   @if (currentFilter.category === 'sales' || currentFilter.category ===
   'all-category') { @if (hasData()) { @if (salesKpi(); as sales) {
 
   <div class="row g-2 mb-2">
     <div class="col-12">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-speedometer2 text-info me-2 fs-5"></i>
-        <h6 class="mb-0 fw-bold text-dark">Sales Performance</h6>
+      <div
+        class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
+      >
+        <div class="d-flex align-items-center">
+          <i class="bi bi-speedometer2 text-info me-2 fs-5"></i>
+          <h6 class="mb-0 fw-bold text-dark">Sales Performance</h6>
+        </div>
       </div>
     </div>
 

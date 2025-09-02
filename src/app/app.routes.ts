@@ -1,9 +1,7 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', 
-    redirectTo: 'dashboard', 
-    pathMatch: 'full' },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   {
     path: 'dashboard',
     loadComponent: () =>
@@ -18,6 +16,13 @@ export const routes: Routes = [
       import(
         './pages/after-sales-dashboard/after-sales-dashboard.component'
       ).then((m) => m.AfterSalesDashboardComponent),
+  },
+  {
+    path: 'sales-dashboard',
+    loadComponent: () =>
+      import('./pages/sales-dashboard/sales-dashboard.component').then(
+        (m) => m.SalesDashboardComponent
+      ),
   },
   {
     path: 'finance-dashboard',

@@ -99,6 +99,7 @@ export class AfterSalesDashboardComponent implements OnInit {
   });
 
   legendOpen = false;
+  
 
   toggleLegend(event: MouseEvent) {
     event.stopPropagation(); // cegah close karena click document
@@ -121,6 +122,78 @@ export class AfterSalesDashboardComponent implements OnInit {
   // --------------------------
   ngOnInit(): void {
     this.hydrateFromState();
+  }
+  getCompanyDisplayName(company: string): string {
+    const companyMap: Record<string, string> = {
+      'sinar-galesong-mobilindo': 'Sinar Galesong Mobilindo',
+      'pt-galesong-otomotif': 'PT Galesong Otomotif',
+      'all-company': 'Semua Perusahaan'
+    };
+    return companyMap[company] || company;
+  }
+
+  /**
+   * Get display name for category filter
+   */
+  getCategoryDisplayName(category: string): string {
+    const categoryMap: Record<string, string> = {
+      'all-category': 'Semua Kategori',
+      'sales': 'Sales',
+      'after-sales': 'After Sales'
+    };
+    return categoryMap[category] || category;
+  }
+
+  /**
+   * Get display name for branch filter
+   */
+  getBranchDisplayName(branch: string): string {
+    const branchMap: Record<string, string> = {
+      'all-cabang': 'Semua Cabang',
+      '0050': 'Pettarani',
+      '0051': 'Palu',
+      '0052': 'Kendari',
+      '0053': 'Gorontalo',
+      '0054': 'Palopo',
+    };
+    return branchMap[branch] || branch;
+  }
+
+  /**
+   * Get display name for period (year + month)
+   */
+  getPeriodDisplayName(): string {
+    const year = this.currentFilter()?.period;
+    const month = this.currentFilter()?.month;
+
+    const monthMap: Record<string, string> = {
+      'all-month': 'Semua Bulan',
+      '01': 'Januari',
+      '02': 'Februari',
+      '03': 'Maret',
+      '04': 'April',
+      '05': 'Mei',
+      '06': 'Juni',
+      '07': 'Juli',
+      '08': 'Agustus',
+      '09': 'September',
+      '10': 'Oktober',
+      '11': 'November',
+      '12': 'Desember'
+    };
+
+    const yearDisplay = year || 'Semua Tahun';
+    const monthDisplay = monthMap[month || 'all-month'] || month;
+
+    if (month === 'all-month' || !month) {
+      return yearDisplay;
+    }
+
+    return `${monthDisplay} ${yearDisplay}`;
+  }
+
+  get compare(): boolean {
+    return this.currentFilter()?.compare ?? false;
   }
 
   private makeRevenueChart(
@@ -386,12 +459,6 @@ export class AfterSalesDashboardComponent implements OnInit {
     this.sisaHariKerja = sisaHariState.selectedValue;
     this.showSisaHariKerja.set(sisaHariState.isVisible);
   }
-  // --------------------------
-  // Debug & Reset
-  // --------------------------
-  // logCurrentState(): void {
-  //   this.afterSalesState.logState();
-  // }
 
   clearAllData(): void {
     this.afterSalesState.clearAll();

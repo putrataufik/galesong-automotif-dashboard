@@ -19,7 +19,7 @@
 }
 
 .chip-title {
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   font-weight: 600;
   text-align: center;
   flex-grow: 1;
@@ -27,27 +27,34 @@
 
 /* Content Section */
 .content-section {
-  padding: 5px;
+  padding: 8px 8px 10px;
 }
 
 /* Percentage Display */
 .percentage-display {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: #242424;
-  margin-bottom: 5px;
+  margin-bottom: 0; /* Hilangkan margin-bottom */
   line-height: 1;
   animation: countUp 0.6s ease-out;
+
+  /* Tambahan untuk center vertikal */
+  min-height: 60px; /* Sesuaikan dengan tinggi area detail */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
 }
 
 /* Progress Bar */
 .progress {
-  height: 30px;
+  height: 25px;
   background-color: #878787;
   margin-bottom: 0px;
   position: relative;
-  overflow: hidden;            /* ← penting: potong isi agar mengikuti pil */
-  border-radius: 9999px;       /* ← radius hanya di track */
+  overflow: hidden; /* ← penting: potong isi agar mengikuti pil */
+  border-radius: 9999px; /* ← radius hanya di track */
 }
 
 /* Hindari radius di bar agar ujung kanan tidak membulat ketika kecil */
@@ -57,7 +64,6 @@
   height: 100%;
 }
 
-
 /* Teks di tengah progress */
 .progress-text {
   position: absolute;
@@ -65,7 +71,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: #ffffff;
   z-index: 2;
@@ -74,14 +80,13 @@
 
 /* Detail Rows */
 
-
 .detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 4px 0;
   border-bottom: 1px solid #e5e5e5;
-  font-size: 0.6rem;
+  font-size: 1rem;
 }
 
 .detail-row:last-child {
@@ -91,11 +96,11 @@
 .detail-row span:first-child {
   color: #6c757d;
   font-weight: 500;
-  font-size: 0.6rem;
+  font-size: 0.8rem;
 }
 
 .detail-row span:last-child {
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   font-weight: bold;
 }
 
@@ -139,4 +144,24 @@
   .percentage-display {
     font-size: 1.8rem;
   }
+}
+
+/* Label periode (badge di kiri, rapih) */
+.period-label{
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .125rem 0;
+}
+
+/* Soft badges (kalau belum ada) */
+.badge-soft-primary{ background:#e0f2fe; color:#0c4a6e; font-size:.75rem; }
+.badge-soft-warning{ background:#fff1c2; color:#92400e; font-size:.75rem; }
+
+/* Garis pemisah halus antar-periode */
+.period-sep{
+  border: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #000000, transparent);
+  margin: .5rem 0;
 }

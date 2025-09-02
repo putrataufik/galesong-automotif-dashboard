@@ -18,6 +18,7 @@ export interface AfterSalesFilter {
   cabang: string;
   period: string;
   month: string;
+  compare?: boolean;
 }
 
 // Interface untuk opsi dropdown
@@ -33,7 +34,9 @@ interface Option {
   templateUrl: './filter-aftersales-dashboard.component.html',
   styleUrl: './filter-aftersales-dashboard.component.css',
 })
-export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, OnDestroy {
+export class FilterAftersalesDashboardComponent
+  implements OnInit, OnChanges, OnDestroy
+{
   // Props dari parent
   @Input() initialFilter: AfterSalesFilter | null = null;
   @Input() loading = false;
@@ -63,12 +66,13 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
   // Periode tahun (generate dinamis)
   periods: Option[] = this.generateYearPeriods();
   months: Option[] = this.generateMonths();
-
+  
   // State untuk form filter (ngModel)
   company = '';
   cabang = 'all-cabang';
   period = String(new Date().getFullYear());
   month = this.getCurrentMonth(); // ✅ Default ke bulan saat ini
+  compare = false; // ← baru
 
   // State alert notifikasi
   showAlert = false;
@@ -117,6 +121,7 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
 
     this.period = filter.period ?? this.period;
     this.month = filter.month ?? this.month;
+    this.compare = !!filter.compare;
   }
 
   // Buat daftar tahun (2022 - sekarang)
@@ -134,7 +139,20 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
   }
 
   private generateMonths(): Option[] {
-    const names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const names = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
     const opts: Option[] = [{ value: 'all-month', name: 'Semua Bulan' }];
     for (let i = 0; i < 12; i++) {
       const v = String(i + 1).padStart(2, '0');
@@ -183,6 +201,7 @@ export class FilterAftersalesDashboardComponent implements OnInit, OnChanges, On
       cabang: this.cabang,
       period: this.period,
       month: this.month,
+      compare: this.compare,
     });
   }
 

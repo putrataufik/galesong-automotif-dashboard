@@ -21,22 +21,27 @@ export class SidebarComponent {
   toggleSidebar = output<void>();
 
   menuItems: MenuItem[] = [
-  {
-    path: '/dashboard',
-    label: 'Dashboard Utama',
-    icon: 'bi bi-bar-chart-fill'
-  },
-  {
-    path: '/after-sales-dashboard',
-    label: 'After Sales Dashboard',
-    icon: 'bi bi-gear-wide-connected'
-  },
-  {
-    path: '/finance-dashboard',
-    label: 'finance dahsboard',
-    icon: 'bi bi-bank'
-  },
-];
+    {
+      path: '/dashboard',
+      label: 'Dashboard Utama',
+      icon: 'bi bi-clipboard-data'
+    },
+    {
+      path: '/sales-dashboard',
+      label: 'Sales Dashboard',
+      icon: 'bi bi-car-front-fill' // icon mobil
+    },
+    {
+      path: '/after-sales-dashboard',
+      label: 'After Sales Dashboard',
+      icon: 'bi bi-gear-wide-connected'
+    },
+    {
+      path: '/finance-dashboard',
+      label: 'Finance Dashboard',
+      icon: 'bi bi-bank'
+    },
+  ];
 
 
   onMenuClick(): void {

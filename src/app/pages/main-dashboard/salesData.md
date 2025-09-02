@@ -1,7 +1,9 @@
-# API Response Structure - SGM Dashboard
+# Sales Dashboard API Data Requirement
 
-## Request Parameters
+## Overview
+Keperluan Data Sales Dashboard.
 
+### Request Parameters
 | Parameter | Type | Required | Description | Example |
 |-----------|------|----------|-------------|---------|
 | `year` | Number | Yes | Tahun laporan | 2025 |
@@ -9,356 +11,329 @@
 | `branch` | String | Yes | ID cabang atau "all-branch" | "0050", "all-branch" |
 | `compare` | Boolean | Yes | Flag untuk data perbandingan | true, false |
 
+### 1. Sales Kpi
+### Data yang dibutuhkan:
+- **Total Unit Sales**
+  - Jumlah unit kendaraan yang terjual
+  - Type: Number
+  - Example: 142
 
-### Compare = true (Monthly with comparison data)
+- **Total SPK**
+  - Jumlah Surat Pesanan Kendaraan
+  - Type: Number
+  - Example: 355
+
+- **Total Revenue**
+  - Total pendapatan penjualan (dalam rupiah)
+  - Type: Number
+  - Example: 1100000000
+
+- **Total DO**
+  - Jumlah Delivery Order
+  - Type: Number
+  - Example: 138
+
+- **Top Model**
+  - Model kendaraan dengan penjualan tertinggi
+  - Fields: `name` (String), `value` (Number)
+  - Example: `{ "name": "STARGAZER", "value": 94 }`
+
+- **Top Branch**
+  - Cabang dengan performa penjualan terbaik
+  - Fields: `code` (String), `value` (Number)
+  - Example: `{ "code": "0050", "value": 128 }`
+
+### Data Perbandingan (jika compare=true):
+- **prevYear**: Data Bulan yang sama tahun sebelumnya
+- **prevMonth**: Data bulan sebelumnya dalam tahun yang sama
+
+#### Response Structure Compare **ON**
 ```json
 {
-  "labels": {
-    "selected": "Agu 2025",
-    "selectedYear": 2025,
-    "prevYear": "Agu 2024",
-    "prevMonth": "Jul 2025"
-  },
-  "kpis": {
-    "totalUnitSales": {
-      "selected": 142,
-      "prevYear": 140,
-      "prevMonth": 135
+  "status": "success",
+  "message": "Data retrieved successfully",
+  "data": {
+    "request": {
+      "companyId": "sinar-galesong-mobilindo",
+      "year": 2025,
+      "month": "08",
+      "branchId": "all-branch"
     },
-    "totalSPK": {
-      "selected": 355,
-      "prevYear": 360,
-      "prevMonth": 345
-    },
-    "totalRevenue": {
-      "selected": 1100000000,
-      "prevYear": 1250000000,
-      "prevMonth": 1220000000
-    },
-    "totalDO": {
-      "selected": 138,
-      "prevYear": 133,
-      "prevMonth": 132
-    },
-    "topModel": {
-      "selected": { "name": "Tipe A", "value": 94 },
-      "prevYear": { "name": "Tipe B", "value": 88 },
-      "prevMonth": { "name": "Tipe C", "value": 92 }
-    },
-    "topBranch": {
-      "selected": { "code": "0050", "value": 128 },
-      "prevYear": { "code": "0050", "value": 125 },
-      "prevMonth": { "code": "0050", "value": 125 }
-    }
-  },
-  "charts": {
-    "lineMonthly": {
-      "labels": ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
-      "datasets": [
-        {
-          "label": "Tahun 2025",
-          "data": [89, 94, 102, 88, 95, 110, 120, 142, 0, 0, 0, 0],
-          "backgroundColor": "rgba(13,110,253,0.20)",
-          "borderColor": "#0d6efd",
-          "borderWidth": 2
-        },
-        {
-          "label": "Tahun 2024",
-          "data": [95, 88, 92, 105, 98, 115, 125, 140, 135, 128, 142, 155],
-          "backgroundColor": "rgba(148,163,184,0.20)",
-          "borderColor": "#94a3b8",
-          "borderWidth": 1
-        }
-      ]
-    },
-    "modelDistribution": [
-      { "name": "Stargazer", "curr": 102, "prev": 103 },
-      { "name": "Creta", "curr": 1, "prev": 50 },
-      { "name": "Palisade", "curr": 2, "prev": 52 },
-      { "name": "Santa FE", "curr": 5, "prev": 48 },
-      { "name": "Ionic 5", "curr": 9, "prev": 40 },
-      { "name": "Ionic EV", "curr": 1, "prev": 35 }
-    ],
-    "branchPerformance": {
-      "labels": ["PETTARANI", "PALU", "KENDARI", "GORONTALO", "PALOPO"],
-      "data": [120, 85, 95, 70, 80]
+    "kpis": {
+      "totalUnitSales": {
+        "selected": { "value": 142, "period": "2025-08" },
+        "prevYear": { "value": 140, "period": "2024-08" },
+        "prevMonth": { "value": 135, "period": "2025-07" }
+      },
+      "totalSPK": {
+        "selected": { "value": 355, "period": "2025-08" },
+        "prevYear": { "value": 360, "period": "2024-08" },
+        "prevMonth": { "value": 345, "period": "2025-07" }
+      },
+      "totalRevenue": {
+        "selected": { "value": 1100000000, "period": "2025-08" },
+        "prevYear": { "value": 1250000000, "period": "2024-08" },
+        "prevMonth": { "value": 1220000000, "period": "2025-07" }
+      },
+      "totalDO": {
+        "selected": { "value": 138, "period": "2025-08" },
+        "prevYear": { "value": 133, "period": "2024-08" },
+        "prevMonth": { "value": 132, "period": "2025-07" }
+      },
+      "topModel": {
+        "selected": { "name": "STARGAZER", "value": 94, "period": "2025-08" },
+        "prevYear": { "name": "Palisade", "value": 88, "period": "2024-08" },
+        "prevMonth": { "name": "Santa Fe", "value": 92, "period": "2025-07" }
+      },
+      "topBranch": {
+        "selected": { "code": "0050", "value": 128, "period": "2025-08" },
+        "prevYear": { "code": "0050", "value": 125, "period": "2024-08" },
+        "prevMonth": { "code": "0050", "value": 125, "period": "2025-07" }
+      }
     }
   }
 }
 ```
 
-### Compare = false (Monthly without comparison data)
+#### Response Structure Compare **OFF**
 ```json
 {
-  "labels": {
-    "selected": "Agu 2025",
-    "selectedYear": 2025,
-    "prevYear": null,
-    "prevMonth": null
-  },
-  "kpis": {
-    "totalUnitSales": {
-      "selected": 142,
-      "prevYear": null,
-      "prevMonth": null
+  "status": "success",
+  "message": "Data retrieved successfully",
+  "data": {
+    "request": {
+      "companyId": "sinar-galesong-mobilindo",
+      "year": 2025,
+      "month": "08",
+      "branchId": "all-branch"
     },
-    "totalSPK": {
-      "selected": 355,
-      "prevYear": null,
-      "prevMonth": null
-    },
-    "totalRevenue": {
-      "selected": 1100000000,
-      "prevYear": null,
-      "prevMonth": null
-    },
-    "totalDO": {
-      "selected": 138,
-      "prevYear": null,
-      "prevMonth": null
-    },
-    "topModel": {
-      "selected": { "name": "Tipe A", "value": 94 },
-      "prevYear": null,
-      "prevMonth": null
-    },
-    "topBranch": {
-      "selected": { "code": "0050", "value": 128 },
-      "prevYear": null,
-      "prevMonth": null
-    }
-  },
-  "charts": {
-    "lineMonthly": {
-      "labels": ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
-      "datasets": [
-        {
-          "label": "Tahun 2025",
-          "data": [89, 94, 102, 88, 95, 110, 120, 142, 0, 0, 0, 0],
-          "backgroundColor": "rgba(13,110,253,0.20)",
-          "borderColor": "#0d6efd",
-          "borderWidth": 2
-        }
-      ]
-    },
-    "modelDistribution": [
-      { "name": "Stargazer", "curr": 102, "prev": null },
-      { "name": "Creta", "curr": 1, "prev": null },
-      { "name": "Palisade", "curr": 2, "prev": null },
-      { "name": "Santa FE", "curr": 5, "prev": null },
-      { "name": "Ionic 5", "curr": 9, "prev": null },
-      { "name": "Ionic EV", "curr": 1, "prev": null }
-    ],
-    "branchPerformance": {
-      "labels": ["PETTARANI", "PALU", "KENDARI", "GORONTALO", "PALOPO"],
-      "data": [120, 85, 95, 70, 80]
+    "kpis": {
+      "totalUnitSales": {
+        "selected": { "value": 142, "period": "2025-08" }
+      },
+      "totalSPK": {
+        "selected": { "value": 355, "period": "2025-08" }
+      },
+      "totalRevenue": {
+        "selected": { "value": 1100000000, "period": "2025-08" }
+      },
+      "totalDO": {
+        "selected": { "value": 138, "period": "2025-08" }
+      },
+      "topModel": {
+        "selected": { "name": "STARGAZER", "value": 94, "period": "2025-08" }
+      },
+      "topBranch": {
+        "selected": { "code": "0050", "value": 128, "period": "2025-08" }
+      }
     }
   }
 }
 ```
 
-### Compare = true (Yearly with comparison data)
+### 2. Sales Monthly Trend
+
+#### Request Parameters
+| Parameter | Type | Required | Description | Example |
+|-----------|------|----------|-------------|---------|
+| `year` | Number | Yes | Tahun laporan | 2025 |
+| `month` | String | No |  | null |
+| `branch` | String | Yes | ID cabang atau "all-branch" | "0050", "all-branch" |
+| `compare` | Boolean | Yes | Flag untuk data perbandingan | true, false |
+
+### Data yang dibutuhkan:
+
+- **Datasets**
+  - **Current Year Dataset**:
+    - `label`: "Tahun {YYYY}"
+    - `data`: Array[Number] - data penjualan per bulan
+    - Example: `[89, 94, 102, 88, 95, 110, 120, 142, 0, 0, 0, 0]`
+
+#### Response Structure Compare **ON**
 ```json
 {
-  "labels": {
-    "selected": "2025",
-    "selectedYear": 2025,
-    "prevYear": "2024",
-    "prevMonth": null
-  },
-  "kpis": {
-    "totalUnitSales": {
-      "selected": 990,
-      "prevYear": 1465,
-      "prevMonth": null
-    },
-    "totalSPK": {
-      "selected": 2475,
-      "prevYear": 3750,
-      "prevMonth": null
-    },
-    "totalRevenue": {
-      "selected": 8500000000,
-      "prevYear": 13150000000,
-      "prevMonth": null
-    },
-    "totalDO": {
-      "selected": 980,
-      "prevYear": 1450,
-      "prevMonth": null
-    },
-    "topModel": {
-      "selected": { "name": "Tipe A", "value": 696 },
-      "prevYear": { "name": "Tipe B", "value": 1005 },
-      "prevMonth": null
-    },
-    "topBranch": {
-      "selected": { "code": "0050", "value": 950 },
-      "prevYear": { "code": "0050", "value": 1372 },
-      "prevMonth": null
-    }
-  },
-  "charts": {
-    "lineMonthly": {
-      "labels": ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
-      "datasets": [
-        {
-          "label": "Tahun 2025",
-          "data": [89, 94, 102, 88, 95, 110, 120, 142, 0, 0, 0, 0],
-          "backgroundColor": "rgba(13,110,253,0.20)",
-          "borderColor": "#0d6efd",
-          "borderWidth": 2
-        },
-        {
-          "label": "Tahun 2024",
-          "data": [95, 88, 92, 105, 98, 115, 125, 140, 135, 128, 142, 155],
-          "backgroundColor": "rgba(148,163,184,0.20)",
-          "borderColor": "#94a3b8",
-          "borderWidth": 1
-        }
+  "salesMontlyTrend": {
+    "datasets": [
+      {
+        "label": "Tahun 2025",
+        "data": [89, 94, 102, 88, 95, 110, 120, 142, 0, 0, 0, 0]
+      },
+      {
+        "label": "Tahun 2024",
+        "data": [95, 88, 92, 105, 98, 115, 125, 140, 135, 128, 142, 155]
+      }
+    ]
+  }
+}
+```
+
+#### Response Structure Compare **OFF**
+```json
+{
+  "salesMontlyTrend": {
+    "datasets": [
+      {
+        "label": "Tahun 2025",
+        "data": [89, 94, 102, 88, 95, 110, 120, 142, 0, 0, 0, 0]
+      }
+    ]
+  }
+}
+```
+
+### 3. Sales by Model Distribution
+
+#### Request Parameters
+| Parameter | Type | Required | Description | Example |
+|-----------|------|----------|-------------|---------|
+| `year` | Number | Yes | Tahun laporan | 2025 |
+| `month` | String | Yes | Bulan ("01"-"12") atau "all-month" | "08", "all-month" |
+| `branch` | String | No | ID cabang atau "all-branch" | "0050", "all-branch" |
+| `compare` | Boolean | No | Include comparison data | true |
+
+
+#### Current Period Data:
+- **period**: Format "YYYY-MM"
+- **label**: Format "Mmm YYYY" (contoh: "Agu 2025")
+- **items**: Array objek dengan struktur:
+  - `name` (String): Nama model
+  - `value` (Number): Jumlah unit terjual
+  - `percentage` (Number): Persentase dari total penjualan
+### Data Perbandingan (jika compare=true):
+- **prevYear**: Data Bulan yang sama tahun sebelumnya
+- **prevMonth**: Data bulan sebelumnya dalam tahun yang sama
+
+#### Response Structure Compare **ON**
+```json
+{
+  "status": "success",
+  "message": "Model distribution data retrieved successfully",
+  "data": {
+    "current": {
+      "period": "2025-08",
+      "label": "Agu 2025",
+      "items": [
+        { "name": "STARGAZER", "value": 45, "prevY": 30, "prevM": 40 },
+        { "name": "CRETA", "value": 32, "prevY": 38, "prevM": 30 },
+        { "name": "PALISADE", "value": 28, "prevY": 42, "prevM": 20 },
+        { "name": "SANTA FE", "value": 22, "prevY": 18, "prevM": 35 },
+        { "name": "IONIC 5", "value": 10, "prevY": 8, "prevM": 7 },
+        { "name": "IONIC EV", "value": 5, "prevY": 4, "prevM": 3 }
       ]
-    },
-    "modelDistribution": [
-      { "name": "Stargazer", "curr": 696, "prev": 1005 },
-      { "name": "Creta", "curr": 150, "prev": 250 },
-      { "name": "Palisade", "curr": 80, "prev": 120 },
-      { "name": "Santa FE", "curr": 45, "prev": 65 },
-      { "name": "Ionic 5", "curr": 15, "prev": 20 },
-      { "name": "Ionic EV", "curr": 4, "prev": 5 }
-    ],
-    "branchPerformance": {
-      "labels": ["PETTARANI", "PALU", "KENDARI", "GORONTALO", "PALOPO"],
-      "data": [950, 680, 760, 560, 640]
     }
   }
 }
 ```
 
-### Compare = false (Yearly without comparison data)
+#### Response Structure Compare **OFF**
 ```json
 {
-  "labels": {
-    "selected": "2025",
-    "selectedYear": 2025,
-    "prevYear": null,
-    "prevMonth": null
-  },
-  "kpis": {
-    "totalUnitSales": {
-      "selected": 990,
-      "prevYear": null,
-      "prevMonth": null
-    },
-    "totalSPK": {
-      "selected": 2475,
-      "prevYear": null,
-      "prevMonth": null
-    },
-    "totalRevenue": {
-      "selected": 8500000000,
-      "prevYear": null,
-      "prevMonth": null
-    },
-    "totalDO": {
-      "selected": 980,
-      "prevYear": null,
-      "prevMonth": null
-    },
-    "topModel": {
-      "selected": { "name": "Tipe A", "value": 696 },
-      "prevYear": null,
-      "prevMonth": null
-    },
-    "topBranch": {
-      "selected": { "code": "0050", "value": 950 },
-      "prevYear": null,
-      "prevMonth": null
-    }
-  },
-  "charts": {
-    "lineMonthly": {
-      "labels": ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
-      "datasets": [
-        {
-          "label": "Tahun 2025",
-          "data": [89, 94, 102, 88, 95, 110, 120, 142, 0, 0, 0, 0],
-          "backgroundColor": "rgba(13,110,253,0.20)",
-          "borderColor": "#0d6efd",
-          "borderWidth": 2
-        }
+  "status": "success",
+  "message": "Model distribution data retrieved successfully",
+  "data": {
+    "current": {
+      "period": "2025-08",
+      "label": "Agu 2025",
+      "items": [
+        { "name": "STARGAZER", "value": 45 },
+        { "name": "CRETA", "value": 32 },
+        { "name": "PALISADE", "value": 28 },
+        { "name": "SANTA FE", "value": 22 },
+        { "name": "IONIC 5", "value": 10 },
+        { "name": "IONIC EV", "value": 5 }
       ]
-    },
-    "modelDistribution": [
-      { "name": "Stargazer", "curr": 696, "prev": null },
-      { "name": "Creta", "curr": 150, "prev": null },
-      { "name": "Palisade", "curr": 80, "prev": null },
-      { "name": "Santa FE", "curr": 45, "prev": null },
-      { "name": "Ionic 5", "curr": 15, "prev": null },
-      { "name": "Ionic EV", "curr": 4, "prev": null }
-    ],
-    "branchPerformance": {
-      "labels": ["PETTARANI", "PALU", "KENDARI", "GORONTALO", "PALOPO"],
-      "data": [950, 680, 760, 560, 640]
     }
   }
 }
 ```
 
-## Field List
+### 4. Sales by Branch Performance
+#### Dataset Structure:
 
-### Request Parameters
-- `year` (number) - Tahun data  
-- `month` (string) - Bulan atau "all-month"
-- `branch` (string) - ID cabang atau "all-branch"
-- `compare` (boolean) - Flag untuk data perbandingan
+- **data**: Array[Number] - jumlah unit per cabang
+- Example: `[128, 95, 85, 70, 64]` 
+- urutannya `['PETTARANI', 'PALU', 'KENDARI', 'GORONTALO', 'PALOPO']`,
+#### Request Parameters
+| Parameter | Type | Required | Description | Example |
+|-----------|------|----------|-------------|---------|
+| `year` | Number | Yes | Tahun laporan | 2025 |
+| `month` | String | Yes | Bulan ("01"-"12") atau "all-month" | "08", "all-month" |
+| `compare` | Boolean | Yes | Flag untuk data perbandingan | true, false |
 
-### Root Level
-- `labels` (object) - Label untuk display UI
-- `kpis` (object) - Data KPI utama
-- `charts` (object) - Data untuk chart visualisasi
+#### Response Structure Compare **ON**
+```json
+{
+  "status": "success",
+  "message": "Branch performance data retrieved successfully",
+  "data": {
+    "current": {
+      "period": "2025-08",
+      "label": "Agu 2025",
+      "datasets": [
+        {
+          "data": [128, 95, 85, 70, 64]
+        }
+      ],
+    },
+    "comparison": {
+      "prevYear": {
+        "period": "2024-08",
+        "label": "Agu 2024",
+        "datasets": [
+          {
+            "data": [125, 88, 78, 65, 58]
+          }
+        ],
+      },
+      "prevMonth": {
+        "period": "2025-07",
+        "label": "Jul 2025",
+        "datasets": [
+          {
+            "data": [125, 92, 82, 68, 62]
+          }
+        ],
+      }
+    }
+  }
+}
+```
 
-### Labels Object
-- `selected` (string) - Label tahun yang dipilih
-- `selectedYear` (number) - Tahun yang dipilih
-- `prevYear` (string|null) - Label tahun tahun sebelumnya
-- `prevMonth` (string|null) - Label bulan sebelumnya (null untuk yearly)
+#### Response Structure Compare **OFF**
+```json
+{
+  "status": "success",
+  "message": "Branch performance data retrieved successfully",
+  "data": {
+    "current": {
+      "period": "2025-08",
+      "label": "Agu 2025",  
+      "datasets": [
+        {
+          "data": [128, 95, 85, 70, 64]
+        }
+      ],
+    }
+  }
+}
+```
 
-### KPIs Object
-- `totalUnitSales` (object) - Total unit kendaraan terjual
-- `totalSPK` (object) - Total Surat Pesanan Kendaraan
-- `totalRevenue` (object) - Total pendapatan (Rupiah)
-- `totalDO` (object) - Total Delivery Order
-- `topModel` (object) - Model terlaris
-- `topBranch` (object) - Cabang terbaik
+## API Summary
 
-### Charts Object
-- `lineMonthly` (object) - Data line chart penjualan bulanan
-- `modelDistribution` (array) - Data distribusi penjualan per model
-- `branchPerformance` (object) - Data performa cabang
+### Endpoints Overview
 
-### Standard KPI Structure (totalUnitSales, totalSPK, totalRevenue, totalDO)
-- `selected` (number) - Nilai tahun terpilih
-- `prevYear` (number|null) - Nilai tahun sebelumnya
-- `prevMonth` (number|null) - Nilai bulan sebelumnya
+**Filter Parameters:**
+- **Year**: Tahun laporan (required)
+- **Month**: Bulan spesifik atau "all-month" (required untuk sebagian endpoint)
+- **Branch**: Cabang spesifik atau "all-branch" (required untuk sebagian endpoint)
+- **Compare**: Flag untuk menampilkan data perbandingan tahun/bulan sebelumnya
 
-### Top Model KPI Structure
-- `selected` (object) - Data tahun terpilih
-  - `name` (string) - Nama model
-  - `value` (number) - Jumlah unit
-- `prevYear` (object|null) - Data tahun sebelumnya
-  - `name` (string) - Nama model
-  - `value` (number) - Jumlah unit
-- `prevMonth` (object|null) - Data bulan sebelumnya
-  - `name` (string) - Nama model
-  - `value` (number) - Jumlah unit
+**Response Structure:**
+- Semua endpoint menggunakan struktur response standar dengan `status`, `message`, dan `data`
+- Ketika `compare: true`, data perbandingan akan menyertakan `prevYear` dan `prevMonth`
+- Ketika `compare: false`, hanya data periode yang dipilih yang dikembalikan
 
-### Top Branch KPI Structure
-- `selected` (object) - Data tahun terpilih
-  - `code` (string) - Kode cabang
-  - `value` (number) - Nilai performa
-- `prevYear` (object|null) - Data tahun sebelumnya
-  - `code` (string) - Kode cabang
-  - `value` (number) - Nilai performa
-- `prevMonth` (object|null) - Data bulan sebelumnya
-  - `code` (string) - Kode cabang
-  - `value` (number) - Nilai performa
+**Data Comparison Logic:**
+- **prevYear**: Data Bulan yang sama tahun sebelumnya
+- **prevMonth**: Data bulan sebelumnya dalam tahun yang sama
+- Format periode: "YYYY-MM"
