@@ -1,1 +1,254 @@
-<p>sales-dashboard works!</p>
+<div class="container-fluid p-4">
+  <!-- Header -->
+  <div class="row mb-2">
+    <div class="col-12 text-center">
+      <h5 class="fw-bold text-dark mb-3">
+        Dashboard <span class="text-primary">Galesong Otomotif</span>
+      </h5>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="row mb-2">
+    <div class="col-12">
+      <app-filter-sales-dashboard
+        [currentFilter]="currentFilter"
+        [loading]="loading()"
+        (search)="onSearch($event)"
+      ></app-filter-sales-dashboard>
+    </div>
+  </div>
+
+  <!-- Alternative: Breadcrumb Style Filter Display -->
+  <div class="row">
+    <div class="col-12">
+      <nav aria-label="Filter breadcrumb">
+        <ol class="breadcrumb mb-0 bg-light rounded">
+          <li class="breadcrumb-item">
+            <i class="bi bi-funnel me-1"></i>
+            Filter
+          </li>
+          <li class="breadcrumb-item">
+            <strong>{{ getCompanyDisplayName(currentFilter.company) }}</strong>
+          </li>
+          <li class="breadcrumb-item">
+            {{ getBranchDisplayName(currentFilter.branch) }}
+          </li>
+          <li class="breadcrumb-item">
+            {{ getCategoryDisplayName(currentFilter.category) }}
+          </li>
+          <li class="breadcrumb-item" aria-current="page">
+            {{ getPeriodDisplayName() }}
+
+            @if (currentFilter.compare) { |
+            <span class="breadcrumb-item active">Komparasi Data</span>
+            }
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ===================== SALES SECTION ===================== -->
+  @if (currentFilter.category === 'sales' || currentFilter.category ===
+  'all-category') { @if (hasData()) { @if (salesKpi(); as sales) {
+
+  <div class="row g-2 mb-2">
+    <div class="col-12">
+      <div
+        class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
+      >
+        <div class="d-flex align-items-center">
+          <i class="bi bi-speedometer2 text-info me-2 fs-5"></i>
+          <h6 class="mb-0 fw-bold text-dark">Sales Performance</h6>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total SPK -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total SPK'"
+        dataType="unit"
+        [subtitle]="compare ? '' : 'Surat Pemesanan Kendaraan'"
+        [period]="periodForCards"
+        [series]="sales.series?.totalSPK"
+        [value]="getSeriesCurrent(sales.series?.totalSPK)"
+        [compareMode]="compare"
+        unitLabel="unit"
+      />
+    </div>
+    <!-- Total SPK -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total DO'"
+        dataType="unit"
+        [subtitle]="compare ? '' : 'Delivary Order'"
+        [period]="periodForCards"
+        [series]="sales.series?.totalDO"
+        [value]="getSeriesCurrent(sales.series?.totalDO)"
+        [compareMode]="compare"
+        unitLabel="unit"
+      />
+    </div>
+
+    <!-- Total Unit Sales -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total Unit Sales'"
+        dataType="unit"
+        [subtitle]="compare ? '' : 'Total Unit Terjual'"
+        [period]="periodForCards"
+        [series]="sales.series?.totalUnitSales"
+        [value]="getSeriesCurrent(sales.series?.totalUnitSales)"
+        [compareMode]="compare"
+        unitLabel="unit"
+      />
+    </div>
+
+    <!-- Total Revenue -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        title="Total Revenue"
+        dataType="currency"
+        [subtitle]="compare ? '' : 'Total Pendapatan'"
+        [period]="periodForCards"
+        [series]="sales.series?.totalRevenue"
+        [value]="getSeriesCurrent(sales.series?.totalRevenue)"
+        [compareMode]="compare"
+        info="Total pendapatan sales. Perbandingan mengikuti periode terpilih (YoY & MoM)."
+      />
+    </div>
+
+    <!-- Model Favorit (value dari series; subtitle = nama current) -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        title="Model Favorit"
+        [value]="getCurrentName(sales.nameSeries?.topModel) ?? null"
+        [subtitle]="
+          stringifyUnit(getSeriesCurrent(sales.series?.topModelUnits), 'unit')
+        "
+        dataType="unit"
+        [period]="periodForCards"
+        [series]="sales.series?.topModelUnits"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearLabel]="
+          buildPrevLabels(
+            sales.series?.topModelUnits,
+            sales.nameSeries?.topModel
+          ).prevY
+        "
+        [prevMonthLabel]="
+          buildPrevLabels(
+            sales.series?.topModelUnits,
+            sales.nameSeries?.topModel
+          ).prevM
+        "
+      />
+    </div>
+
+    <!-- Cabang Penjualan Tertinggi (value dari series; subtitle = nama current) -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        title="Cabang Penjualan Tertinggi"
+        [value]="getCurrentName(sales.nameSeries?.topBranch) ?? null"
+        [subtitle]="
+          stringifyUnit(getSeriesCurrent(sales.series?.topBranchUnits), 'unit')
+        "
+        dataType="unit"
+        [period]="periodForCards"
+        [series]="sales.series?.topBranchUnits"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearLabel]="
+          buildPrevLabels(
+            sales.series?.topBranchUnits,
+            sales.nameSeries?.topBranch
+          ).prevY
+        "
+        [prevMonthLabel]="
+          buildPrevLabels(
+            sales.series?.topBranchUnits,
+            sales.nameSeries?.topBranch
+          ).prevM
+        "
+      />
+    </div>
+  </div>
+
+  } } }
+
+  <!-- =============== Sales Charts Section =============== -->
+  @if (lineMonthly() || branchPerformance()) {
+  <div class="row g-2 mb-2">
+    <!-- Line Chart - Monthly Trend -->
+    @if (lineMonthly()) {
+    <div class="col-12 col-lg-4">
+      <app-line-chart-card
+        [label]="'Unit Terjual'"
+        [title]="'Trend Penjualan Unit per Bulan'"
+        [labels]="lineMonthly()!.labels"
+        [datasets]="lineMonthly()!.datasets"
+        [height]="250"
+        [showLegend]="true"
+        [borderColor]="'#0d6efd'"
+        [xtitle]="'Bulan'"
+        [ytitle]="'Unit Terjual'"
+        [fill]="false"
+      />
+    </div>
+    }
+
+    <!-- Compact YoY progress list -->
+    @if (modelDistributionYoY()) {
+    <div class="col-12 col-lg-4">
+      <app-yoy-progress-list
+        title="Proporsi Penjualan per Model"
+        [labelCurr]="getCurrentPeriodLabel()"
+        [labelPrevY]="getModelDistributionPrevLabels().prevY || 'Tahun Lalu'"
+        [labelPrevM]="getModelDistributionPrevLabels().prevM || 'Bulan Lalu'"
+        [items]="modelDistributionYoY()"
+        unit="Unit"
+        [maxRows]="modelDistributionYoY().length"
+      />
+    </div>
+    }
+
+    <!-- Bar Chart - Branch Performance -->
+    @if (branchPerformance()) {
+    <div class="col-12 col-lg-4">
+      <app-bar-chart-card
+        [title]="'Performa Penjualan per Cabang'"
+        [labels]="branchPerformance()!.labels"
+        [data]="getChartData(branchPerformance())"
+        [xTitle]="'unit Terjual'"
+        [height]="234"
+        [horizontal]="true"
+        [showLegend]="false"
+        [label]="'Unit Terjual'"
+      />
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Empty State -->
+  @if (!hasData() && !loading()) {
+  <div class="row">
+    <div class="col-12">
+      <div class="text-center py-5">
+        @if (error()) {
+        <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3"></i>
+        <h6 class="text-muted mb-0">{{ error() }}</h6>
+        } @else {
+        <i class="bi bi-bar-chart text-muted fs-1 mb-3"></i>
+        <h6 class="text-muted mb-0">
+          Belum ada data untuk ditampilkan. Silakan pilih filter dan klik cari.
+        </h6>
+        }
+      </div>
+    </div>
+  </div>
+  }
+</div>

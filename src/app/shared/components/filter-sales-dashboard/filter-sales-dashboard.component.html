@@ -29,13 +29,13 @@
 </div>
 }
 <section
-  class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3"
+  class="bg-white shadow-sm rounded-3 p-3"
   role="search"
   aria-label="Filter Dashboard"
 >
   
   <!-- BARIS: 5 pilihan + 1 toggle + 1 tombol, semuanya center -->
-  <div class="row g-1 g-md-2 align-items-end justify-content-center">
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-6 g-2 align-items-end">
     <!-- Perusahaan -->
     <div class="col-6 col-md-2">
       <label for="company" class="form-label mb-1 small">
@@ -64,20 +64,6 @@
       >
         @for (b of branches; track b.value) {
         <option [value]="b.value">{{ b.name }}</option>
-        }
-      </select>
-    </div>
-    <!-- Kategori -->
-    <div class="col-6 col-md-2">
-      <label for="category" class="form-label mb-1 small">Kategori</label>
-      <select
-        id="category"
-        class="form-select form-select-sm"
-        [(ngModel)]="category"
-        (change)="onFilterChange()"
-      >
-        @for (k of categories; track k.value) {
-        <option [value]="k.value">{{ k.name }}</option>
         }
       </select>
     </div>
@@ -113,8 +99,8 @@
     </div>
     <!-- Toggle Komparasi -->
     <div class="col-6 col-md-1">
-      <label class="form-label mb-1 small d-block">Komparasi</label>
-      <div class="form-check form-switch d-flex justify-content-start">
+      <label class="form-label small text-muted mb-1 d-block">Komparasi</label>
+      <div class="form-check form-switch d-flex align-items-center">
         <input
           class="form-check-input form-check-input-sm me-2"
           type="checkbox"

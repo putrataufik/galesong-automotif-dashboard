@@ -6,7 +6,7 @@ import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.comp
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
 import { BarChartCardComponent } from '../../shared/components/bar-chart-card/bar-chart-card.component';
-import { FilterMainDashboardComponent } from '../../shared/components/filter-main-dashboard/filter-main-dashboard.component';
+import { FilterSalesDashboardComponent } from '../../shared/components/filter-sales-dashboard/filter-sales-dashboard.component';
 import { YoyProgressListComponent } from '../../shared/components/yoy-progress-list/yoy-progress-list.component';
 
 import { AppFilter } from '../../types/filter.model';
@@ -43,6 +43,7 @@ import {
   getCurrentName as getCurrentNameUtil,
   buildPrevLabels as buildPrevLabelsUtil,
 } from '../../shared/utils/sales.utils';
+import { FilterMainDashboardComponent } from "../../shared/components/filter-main-dashboard/filter-main-dashboard.component";
 
 @Component({
   selector: 'app-main-dashboard',
@@ -55,7 +56,8 @@ import {
     BarChartCardComponent,
     FilterMainDashboardComponent,
     YoyProgressListComponent,
-  ],
+    FilterMainDashboardComponent
+],
   templateUrl: './main-dashboard.component.html',
   styleUrl: './main-dashboard.component.css',
 })
