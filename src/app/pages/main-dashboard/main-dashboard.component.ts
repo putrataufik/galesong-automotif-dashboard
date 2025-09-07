@@ -113,10 +113,31 @@ export class MainDashboardComponent implements OnInit {
 
   modelDistributionYoY = signal<ModelYoY[]>([...MODEL_DISTRIBUTION_YOY]);
 
-  branchPerformance = signal<ChartData | null>({
-    labels: [...BRANCH_PERFORMANCE_DUMMY.labels],
-    data: [...BRANCH_PERFORMANCE_DUMMY.data],
+  branchPerformance = signal<ChartData | undefined>({
+    labels: BRANCH_PERFORMANCE_DUMMY.map(b => b.branch),
+    datasets: [
+      {
+        label: 'Periode',
+        data: BRANCH_PERFORMANCE_DUMMY.map(b => b.curr),
+        backgroundColor: '',
+        borderColor: '',
+      },
+      {
+        label: 'Prev M',
+        data: BRANCH_PERFORMANCE_DUMMY.map(b => b.prevM),
+        backgroundColor: '',
+        borderColor: '',
+      },
+      {
+        label: 'Prev Y',
+        data: BRANCH_PERFORMANCE_DUMMY.map(b => b.prevY),
+        backgroundColor: '',
+        borderColor: '',
+      },
+    ],
   });
+  
+  
 
   afterSalesRealisasiVsTarget = signal<MultiChartData | null>({
     labels: [...AFTERSALES_REALISASI_VS_TARGET_DUMMY.labels],

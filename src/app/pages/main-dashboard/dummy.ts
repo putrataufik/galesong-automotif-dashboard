@@ -203,10 +203,13 @@ export const MODEL_DISTRIBUTION_YOY = [
   { name: 'Ionic EV', curr: 1, prevY: 35,prevM: 10 },
 ] as const;
 
-export const BRANCH_PERFORMANCE_DUMMY = {
-  labels: ['PETTARANI', 'PALU', 'KENDARI', 'GORONTALO', 'PALOPO'],
-  data: [120, 85, 95, 70, 80],
-} as const;
+export const BRANCH_PERFORMANCE_DUMMY = [
+  { branch: 'PETTARANI',  curr: 120, prevM: 110, prevY: 95 },
+  { branch: 'PALU',       curr:  85, prevM:  90, prevY: 78 },
+  { branch: 'KENDARI',    curr:  95, prevM:  88, prevY: 90 },
+  { branch: 'GORONTALO',  curr:  70, prevM:  72, prevY: 65 },
+  { branch: 'PALOPO',     curr:  80, prevM:  76, prevY: 70 },
+] as const;
 
 
 export const AFTERSALES_REALISASI_VS_TARGET_DUMMY = {
