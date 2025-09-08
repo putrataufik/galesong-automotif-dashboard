@@ -1,22 +1,31 @@
 <div class="container-fluid p-4">
   <!-- Header dan Filter -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="d-flex align-items-center justify-content-between">
-        <h2 class="fw-bold text-dark my-3">
-          Finance <span class="text-success">Dashboard</span>
-        </h2>
-      </div>
-      <app-filter-aftersales-dashboard />
+  <div class="row mb-2">
+    <div class="col-12 text-center">
+      <h5 class="fw-bold text-dark my-3">
+        Finance <span class="text-success">Dashboard</span>
+      </h5>
     </div>
-    <div class="row g-4 mb-4">
+  </div>
+  <div>
+    <div class="row mb-2">
       <div class="col-12">
-        <div class="d-flex align-items-center mb-3">
-          <i class="bi bi-speedometer2 text-success me-2 fs-4"></i>
-          <h4 class="mb-0 fw-bold text-dark">Finance Performance</h4>
+        <app-filter-aftersales-dashboard />
+      </div>
+    </div>
+
+    <div class="row g-2 mb-2">
+      <div class="col-12">
+        <div
+          class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
+        >
+          <div class="d-flex align-items-center">
+            <i class="bi bi-speedometer2 text-info me-2 fs-5"></i>
+            <h6 class="mb-0 fw-bold text-dark">Sales Performance</h6>
+          </div>
         </div>
       </div>
-      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <app-kpi-card
           [title]="'Pemasukan'"
           [value]="'Rp. 150,05'"
@@ -27,7 +36,7 @@
           iconBgColor="#E8FFE6"
         />
       </div>
-      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <app-kpi-card
           [title]="'Pengeluaran'"
           [value]="'Rp. 75,05'"
@@ -38,7 +47,7 @@
           iconBgColor="#FFCFCF"
         />
       </div>
-      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <app-kpi-card
           [title]="'Profit'"
           [value]="'Rp. 75,05'"
@@ -49,7 +58,7 @@
           iconBgColor="#E8FFE6"
         />
       </div>
-      <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <app-kpi-card
           [title]="'Pengeluaran Terbesar'"
           [value]="'Gaji Karyawan'"
@@ -60,24 +69,24 @@
           iconBgColor="#FFF0D5"
         />
       </div>
-      <div class="row g-4 mb-5">
-        <div class="col-12 col-lg-9">
+      <div class="row g-2 mb-2">
+        <div class="col-12 col-lg-4">
           <app-line-chart-card
             [title]="'Pemasukan vs Pengeluaran (12 Bulan)'"
             [labels]="monthLabels()"
             [datasets]="chartDatasets()"
-            [height]="320"
+            [height]="300"
             [showLegend]="true"
           >
           </app-line-chart-card>
         </div>
-        <div class="col-12 col-lg-3">
+        <div class="col-12 col-lg-4">
           <app-pie-chart-card
             [title]="'Kontribusi Pengeluaran per Kategori'"
             [labels]="expenseCategoryLabels()"
             [data]="expenseCategoryData()"
             [chartType]="'currency'"
-            [height]="320"
+            [height]="270"
             [showLegend]="true"
           >
           </app-pie-chart-card>

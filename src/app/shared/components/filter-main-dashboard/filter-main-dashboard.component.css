@@ -40,3 +40,4 @@
 @media (max-width: 992px)  { .filter-card.compact { --fc-item-min:140px; --fc-item-min-narrow:110px; } }
 @media (max-width: 768px)  { .filter-card.compact { --fc-item-min:130px; --fc-item-min-narrow:105px; } }
 @media (max-width: 576px)  { .filter-card.compact { --fc-item-min:120px; --fc-item-min-narrow:100px; } }
+                  

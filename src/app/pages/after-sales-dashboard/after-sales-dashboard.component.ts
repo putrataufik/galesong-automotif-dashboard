@@ -46,7 +46,9 @@ import { ChartData } from '../../types/sales.model';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { KpiLegendButtonComponent } from '../../shared/components/kpi-legend-button/kpi-legend-button.component';
 import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
-
+import {
+  getSeriesCurrent as getSeriesCurrentUtil,
+} from '../../shared/utils/sales.utils';
 @Component({
   selector: 'app-after-sales-dashboard',
   standalone: true,
@@ -83,7 +85,7 @@ export class AfterSalesDashboardComponent implements OnInit {
   sisaHariKerja = '';
   sisaHariKerjaOptions: SisaHariOption[] = [];
   showSisaHariKerja = signal(false);
-  
+
   // Computed untuk menentukan apakah tampilkan Jumlah Mekanik
   showJumlahMekanik = computed(() => {
     const filter = this.currentFilter();
@@ -99,7 +101,6 @@ export class AfterSalesDashboardComponent implements OnInit {
   });
 
   legendOpen = false;
-  
 
   toggleLegend(event: MouseEvent) {
     event.stopPropagation(); // cegah close karena click document
@@ -127,7 +128,7 @@ export class AfterSalesDashboardComponent implements OnInit {
     const companyMap: Record<string, string> = {
       'sinar-galesong-mobilindo': 'Sinar Galesong Mobilindo',
       'pt-galesong-otomotif': 'PT Galesong Otomotif',
-      'all-company': 'Semua Perusahaan'
+      'all-company': 'Semua Perusahaan',
     };
     return companyMap[company] || company;
   }
@@ -138,8 +139,8 @@ export class AfterSalesDashboardComponent implements OnInit {
   getCategoryDisplayName(category: string): string {
     const categoryMap: Record<string, string> = {
       'all-category': 'Semua Kategori',
-      'sales': 'Sales',
-      'after-sales': 'After Sales'
+      sales: 'Sales',
+      'after-sales': 'After Sales',
     };
     return categoryMap[category] || category;
   }
@@ -179,7 +180,7 @@ export class AfterSalesDashboardComponent implements OnInit {
       '09': 'September',
       '10': 'Oktober',
       '11': 'November',
-      '12': 'Desember'
+      '12': 'Desember',
     };
 
     const yearDisplay = year || 'Semua Tahun';
@@ -220,7 +221,26 @@ export class AfterSalesDashboardComponent implements OnInit {
   // --------------------------
   // Public: Aksi & Events
   // --------------------------
+
+  periodForCards = computed<
+  { year: number; month?: number } | null
+>(() => {
+  const f = this.currentFilter();
+  if (!f?.period) return null;
+
+  const year = parseInt(f.period, 10);
+  if (!Number.isFinite(year)) return null;
+
+  // Jika month ada & bukan "all-month" → mode bulanan
+  const month =
+    f.month && f.month !== 'all-month'
+      ? normalizeMonth(f.month) // hasil number 1..12
+      : undefined;
+
+  return month ? { year, month } : { year };
+});
   onSearch(filter: AfterSalesFilter): void {
+    console.log('AfterSalesDashboardComponent: onSearch', this.currentFilter(), filter);
     this.error.set(null);
     this.currentFilter.set(filter);
     this.afterSalesState.saveFilterAfterSales(filter);
@@ -283,6 +303,7 @@ export class AfterSalesDashboardComponent implements OnInit {
     return this.kpiData()?.totalUnitEntry || 0;
   }
 
+
   // --------------------------
   // Proses Data & KPI
   // --------------------------
@@ -295,7 +316,7 @@ export class AfterSalesDashboardComponent implements OnInit {
       cabang: filter.cabang,
     });
   }
-
+  
   private calculateAdditionalKpi(
     response: AfterSalesResponse,
     filter: AfterSalesFilter
@@ -470,3 +491,4 @@ export class AfterSalesDashboardComponent implements OnInit {
     this.sisaHariKerja = '';
   }
 }
+

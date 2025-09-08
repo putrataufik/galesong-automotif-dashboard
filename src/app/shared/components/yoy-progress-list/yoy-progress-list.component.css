@@ -1,61 +1,47 @@
-:host { 
-  display: block; 
-}
-
-/* ===== Header badge kecil (desktop) ===== */
+/* Badge kecil untuk header kolom */
 .badge-pill {
-  font-size: .7rem;
+  display: inline-block;
+  padding: .15rem .4rem;
+  border-radius: 999px;
+  font-size: .65rem;
   font-weight: 600;
-  padding: .2rem .5rem;
-  border-radius: 9999px;
-  line-height: 1;
-  background: #f1f5f9;
-  color: #334155;
 }
+.badge-pill.curr  { background: #e9f7ef; color: #166534; }
+.badge-pill.prevY { background: #f1f3f5; color: #334155; }
+.badge-pill.prevM { background: #eef4ff; color: #1e40af; }
 
-.badge-pill.curr, .badge-pill.prevY , .badge-pill.prevM { background: #f3f4f6; color: #000000; }
-
-/* ===== Bar styling ===== */
+/* Bar wrapper - lebih tipis */
 .bar {
   position: relative;
-  height: 18px;
-  border-radius: 9999px;
+  height: 12px;   /* sebelumnya 24px → compact */
+  border-radius: 999px;
   overflow: hidden;
-  width: 100%;
+  background-color: #c4c4c4;
 }
 
-/* Background wrapper per kolom */
-.bg-curr { background: #f1f3f5; }
-.bg-prevY { background: #f1f3f5; }
-.bg-prevM { background: #f1f3f5; }
+/* Fill warna */
+.fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; }
+.fill.curr.up   { background: #22c55e; }
+.fill.curr.down { background: #ef4444; }
+.fill.prev      { background: #6b7280; }
+.fill.prevM     { background: #3b82f6; }
 
-.fill {
-  position: absolute; 
-  top: 0; 
-  bottom: 0; 
-  left: 0;
-  border-radius: inherit;
-  transition: width .3s ease;
-}
-
-.fill.curr.up { background: #47ff50; }  /* hijau naik */
-.fill.curr.down { background: #ff6969; }  /* merah turun */
-.fill.prev { background: #919191; }
-.fill.prevM { background: #919191; }  /* biru */
-
-/* Label angka */
+/* Nilai di tengah – kecil */
 .val {
   position: absolute;
-  z-index: 2;
-  font-size: .72rem;
-  font-weight: 700;
-  color: #0f172a;
-  white-space: nowrap;
-  pointer-events: none;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .65rem;     /* lebih kecil */
+  font-weight: 600;
+  color: #000000;
 }
+.val-center { text-align: center; }
 
-.val-center {
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+/* Row list lebih rapat */
+.list .row {
+  padding-top: .15rem;
+  padding-bottom: .15rem;
 }
+.list .row + .row { border-top: 1px dashed #e5e7eb; }

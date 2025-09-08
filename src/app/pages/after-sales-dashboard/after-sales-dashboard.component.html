@@ -97,11 +97,17 @@
       <app-kpi-card
         [title]="'Jumlah Mekanik'"
         [value]="additionalKpiData()!.jumlahMekanik"
-        unit="orang"
+        [unitLabel]="'orang'"
         [subtitle]="'Total mekanik aktif'"
-        icon="bi bi-person-gear"
-        iconColor="#2563EB"
-        iconBgColor="#DBEAFE"
+        [period]="periodForCards()"
+        [series]="{
+          '2024-08': 2,
+          '2025-07': 3,
+          '2025-08': 3,
+          '2024': 3,
+          '2025': 3
+        }"
+        [compareMode]="true"
       />
     </div>
     }
@@ -113,10 +119,19 @@
         [title]="'Jumlah Hari Kerja'"
         [value]="additionalKpiData()!.jumlahHariKerja"
         unit="hari"
-        [subtitle]="'Total hari operasional'"
+        [subtitle]="compare ? '' : 'Total hari operasional'"
         icon="bi bi-calendar-check-fill"
         iconColor="#F59E0B"
         iconBgColor="#FEF3C7"
+        [period]="periodForCards()"
+        [series]="{
+          '2024-08': 2,
+          '2025-07': 3,
+          '2025-08': 3,
+          '2024': 3,
+          '2025': 3
+        }"
+        [compareMode]="true"
       />
     </div>
     }
@@ -126,10 +141,20 @@
       <app-kpi-card
         [title]="'Total Biaya Usaha'"
         [value]="formatCompactNumber(additionalKpiData()!.totalBiayaUsaha)"
-        [subtitle]="'Break Even Point (BEP)'"
+        [subtitle]="compare ? '' : 'Break Even Point'"
+        dataType="currency"
         icon="bi bi-cash-stack"
         iconColor="#228000"
         iconBgColor="#DCFFD0"
+        [period]="periodForCards()"
+        [series]="{
+          '2024-08': 2,
+          '2025-07': 3,
+          '2025-08': 3,
+          '2024': 3,
+          '2025': 3
+        }"
+        [compareMode]="true"
       />
     </div>
 
@@ -140,10 +165,19 @@
         [value]="
           formatCompactNumber(additionalKpiData()!.totalRevenueRealisasi)
         "
-        [subtitle]="'Total Pendapatan After Sales'"
+        [subtitle]="compare ? '' : 'Total Pendapatan After Sales'"
         icon="bi bi-cash"
         iconColor="#2563EB"
         iconBgColor="#DBEAFE"
+        [period]="periodForCards()"
+        [series]="{
+          '2024-08': 2,
+          '2025-07': 3,
+          '2025-08': 3,
+          '2024': 3,
+          '2025': 3
+        }"
+        [compareMode]="true"
       />
     </div>
 
@@ -152,10 +186,19 @@
       <app-kpi-card
         [title]="'Total Profit'"
         [value]="formatCompactNumber(additionalKpiData()!.totalProfit)"
-        [subtitle]="'Target'"
+        [subtitle]="compare ? '' : 'Target'"
         icon="bi bi-bullseye"
         iconColor="#228000"
         iconBgColor="#DCFFD0"
+        [period]="periodForCards()"
+        [series]="{
+          '2024-08': 2,
+          '2025-07': 3,
+          '2025-08': 3,
+          '2024': 3,
+          '2025': 3
+        }"
+        [compareMode]="true"
       />
     </div>
 
@@ -164,10 +207,19 @@
       <app-kpi-card
         [title]="'Total Profit Realisasi'"
         [value]="formatCompactNumber(additionalKpiData()!.totalProfitRealisasi)"
-        [subtitle]="'Keuntungan bersih'"
+        [subtitle]="compare ? '' : 'Keuntungan bersih'"
         icon="bi bi-graph-up-arrow"
         iconColor="#16A34A"
         iconBgColor="#DCFCE7"
+        [period]="periodForCards()"
+        [series]="{
+          '2024-08': 2,
+          '2025-07': 3,
+          '2025-08': 3,
+          '2024': 3,
+          '2025': 3
+        }"
+        [compareMode]="true"
       />
     </div>
   </div>
@@ -287,6 +339,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="true"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -303,6 +356,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="true"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -319,10 +373,10 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="true"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
-
     <!-- Unit Entry Realisasi vs Target -->
     <div class="col-12 col-sm-4 col-md-6 col-lg-5th">
       <app-kpi-card-as
@@ -335,6 +389,7 @@
         [loading]="loading()"
         [isUnit]="true"
         [isHarapanTarget]="true"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -351,6 +406,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="true"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -368,6 +424,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="true"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -420,6 +477,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -436,6 +494,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -451,6 +510,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -467,6 +527,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -482,6 +543,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -497,6 +559,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -512,6 +575,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -527,6 +591,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -542,6 +607,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -557,6 +623,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -578,6 +645,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -593,6 +661,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -608,6 +677,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -629,6 +699,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -643,6 +714,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -658,6 +730,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -673,6 +746,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -688,6 +762,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -703,6 +778,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -725,6 +801,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -741,6 +818,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -758,6 +836,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -774,6 +853,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -790,6 +870,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -806,6 +887,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -822,6 +904,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -838,6 +921,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -854,6 +938,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -874,6 +959,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -890,6 +976,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>
@@ -906,6 +993,7 @@
         [isUnit]="true"
         [mekanik]="additionalKpiData()?.jumlahMekanik"
         [isHarapanTarget]="false"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>

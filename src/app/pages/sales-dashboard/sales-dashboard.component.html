@@ -50,6 +50,7 @@
   </div>
 
   <!-- ===================== SALES SECTION ===================== -->
+  <!-- ===================== SALES SECTION ===================== -->
   @if (currentFilter.category === 'sales' || currentFilter.category ===
   'all-category') { @if (hasData()) { @if (salesKpi(); as sales) {
 
@@ -71,22 +72,26 @@
         [title]="'Total SPK'"
         dataType="unit"
         [subtitle]="compare ? '' : 'Surat Pemesanan Kendaraan'"
+        info="Jumlah surat pemesanan kendaraan (SPK) yang diterima pada periode terpilih."
         [period]="periodForCards"
-        [series]="sales.series?.totalSPK"
-        [value]="getSeriesCurrent(sales.series?.totalSPK)"
+        [series]="sales.series.totalSPK"
+        [value]="getSeriesCurrent(sales.series.totalSPK)"
         [compareMode]="compare"
         unitLabel="unit"
       />
+      
     </div>
-    <!-- Total SPK -->
+
+    <!-- Total DO -->
     <div class="col-6 col-sm-4 col-md-3 col-lg-2">
       <app-kpi-card
         [title]="'Total DO'"
         dataType="unit"
-        [subtitle]="compare ? '' : 'Delivary Order'"
+        [subtitle]="compare ? '' : 'Delivery Order'"
+        info="Jumlah unit yang telah dibuatkan Delivery Order (serah terima ke pelanggan)."
         [period]="periodForCards"
-        [series]="sales.series?.totalDO"
-        [value]="getSeriesCurrent(sales.series?.totalDO)"
+        [series]="sales.series.totalDO"
+        [value]="getSeriesCurrent(sales.series.totalDO)"
         [compareMode]="compare"
         unitLabel="unit"
       />
@@ -97,79 +102,132 @@
       <app-kpi-card
         [title]="'Total Unit Sales'"
         dataType="unit"
-        [subtitle]="compare ? '' : 'Total Unit Terjual'"
+        [subtitle]="compare ? '' : 'Total unit terjual'"
+        info="Total unit yang berhasil terjual pada periode terpilih."
         [period]="periodForCards"
-        [series]="sales.series?.totalUnitSales"
-        [value]="getSeriesCurrent(sales.series?.totalUnitSales)"
+        [series]="sales.series.totalUnitSales"
+        [value]="getSeriesCurrent(sales.series.totalUnitSales)"
         [compareMode]="compare"
         unitLabel="unit"
       />
     </div>
 
-    <!-- Total Revenue -->
+    <!-- Total Revenue (Sales) -->
     <div class="col-6 col-sm-4 col-md-3 col-lg-2">
       <app-kpi-card
         title="Total Revenue"
         dataType="currency"
-        [subtitle]="compare ? '' : 'Total Pendapatan'"
+        [subtitle]="compare ? '' : 'Total pendapatan sales'"
+        info="Total pendapatan dari penjualan unit (omzet sales) pada periode terpilih."
         [period]="periodForCards"
-        [series]="sales.series?.totalRevenue"
-        [value]="getSeriesCurrent(sales.series?.totalRevenue)"
+        [series]="sales.series.totalRevenue"
+        [value]="getSeriesCurrent(sales.series.totalRevenue)"
         [compareMode]="compare"
-        info="Total pendapatan sales. Perbandingan mengikuti periode terpilih (YoY & MoM)."
+      />
+    </div>
+    <!-- Total Revenue (Sales) -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        title="Prospek"
+        dataType="unit"
+        [subtitle]="compare ? '' : 'Total pendapatan sales'"
+        info="Total pendapatan dari penjualan unit (omzet sales) pada periode terpilih."
+        [period]="periodForCards"
+        [series]="{
+          '2024-08': 6,
+          '2025-07': 7,
+          '2025-08': 7,
+          '2024': 20,
+          '2025': 25
+        }"
+        [value]="getSeriesCurrent({
+          '2024-08': 6,
+          '2025-07': 7,
+          '2025-08': 7,
+          '2024': 20,
+          '2025': 25
+        })"
+        [compareMode]="compare"
+      />
+    </div>
+    <!-- Total Revenue (Sales) -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        title="Hot Prospek"
+        dataType="unit"
+        [subtitle]="compare ? '' : 'Total pendapatan sales'"
+        info="Total pendapatan dari penjualan unit (omzet sales) pada periode terpilih."
+        [period]="periodForCards"
+        [series]="{
+          '2024-08': 3,
+          '2025-07': 4,
+          '2025-08': 5,
+          '2024': 15,
+          '2025': 20
+        }"
+        [value]="getSeriesCurrent({
+          '2024-08': 6,
+          '2025-07': 7,
+          '2025-08': 7,
+          '2024': 20,
+          '2025': 25
+        })"
+        [compareMode]="compare"
       />
     </div>
 
-    <!-- Model Favorit (value dari series; subtitle = nama current) -->
+    <!-- Model Favorit -->
     <div class="col-6 col-sm-4 col-md-3 col-lg-2">
       <app-kpi-card
         title="Model Favorit"
         [value]="getCurrentName(sales.nameSeries?.topModel) ?? null"
         [subtitle]="
-          stringifyUnit(getSeriesCurrent(sales.series?.topModelUnits), 'unit')
+          stringifyUnit(getSeriesCurrent(sales.series.topModelUnits), 'unit')
         "
         dataType="unit"
+        info="Model dengan penjualan tertinggi pada periode terpilih. Subtitle menampilkan jumlah unit terjual."
         [period]="periodForCards"
-        [series]="sales.series?.topModelUnits"
+        [series]="sales.series.topModelUnits"
         [compareMode]="compare"
         unitLabel="unit"
         [prevYearLabel]="
           buildPrevLabels(
-            sales.series?.topModelUnits,
+            sales.series.topModelUnits,
             sales.nameSeries?.topModel
           ).prevY
         "
         [prevMonthLabel]="
           buildPrevLabels(
-            sales.series?.topModelUnits,
+            sales.series.topModelUnits,
             sales.nameSeries?.topModel
           ).prevM
         "
       />
     </div>
 
-    <!-- Cabang Penjualan Tertinggi (value dari series; subtitle = nama current) -->
+    <!-- Cabang Penjualan Tertinggi -->
     <div class="col-6 col-sm-4 col-md-3 col-lg-2">
       <app-kpi-card
         title="Cabang Penjualan Tertinggi"
         [value]="getCurrentName(sales.nameSeries?.topBranch) ?? null"
         [subtitle]="
-          stringifyUnit(getSeriesCurrent(sales.series?.topBranchUnits), 'unit')
+          stringifyUnit(getSeriesCurrent(sales.series.topBranchUnits), 'unit')
         "
         dataType="unit"
+        info="Cabang dengan penjualan unit tertinggi pada periode terpilih. Subtitle menampilkan jumlah unit."
         [period]="periodForCards"
-        [series]="sales.series?.topBranchUnits"
+        [series]="sales.series.topBranchUnits"
         [compareMode]="compare"
         unitLabel="unit"
         [prevYearLabel]="
           buildPrevLabels(
-            sales.series?.topBranchUnits,
+            sales.series.topBranchUnits,
             sales.nameSeries?.topBranch
           ).prevY
         "
         [prevMonthLabel]="
           buildPrevLabels(
-            sales.series?.topBranchUnits,
+            sales.series.topBranchUnits,
             sales.nameSeries?.topBranch
           ).prevM
         "
@@ -190,7 +248,24 @@
         [title]="'Trend Penjualan Unit per Bulan'"
         [labels]="lineMonthly()!.labels"
         [datasets]="lineMonthly()!.datasets"
-        [height]="250"
+        [height]="257"
+        [showLegend]="true"
+        [borderColor]="'#0d6efd'"
+        [xtitle]="'Bulan'"
+        [ytitle]="'Unit Terjual'"
+        [fill]="false"
+      />
+    </div>
+    }
+
+     @if (doVsSpk()) {
+    <div class="col-12 col-lg-4">
+      <app-line-chart-card
+        [label]="'Perbandingan DO vs SPK'"
+        [title]="'Trend Delivery Order dan Surat Pemesanan Kendaraan per Bulan'"
+        [labels]="doVsSpk()!.labels"
+        [datasets]="doVsSpk()!.datasets"
+        [height]="257"
         [showLegend]="true"
         [borderColor]="'#0d6efd'"
         [xtitle]="'Bulan'"
@@ -201,14 +276,16 @@
     }
 
     <!-- Compact YoY progress list -->
-    @if (modelDistributionYoY()) {
+    @if (modelDistributionYoY()) { @let prev = getModelDistributionPrevLabels();
+
     <div class="col-12 col-lg-4">
       <app-yoy-progress-list
         title="Proporsi Penjualan per Model"
         [labelCurr]="getCurrentPeriodLabel()"
-        [labelPrevY]="getModelDistributionPrevLabels().prevY || 'Tahun Lalu'"
-        [labelPrevM]="getModelDistributionPrevLabels().prevM || 'Bulan Lalu'"
+        [labelPrevY]="prev.prevY ?? 'Tahun Lalu'"
+        [labelPrevM]="prev.prevM ?? ''"
         [items]="modelDistributionYoY()"
+        [compare]="compare"
         unit="Unit"
         [maxRows]="modelDistributionYoY().length"
       />
@@ -220,13 +297,11 @@
     <div class="col-12 col-lg-4">
       <app-bar-chart-card
         [title]="'Performa Penjualan per Cabang'"
-        [labels]="branchPerformance()!.labels"
-        [data]="getChartData(branchPerformance())"
-        [xTitle]="'unit Terjual'"
-        [height]="234"
-        [horizontal]="true"
-        [showLegend]="false"
-        [label]="'Unit Terjual'"
+        [chartData]="branchPerformance() ?? undefined"
+        [height]="242"
+        [horizontal]="false"
+        [showLegend]="true"
+        [isMultiDataset]="true"
       />
     </div>
     }

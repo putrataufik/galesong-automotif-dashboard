@@ -4,38 +4,42 @@ import { CommonModule } from '@angular/common';
 
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
-import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
 import { BarChartCardComponent } from '../../shared/components/bar-chart-card/bar-chart-card.component';
-import { FilterMainDashboardComponent } from '../../shared/components/filter-main-dashboard/filter-main-dashboard.component';
 import { YoyProgressListComponent } from '../../shared/components/yoy-progress-list/yoy-progress-list.component';
+import { FilterSalesDashboardComponent } from '../../shared/components/filter-sales-dashboard/filter-sales-dashboard.component';
 
 import { AppFilter } from '../../types/filter.model';
 import { formatCompactCurrency as fmtCurrency } from '../../shared/utils/number-format.utils';
 
-// Import model chart
-import {
-  ChartData,
-  SingleChartData,
-  MultiChartData,
-  ModelYoY,
-} from '../../types/charts.model';
+// Types
+import { ChartData, SingleChartData, MultiChartData, ModelYoY } from '../../types/charts.model';
 
-// Import dummy
+// Dummy (sales-only)
 import {
   CURR_YEAR,
   PREV_YEAR,
   DATA_TY,
   DATA_LY,
   SALES_KPI_DUMMY,
-  AFTER_SALES_KPI_DUMMY,
   MODEL_DISTRIBUTION_YOY,
   BRANCH_PERFORMANCE_DUMMY,
-  AFTERSALES_REALISASI_VS_TARGET_DUMMY,
-  AFTERSALES_PROFIT_BY_BRANCH_DUMMY,
-  AFTERSALES_DISTRIBUTION_DUMMY,
+  DATA_LM,
+  DATA_DO,
+  DATA_SPK,
 } from '../main-dashboard/dummy';
 
-// Import utils
+const MONTH_ABBR = [
+  'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',
+] as const;
+
+type ModelDistDummy = {
+  name: string;
+  curr: number;
+  prevY: number;
+  prevM: number;
+};
+
+// Utils
 import {
   monthNameToNumber,
   stringifyUnit as stringifyUnitFn,
@@ -43,7 +47,6 @@ import {
   getCurrentName as getCurrentNameUtil,
   buildPrevLabels as buildPrevLabelsUtil,
 } from '../../shared/utils/sales.utils';
-import { FilterSalesDashboardComponent } from "../../shared/components/filter-sales-dashboard/filter-sales-dashboard.component";
 
 @Component({
   selector: 'app-sales-dashboard',
@@ -54,8 +57,8 @@ import { FilterSalesDashboardComponent } from "../../shared/components/filter-sa
     LineChartCardComponent,
     BarChartCardComponent,
     YoyProgressListComponent,
-    FilterSalesDashboardComponent
-],
+    FilterSalesDashboardComponent,
+  ],
   templateUrl: './sales-dashboard.component.html',
   styleUrl: './sales-dashboard.component.css',
 })
@@ -71,106 +74,265 @@ export class SalesDashboardComponent implements OnInit {
   // ==== FILTER ====
   currentFilter: AppFilter = {
     company: 'sinar-galesong-mobilindo',
-    category: 'all-category',
+    category: 'sales',           // ← set khusus sales
     year: '2025',
     month: 'all-month',
     branch: 'all-branch',
     compare: false,
   };
+
   // ==== SALES KPI ====
   salesKpi = signal<any | null>(SALES_KPI_DUMMY);
 
-  // ==== AFTER SALES KPI ====
-  afterSalesKpi = signal<any | null>(AFTER_SALES_KPI_DUMMY);
-
-  // ==== Charts ====
+  // ==== Charts (sales) ====
   currYear = CURR_YEAR;
   prevYear = PREV_YEAR;
   dataTY = DATA_TY.slice();
   dataLY = DATA_LY.slice();
+  dataLM = DATA_LM.slice();
 
-  lineMonthly = signal<MultiChartData | null>({
-    labels: [...Array(12).keys()].map((m) => `${m + 1}`),
-    datasets: [
-      {
-        label: `Tahun ${this.currYear}`,
-        data: this.dataTY,
-        backgroundColor: 'rgba(13,110,253,0.20)',
-        borderColor: '#0d6efd',
-        borderWidth: 2,
-      },
-      {
-        label: `Tahun ${this.prevYear}`,
-        data: this.dataLY,
-        backgroundColor: 'rgba(148,163,184,0.20)',
-        borderColor: '#94a3b8',
-        borderWidth: 1,
-      },
-    ],
-  });
+  private readonly MONTH_LABELS = Array.from({ length: 12 }, (_, i) => `${i + 1}`);
+  lineMonthly = signal<MultiChartData | undefined>(undefined);
 
-  modelDistributionYoY = signal<ModelYoY[]>([...MODEL_DISTRIBUTION_YOY]);
+  private readonly LINE_COLORS = {
+    currBg: 'rgba(13,110,253,0.20)',
+    currBorder: '#0d6efd',
+    prevYBg: 'rgba(148,163,184,0.20)',
+    prevYBorder: '#94a3b8',
+    prevMBg: 'rgba(0, 192, 32, 0.47)',
+    prevMBorder: '#00d800ff',
+  };
 
-  branchPerformance = signal<ChartData | null>({
-    labels: BRANCH_PERFORMANCE_DUMMY.map(b => b.branch),
-    datasets: [
-      {
-        label: 'Periode',
-        data: BRANCH_PERFORMANCE_DUMMY.map(b => b.curr),
-        backgroundColor: '',
-        borderColor: '',
-      },
-      {
-        label: 'Prev M',
-        data: BRANCH_PERFORMANCE_DUMMY.map(b => b.prevM),
-        backgroundColor: '',
-        borderColor: '',
-      },
-      {
-        label: 'Prev Y',
-        data: BRANCH_PERFORMANCE_DUMMY.map(b => b.prevY),
-        backgroundColor: '',
-        borderColor: '',
-      },
-    ],
-  });
-  
+  private buildLineMonthly(): MultiChartData {
+    const labels = this.MONTH_LABELS;
+    const compare = this.compare;
+    const period = this.periodForCards;
 
-  afterSalesRealisasiVsTarget = signal<MultiChartData | null>({
-    labels: [...AFTERSALES_REALISASI_VS_TARGET_DUMMY.labels],
-    datasets: [
-      {
-        label: 'Realisasi',
-        data: [...AFTERSALES_REALISASI_VS_TARGET_DUMMY.realisasi],
-        backgroundColor: '#5191ffff',
-        borderColor: '#5191ffff',
-        borderWidth: 1,
-      },
-      {
-        label: 'Target',
-        data: [...AFTERSALES_REALISASI_VS_TARGET_DUMMY.target],
-        backgroundColor: '#000262ff',
-        borderColor: '#000262ff',
-        borderWidth: 1,
-      },
-    ],
-  });
+    const dataTY = this.dataTY;
+    const dataLY = this.dataLY;
+    const dataLM = this.dataLM;
 
-  afterSalesProfitByBranch = signal<ChartData | null>({
-    labels: [...AFTERSALES_PROFIT_BY_BRANCH_DUMMY.labels],
-    data: [...AFTERSALES_PROFIT_BY_BRANCH_DUMMY.data],
-  });
+    if (!compare) {
+      return {
+        labels,
+        datasets: [
+          {
+            label: `Tahun ${this.currYear}`,
+            data: dataTY,
+            backgroundColor: this.LINE_COLORS.currBg,
+            borderColor: this.LINE_COLORS.currBorder,
+            borderWidth: 2,
+          },
+        ],
+      };
+    }
 
-  afterSalesDistribution = signal<ChartData | null>({
-    labels: [...AFTERSALES_DISTRIBUTION_DUMMY.labels],
-    data: [...AFTERSALES_DISTRIBUTION_DUMMY.data],
-  });
+    if (!period?.month) {
+      return {
+        labels,
+        datasets: [
+          {
+            label: `Tahun ${this.currYear}`,
+            data: dataTY,
+            backgroundColor: this.LINE_COLORS.currBg,
+            borderColor: this.LINE_COLORS.currBorder,
+            borderWidth: 2,
+          },
+          {
+            label: `Tahun ${this.prevYear}`,
+            data: dataLY,
+            backgroundColor: this.LINE_COLORS.prevYBg,
+            borderColor: this.LINE_COLORS.prevYBorder,
+            borderWidth: 1,
+          },
+        ],
+      };
+    }
+
+    const { prevM, prevY } = this.getModelDistributionPrevLabels();
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: this.getCurrentPeriodLabel(),
+          data: dataTY,
+          backgroundColor: this.LINE_COLORS.currBg,
+          borderColor: this.LINE_COLORS.currBorder,
+          borderWidth: 2,
+        },
+        {
+          label: prevM ?? 'Bulan Lalu',
+          data: dataLY,
+          backgroundColor: this.LINE_COLORS.prevMBg,
+          borderColor: this.LINE_COLORS.prevMBorder,
+          borderWidth: 1,
+        },
+        {
+          label: prevY ?? 'Tahun Lalu',
+          data: dataLM,
+          backgroundColor: this.LINE_COLORS.prevYBg,
+          borderColor: this.LINE_COLORS.prevYBorder,
+          borderWidth: 1,
+        },
+      ],
+    };
+  }
+doVsSpk = signal<MultiChartData | undefined>(undefined);
+  private readonly doVsSpk_COLORS = {
+    currBg: 'rgba(48, 222, 60, 1)',
+    currBorder: '#00cb0eff',
+    prevYBg: 'rgba(57, 60, 238, 1)',
+    prevYBorder: '#0d6efd',
+  };
+
+  dataDo = DATA_DO.slice();
+  dataSpk = DATA_SPK.slice();
+  private buildDoVsSpk(): MultiChartData {
+    const labels = this.MONTH_LABELS;
+
+    const dataDo = this.dataDo;
+    const dataSpk = this.dataSpk;
+
+    // === compare = true & all-month → 2 dataset: Curr vs Prev Y (dua-duanya 12 bulan) ===
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: `Delivery Order`,
+          data: dataDo,
+          backgroundColor: this.doVsSpk_COLORS.currBg,
+          borderColor: this.doVsSpk_COLORS.currBorder,
+          borderWidth: 2,
+        },
+        {
+          label: `Surat Pemesanan Kendaraan`,
+          data: dataSpk,
+          backgroundColor: this.doVsSpk_COLORS.prevYBg,
+          borderColor: this.doVsSpk_COLORS.prevYBorder,
+          borderWidth: 2,
+        },
+      ],
+    };
+  }
+  distributionModel = signal<ModelYoY[]>([...MODEL_DISTRIBUTION_YOY]);
+  modelDistributionYoY = signal<ModelYoY[]>([]);
+
+  /** Builder dinamis untuk model distribution sesuai filter */
+  private buildModelDistribution(): ModelYoY[] {
+    const base: ModelDistDummy[] = [...MODEL_DISTRIBUTION_YOY];
+    const compare = this.compare;
+    const period = this.periodForCards;
+
+    if (!compare) {
+      return base.map(({ name, curr }) => ({
+        name,
+        curr,
+        prevY: null,
+        prevM: null,
+      }));
+    }
+
+    if (!period?.month) {
+      return base.map(({ name, curr, prevY }) => ({
+        name,
+        curr,
+        prevY,
+        prevM: null,
+      }));
+    }
+
+    return base.map(({ name, curr, prevY, prevM }) => ({
+      name,
+      curr,
+      prevY,
+      prevM,
+    }));
+  }
+
+  branchPerformance = signal<ChartData | null>(null);
+  private buildBranchPerformance(): ChartData {
+    const labels = BRANCH_PERFORMANCE_DUMMY.map((b) => b.branch);
+
+    const currLabel = this.getCurrentPeriodLabel();
+    const { prevM, prevY } = this.getModelDistributionPrevLabels();
+
+    const dataCurr = BRANCH_PERFORMANCE_DUMMY.map((b) => b.curr);
+    const dataPrevM = BRANCH_PERFORMANCE_DUMMY.map((b) => b.prevM);
+    const dataPrevY = BRANCH_PERFORMANCE_DUMMY.map((b) => b.prevY);
+
+    if (!this.compare) {
+      return {
+        labels,
+        datasets: [
+          {
+            label: currLabel || 'Periode',
+            data: dataCurr,
+            backgroundColor: 'rgba(13,110,253)',
+            borderColor: '#0d6efd',
+            borderWidth: 1,
+          },
+        ],
+      };
+    }
+
+    const period = this.periodForCards;
+
+    if (!period?.month) {
+      return {
+        labels,
+        datasets: [
+          {
+            label: currLabel || 'Tahun Ini',
+            data: dataCurr,
+            backgroundColor: 'rgba(13,110,253)',
+            borderColor: '#0d6efd',
+            borderWidth: 1,
+          },
+          {
+            label: prevY || 'Tahun Lalu',
+            data: dataPrevY,
+            backgroundColor: 'rgba(148,163,184)',
+            borderColor: '#94a3b8',
+            borderWidth: 1,
+          },
+        ],
+      };
+    }
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: currLabel || 'Periode',
+          data: dataCurr,
+          backgroundColor: 'rgba(13,110,253)',
+          borderColor: '#0d6efd',
+          borderWidth: 1,
+        },
+        {
+          label: prevM || 'Bulan Lalu',
+          data: dataPrevM,
+          backgroundColor: 'rgba(0,23,87)',
+          borderColor: '#001757ff',
+          borderWidth: 1,
+        },
+        {
+          label: prevY || 'Tahun Lalu',
+          data: dataPrevY,
+          backgroundColor: 'rgba(148,163,184)',
+          borderColor: '#94a3b8',
+          borderWidth: 1,
+        },
+      ],
+    };
+  }
 
   // ==== Helpers filter/series ====
   get periodForCards(): { year: number; month?: number } | null {
     const f: any = this.currentFilter;
 
-    // Prioritas 1: jika period langsung ada (format "YYYY-MM")
     const periodRaw = f?.period ?? null;
     if (typeof periodRaw === 'string' && /^\d{4}-\d{2}$/.test(periodRaw)) {
       const [yStr, mStr] = periodRaw.split('-');
@@ -181,23 +343,24 @@ export class SalesDashboardComponent implements OnInit {
       }
     }
 
-    // Prioritas 2: year + month
     const yearNum = Number(f?.year);
     if (!Number.isFinite(yearNum)) return null;
 
     const monthRaw = f?.month ?? 'all-month';
     const monthNum = monthNameToNumber(monthRaw);
 
-    if (monthNum == null) return { year: yearNum }; // hanya tahun
-    return { year: yearNum, month: monthNum }; // tahun + bulan
+    if (monthNum == null) return { year: yearNum };
+    return { year: yearNum, month: monthNum };
   }
 
   getSeriesCurrent(series?: Record<string, number> | null): number | null {
     return getSeriesCurrentUtil(this.periodForCards, series);
   }
+
   get compare(): boolean {
     return this.currentFilter.compare ?? false;
   }
+
   getCurrentName(nameSeries?: Record<string, string> | null): string | null {
     return getCurrentNameUtil(this.periodForCards, nameSeries);
   }
@@ -210,62 +373,38 @@ export class SalesDashboardComponent implements OnInit {
   }
 
   getCurrentPeriodLabel(): string {
-  const period = this.periodForCards;
-  if (!period) return 'Current';
-  
-  if (period.month) {
-    // Format: "Jan 2025"
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return `${monthNames[period.month - 1]} ${period.year}`;
-  } else {
-    // Format: "2025"
-    return period.year.toString();
-  }
-}
+    const period = this.periodForCards;
+    if (!period) return 'Current';
 
-/**
- * Generate labels untuk periode sebelumnya khusus model distribution
- */
-getModelDistributionPrevLabels(): { prevY?: string; prevM?: string } {
-  const period = this.periodForCards;
-  if (!period) return {};
-
-  const result: { prevY?: string; prevM?: string } = {};
-
-  // Previous Year
-  if (period.month) {
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    result.prevY = `${monthNames[period.month - 1]} ${period.year - 1}`;
-  } else {
-    result.prevY = (period.year - 1).toString();
-  }
-
-  // Previous Month (only if current period has month)
-  if (period.month) {
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    
-    let prevMonth = period.month - 1;
-    let prevYear = period.year;
-    
-    if (prevMonth === 0) {
-      prevMonth = 12;
-      prevYear = period.year - 1;
+    if (period.month) {
+      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${monthNames[period.month - 1]} ${period.year}`;
+    } else {
+      return period.year.toString();
     }
-    
-    result.prevM = `${monthNames[prevMonth - 1]} ${prevYear}`;
   }
 
-  return result;
-}
+  getModelDistributionPrevLabels(): { prevY?: string; prevM?: string } {
+    const period = this.periodForCards;
+    if (!period) return {};
+
+    const out: { prevY?: string; prevM?: string } = {};
+    out.prevY = period.month
+      ? `${MONTH_ABBR[period.month - 1]} ${period.year - 1}`
+      : String(period.year - 1);
+
+    if (period.month) {
+      let pm = period.month - 1;
+      let py = period.year;
+      if (pm === 0) {
+        pm = 12;
+        py = period.year - 1;
+      }
+      out.prevM = `${MONTH_ABBR[pm - 1]} ${py}`;
+    }
+
+    return out;
+  }
 
   isSingleDataset(chart: ChartData | null): chart is SingleChartData {
     return chart !== null && 'data' in chart;
@@ -275,65 +414,44 @@ getModelDistributionPrevLabels(): { prevY?: string; prevM?: string } {
     return [];
   }
 
-  ngOnInit(): void {}
-
   getCompanyDisplayName(company: string): string {
     const companyMap: Record<string, string> = {
       'sinar-galesong-mobilindo': 'Sinar Galesong Mobilindo',
       'pt-galesong-otomotif': 'PT Galesong Otomotif',
-      'all-company': 'Semua Perusahaan'
+      'all-company': 'Semua Perusahaan',
     };
     return companyMap[company] || company;
   }
 
-  /**
-   * Get display name for category filter
-   */
   getCategoryDisplayName(category: string): string {
     const categoryMap: Record<string, string> = {
       'all-category': 'Semua Kategori',
-      'sales': 'Sales',
-      'after-sales': 'After Sales'
+      sales: 'Sales',
+      // (hapus 'after-sales')
     };
     return categoryMap[category] || category;
   }
 
-  /**
-   * Get display name for branch filter
-   */
   getBranchDisplayName(branch: string): string {
     const branchMap: Record<string, string> = {
       'all-branch': 'Semua Cabang',
-      'pettarani': 'Pettarani',
-      'palopo': 'Palopo',
-      'kendari': 'Kendari',
-      'palu': 'Palu',
-      'manado': 'Manado'
+      pettarani: 'Pettarani',
+      palopo: 'Palopo',
+      kendari: 'Kendari',
+      palu: 'Palu',
+      manado: 'Manado',
     };
     return branchMap[branch] || branch;
   }
 
-  /**
-   * Get display name for period (year + month)
-   */
   getPeriodDisplayName(): string {
     const year = this.currentFilter.year;
     const month = this.currentFilter.month;
 
     const monthMap: Record<string, string> = {
       'all-month': 'Semua Bulan',
-      '01': 'Januari',
-      '02': 'Februari',
-      '03': 'Maret',
-      '04': 'April',
-      '05': 'Mei',
-      '06': 'Juni',
-      '07': 'Juli',
-      '08': 'Agustus',
-      '09': 'September',
-      '10': 'Oktober',
-      '11': 'November',
-      '12': 'Desember'
+      '01': 'Januari','02': 'Februari','03': 'Maret','04': 'April','05': 'Mei','06': 'Juni',
+      '07': 'Juli','08': 'Agustus','09': 'September','10': 'Oktober','11': 'November','12': 'Desember',
     };
 
     const yearDisplay = year || 'Semua Tahun';
@@ -342,32 +460,34 @@ getModelDistributionPrevLabels(): { prevY?: string; prevM?: string } {
     if (month === 'all-month' || !month) {
       return yearDisplay;
     }
-
     return `${monthDisplay} ${yearDisplay}`;
   }
 
-  /**
-   * Override the onSearch method to include timestamp
-   */
+  ngOnInit(): void {
+    this.branchPerformance.set(this.buildBranchPerformance());
+    this.modelDistributionYoY.set(this.buildModelDistribution());
+    this.lineMonthly.set(this.buildLineMonthly());
+    this.doVsSpk.set(this.buildDoVsSpk());
+  }
+
   onSearch(filter: AppFilter): void {
-    this.currentFilter = { ...filter };
-  
-    
-    // ---- DEBUG LOGS ----
-    console.group('[Dashboard] Filter applied');
-    console.table(filter);
-    console.log('As JSON:', JSON.stringify(filter, null, 2));
+    this.currentFilter = { ...filter, category: 'sales' }; // kunci ke sales
+    this.branchPerformance.set(this.buildBranchPerformance());
+    this.modelDistributionYoY.set(this.buildModelDistribution());
+    this.lineMonthly.set(this.buildLineMonthly());
+    this.doVsSpk.set(this.buildDoVsSpk());
+
+    console.group('[Sales Dashboard] Filter applied');
+    console.table(this.currentFilter);
+    console.log('As JSON:', JSON.stringify(this.currentFilter, null, 2));
     console.log('Resolved periodForCards:', this.periodForCards);
     console.groupEnd();
   }
 
-  /**
-   * Clear all filters (optional method for reset functionality)
-   */
   clearFilters(): void {
     this.currentFilter = {
       company: 'sinar-galesong-mobilindo',
-      category: 'all-category',
+      category: 'sales',
       year: '2025',
       month: 'all-month',
       branch: 'all-branch',
@@ -375,22 +495,17 @@ getModelDistributionPrevLabels(): { prevY?: string; prevM?: string } {
     };
   }
 
-  /**
-   * Get filter summary for display
-   */
   getFilterSummary(): string {
     const parts: string[] = [];
-    
+
     if (this.currentFilter.category !== 'all-category') {
       parts.push(this.getCategoryDisplayName(this.currentFilter.category));
     }
-    
     if (this.currentFilter.branch !== 'all-branch') {
       parts.push(this.getBranchDisplayName(this.currentFilter.branch));
     }
-    
     parts.push(this.getPeriodDisplayName());
-    
+
     return parts.join(' • ');
   }
 }

@@ -30,7 +30,7 @@ export class KpiCardAsComponent {
   @Input() isUnit: boolean = false; // Flag: unit atau currency
   @Input() isHarapanTarget: boolean = false;
   @Input() mekanik?: number;
-
+  @Input() compare: boolean = false;
   /** State popover */
   showInfo = false;
    formatCompactNumber = formatCompactNumber;

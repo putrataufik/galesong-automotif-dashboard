@@ -19,25 +19,25 @@
         {{ info }}
       </ng-container>
       <ng-template #defaultInfo>
-        {{ title }} — nilai saat ini dibandingkan YoY &amp; MoM mengikuti periode terpilih.
+        {{ title }} — nilai saat ini dibandingkan YoY &amp; MoM mengikuti
+        periode terpilih.
       </ng-template>
     </div>
   </div>
 
   <!-- === Compare ON === -->
   <ng-container *ngIf="compare(); else normalBlock">
-    <div class="content-compact d-flex flex-column align-items-center justify-content-center gap-2 w-100">
+    <div
+      class="content-compact d-flex flex-column align-items-center justify-content-center gap-2 w-100"
+    >
       <!-- Title -->
       <div class="kpi-title-compact text-muted text-center text-uppercase">
         {{ title }}
       </div>
 
-      <!-- Current Value + Subtitle (inline) -->
+      <!-- Current Value + Subtitle (inline) — NETRAL -->
       <div class="text-center">
-        <div
-          class="d-flex justify-content-center align-items-center gap-1"
-          [ngClass]="selectedDir === 'up' ? 'kpi-up' : selectedDir === 'down' ? 'kpi-down' : 'kpi-flat'"
-        >
+        <div class="d-flex justify-content-center align-items-center gap-1">
           <span class="kpi-value">{{ formatValue(value) }}</span>
           <small class="text-muted" *ngIf="subtitle">({{ subtitle }})</small>
         </div>
@@ -48,29 +48,52 @@
         <!-- YoY + MoM -->
         <ng-container *ngIf="yoy && mom">
           <div class="row g-2 text-center align-items-center">
+            <!-- Prev Year -->
             <div class="col-6">
               <div class="kpi-title-compact text-muted text-center text-uppercase">
-                {{ prevYearSubtitle || 'Prev Year' }}
+                {{ prevYearSubtitle || "Prev Year" }}
               </div>
               <div class="d-flex justify-content-center align-items-center gap-1">
                 <ng-container *ngIf="prevYearLabel; else prevYValue">
-                  <span class="comparison-main-value">{{ prevYearLabel }}</span>
+                  <span
+                    class="comparison-main-value"
+                    [class.kpi-down]="yoy.dir === 'up'"  
+                    [class.kpi-up]="yoy.dir === 'down'" 
+                    >{{ prevYearLabel }}</span
+                  >
                 </ng-container>
                 <ng-template #prevYValue>
-                  <span class="comparison-main-value">{{ formatValueWithUnit(prevYearValue) }}</span>
+                  <span
+                    class="comparison-main-value"
+                    [class.kpi-down]="yoy.dir === 'up'"
+                    [class.kpi-up]="yoy.dir === 'down'"
+                    >{{ formatValueWithUnit(prevYearValue) }}</span
+                  >
                 </ng-template>
               </div>
             </div>
+
+            <!-- Prev Month -->
             <div class="col-6 border-start">
               <div class="kpi-title-compact text-muted text-center text-uppercase">
-                {{ prevMonthSubtitle || 'Prev Month' }}
+                {{ prevMonthSubtitle || "Prev Month" }}
               </div>
               <div class="d-flex justify-content-center align-items-center gap-1">
                 <ng-container *ngIf="prevMonthLabel; else prevMValue">
-                  <span class="comparison-main-value">{{ prevMonthLabel }}</span>
+                  <span
+                    class="comparison-main-value"
+                    [class.kpi-down]="mom.dir === 'up'"   
+                    [class.kpi-up]="mom.dir === 'down'"  
+                    >{{ prevMonthLabel }}</span
+                  >
                 </ng-container>
                 <ng-template #prevMValue>
-                  <span class="comparison-main-value">{{ formatValueWithUnit(prevMonthValue) }}</span>
+                  <span
+                    class="comparison-main-value"
+                    [class.kpi-down]="mom.dir === 'up'"
+                    [class.kpi-up]="mom.dir === 'down'"
+                    >{{ formatValueWithUnit(prevMonthValue) }}</span
+                  >
                 </ng-template>
               </div>
             </div>
@@ -81,14 +104,26 @@
         <ng-container *ngIf="yoy && !mom">
           <div class="d-flex flex-column align-items-center text-center">
             <div class="kpi-title-compact text-center">
-              {{ prevYearSubtitle || 'Prev Year' }}
+              {{ prevYearSubtitle || "Prev Year" }}
             </div>
             <div class="d-flex justify-content-center align-items-center gap-1">
               <ng-container *ngIf="prevYearLabel; else prevYOnlyValue">
-                <span class="comparison-main-value">{{ prevYearLabel }}</span>
+                <span
+                  class="comparison-main-value"
+                  [class.kpi-down]="yoy.dir === 'up'"
+                  [class.kpi-up]="yoy.dir === 'down'"
+                >
+                  {{ prevYearLabel }}
+                </span>
               </ng-container>
               <ng-template #prevYOnlyValue>
-                <span class="comparison-main-value">{{ formatValueWithUnit(prevYearValue) }}</span>
+                <span
+                  class="comparison-main-value"
+                  [class.kpi-down]="yoy.dir === 'up'"
+                  [class.kpi-up]="yoy.dir === 'down'"
+                >
+                  {{ formatValueWithUnit(prevYearValue) }}
+                </span>
               </ng-template>
             </div>
           </div>
@@ -104,13 +139,12 @@
 
   <!-- === Compare OFF === -->
   <ng-template #normalBlock>
-    <div class="content-compact d-flex flex-column align-items-center justify-content-center gap-2 w-100 text-center">
+    <div
+      class="content-compact d-flex flex-column align-items-center justify-content-center gap-2 w-100 text-center"
+    >
       <div class="kpi-title-compact text-muted text-uppercase">{{ title }}</div>
       <div class="text-center">
-        <div
-          class="d-flex justify-content-center align-items-center gap-1"
-          [ngClass]="selectedDir === 'up' ? 'kpi-up' : selectedDir === 'down' ? 'kpi-down' : 'kpi-flat'"
-        >
+        <div class="d-flex justify-content-center align-items-center gap-1">
           <span class="kpi-value">{{ formatValue(value) }}</span>
         </div>
         <small class="text-muted" *ngIf="subtitle">{{ subtitle }}</small>

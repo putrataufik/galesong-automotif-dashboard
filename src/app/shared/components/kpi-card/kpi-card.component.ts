@@ -48,7 +48,6 @@ export class KpiCardComponent implements OnChanges {
   @Input() period: { year: number; month?: number } | null = null;
   @Input() series: Record<string, number> | null = null;
 
-
   /** Toggle tampilan compare */
   compare = signal(false);
   @Input() set compareMode(v: boolean | null | undefined) {
@@ -104,6 +103,8 @@ export class KpiCardComponent implements OnChanges {
       const yoy = pick(yoyKey);
       const mom = pick(momKey);
 
+      // value current tidak dipaksa dari series (biarkan parent suplai),
+      // di sini hanya set pembanding & label
       this.prevYearValue = yoy;
       this.prevMonthValue = mom;
 
@@ -145,33 +146,25 @@ export class KpiCardComponent implements OnChanges {
     else if (/(t|triliun|trillion)\b/.test(lower)) multiplier = 1e12;
 
     // hilangkan currency / huruf, sisakan angka, . , - +
-    // tapi jangan hapus pemisah desimal/koma/titik
     s = s
       .replace(/[^0-9,.\-+]/g, '')
       .replace(/\s+/g, '');
 
     if (!s) return null;
 
-    // normalisasi sederhana:
-    // - jika ada dua jenis pemisah, anggap yang terakhir sebagai desimal
-    // - kalau cuma titik dan tidak ada koma, treat titik sebagai pemisah ribuan
+    // normalisasi sederhana
     const hasComma = s.includes(',');
     const hasDot = s.includes('.');
 
     if (hasComma && hasDot) {
-      // gunakan yang terakhir sebagai desimal
       if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
-        // koma desimal: hapus semua titik (ribuan), ganti koma -> titik
         s = s.replace(/\./g, '').replace(',', '.');
       } else {
-        // titik desimal: hapus semua koma (ribuan)
         s = s.replace(/,/g, '');
       }
     } else if (hasComma && !hasDot) {
-      // hanya koma: treat koma sebagai desimal
       s = s.replace(/\./g, '').replace(',', '.');
     } else {
-      // hanya titik atau angka polos: treat titik sebagai ribuan (hapus)
       const parts = s.split('.');
       if (parts.length > 2) {
         s = s.replace(/\./g, '');
@@ -243,7 +236,7 @@ export class KpiCardComponent implements OnChanges {
     return { abs, dir };
   }
 
-  // Warna nilai utama (prioritas MoM > YoY)
+  // Warna nilai utama (prioritas MoM > YoY) — TIDAK dipakai di view netral current, tetap disediakan jika perlu
   get selectedDir(): 'up' | 'down' | 'flat' {
     if (this.mom) return this.mom.dir;
     if (this.yoy) return this.yoy.dir;
@@ -257,12 +250,4 @@ export class KpiCardComponent implements OnChanges {
   get hasMoM(): boolean {
     return this.prevMonthValue !== null && this.prevMonthValue !== undefined;
   }
-  private getSeriesCurrentInternal(): number | null {
-  if (!this.series || !this.period) return null;
-  if (this.period.month) {
-    const mm = this.period.month < 10 ? `0${this.period.month}` : String(this.period.month);
-    return this.series[`${this.period.year}-${mm}`] ?? null;
-  }
-  return this.series[String(this.period.year)] ?? null;
-}
 }
