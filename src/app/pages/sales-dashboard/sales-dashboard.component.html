@@ -1,12 +1,4 @@
 <div class="container-fluid p-4">
-  <!-- Header -->
-  <div class="row mb-2">
-    <div class="col-12 text-center">
-      <h5 class="fw-bold text-dark mb-3">
-        Dashboard <span class="text-primary">Galesong Otomotif</span>
-      </h5>
-    </div>
-  </div>
 
   <!-- Filter -->
   <div class="row mb-2">
@@ -50,7 +42,6 @@
   </div>
 
   <!-- ===================== SALES SECTION ===================== -->
-  <!-- ===================== SALES SECTION ===================== -->
   @if (currentFilter.category === 'sales' || currentFilter.category ===
   'all-category') { @if (hasData()) { @if (salesKpi(); as sales) {
 
@@ -79,7 +70,6 @@
         [compareMode]="compare"
         unitLabel="unit"
       />
-      
     </div>
 
     <!-- Total DO -->
@@ -140,13 +130,15 @@
           '2024': 20,
           '2025': 25
         }"
-        [value]="getSeriesCurrent({
-          '2024-08': 6,
-          '2025-07': 7,
-          '2025-08': 7,
-          '2024': 20,
-          '2025': 25
-        })"
+        [value]="
+          getSeriesCurrent({
+            '2024-08': 6,
+            '2025-07': 7,
+            '2025-08': 7,
+            '2024': 20,
+            '2025': 25
+          })
+        "
         [compareMode]="compare"
       />
     </div>
@@ -165,13 +157,15 @@
           '2024': 15,
           '2025': 20
         }"
-        [value]="getSeriesCurrent({
-          '2024-08': 6,
-          '2025-07': 7,
-          '2025-08': 7,
-          '2024': 20,
-          '2025': 25
-        })"
+        [value]="
+          getSeriesCurrent({
+            '2024-08': 6,
+            '2025-07': 7,
+            '2025-08': 7,
+            '2024': 20,
+            '2025': 25
+          })
+        "
         [compareMode]="compare"
       />
     </div>
@@ -242,7 +236,7 @@
   <div class="row g-2 mb-2">
     <!-- Line Chart - Monthly Trend -->
     @if (lineMonthly()) {
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-6">
       <app-line-chart-card
         [label]="'Unit Terjual'"
         [title]="'Trend Penjualan Unit per Bulan'"
@@ -256,30 +250,12 @@
         [fill]="false"
       />
     </div>
-    }
-
-     @if (doVsSpk()) {
-    <div class="col-12 col-lg-4">
-      <app-line-chart-card
-        [label]="'Perbandingan DO vs SPK'"
-        [title]="'Trend Delivery Order dan Surat Pemesanan Kendaraan per Bulan'"
-        [labels]="doVsSpk()!.labels"
-        [datasets]="doVsSpk()!.datasets"
-        [height]="257"
-        [showLegend]="true"
-        [borderColor]="'#0d6efd'"
-        [xtitle]="'Bulan'"
-        [ytitle]="'Unit Terjual'"
-        [fill]="false"
-      />
-    </div>
-    }
-
+    
     <!-- Compact YoY progress list -->
     @if (modelDistributionYoY()) { @let prev = getModelDistributionPrevLabels();
-
-    <div class="col-12 col-lg-4">
-      <app-yoy-progress-list
+      
+      <div class="col-12 col-lg-6">
+        <app-yoy-progress-list
         title="Proporsi Penjualan per Model"
         [labelCurr]="getCurrentPeriodLabel()"
         [labelPrevY]="prev.prevY ?? 'Tahun Lalu'"
@@ -288,13 +264,29 @@
         [compare]="compare"
         unit="Unit"
         [maxRows]="modelDistributionYoY().length"
-      />
-    </div>
+        />
+      </div>
     }
+  } @if (doVsSpk()) {
+  <div class="col-12 col-lg-6">
+    <app-line-chart-card
+      [label]="'Perbandingan DO vs SPK'"
+      [title]="'Trend Delivery Order dan Surat Pemesanan Kendaraan per Bulan'"
+      [labels]="doVsSpk()!.labels"
+      [datasets]="doVsSpk()!.datasets"
+      [height]="257"
+      [showLegend]="true"
+      [borderColor]="'#0d6efd'"
+      [xtitle]="'Bulan'"
+      [ytitle]="'Unit Terjual'"
+      [fill]="false"
+    />
+  </div>
+  }
 
     <!-- Bar Chart - Branch Performance -->
     @if (branchPerformance()) {
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-6">
       <app-bar-chart-card
         [title]="'Performa Penjualan per Cabang'"
         [chartData]="branchPerformance() ?? undefined"

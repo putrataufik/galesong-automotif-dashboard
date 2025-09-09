@@ -1,55 +1,52 @@
 <div class="container-fluid p-4">
-  <!-- Header dan Filter -->
+  <!-- ===================== HEADER ===================== -->
   <div class="row mb-2">
     <div class="col-12 text-center">
       <h5 class="fw-bold text-dark mb-3">
         Dashboard <span class="text-success">After Sales</span>
       </h5>
     </div>
+  </div>
 
-    <div class="row mb-2">
-      <div class="col-12">
-        <app-filter-aftersales-dashboard
-          [loading]="loading()"
-          [initialFilter]="currentFilter()"
-          (search)="onSearch($event)"
-        >
-        </app-filter-aftersales-dashboard>
-      </div>
-    </div>
-    <!-- Alternative: Breadcrumb Style Filter Display -->
-    <div class="row">
-      <div class="col-12">
-        <nav aria-label="Filter breadcrumb">
-          <ol class="breadcrumb mb-0 bg-light rounded">
-            <li class="breadcrumb-item">
-              <i class="bi bi-funnel me-1"></i>
-              Filter
-            </li>
-            <li class="breadcrumb-item">
-              <strong>{{
-                getCompanyDisplayName(currentFilter()?.company ?? "")
-              }}</strong>
-            </li>
-            <li class="breadcrumb-item">
-              {{ getBranchDisplayName(currentFilter()?.cabang ?? "") }}
-            </li>
-            <li class="breadcrumb-item" aria-current="page">
-              {{ getPeriodDisplayName() }}
-
-              @if (currentFilter()?.compare) { |
-              <span class="breadcrumb-item active">Komparasi Data</span>
-              }
-            </li>
-          </ol>
-        </nav>
-      </div>
+  <!-- ===================== FILTER ===================== -->
+  <div class="row mb-2">
+    <div class="col-12">
+      <app-filter-aftersales-dashboard
+        [loading]="loading()"
+        [initialFilter]="currentFilter()"
+        (search)="onSearch($event)"
+      ></app-filter-aftersales-dashboard>
     </div>
   </div>
 
-  <!-- Error Alert -->
+  <!-- ===================== BREADCRUMB (konsisten dengan Sales) ===================== -->
+  <div class="row">
+    <div class="col-12">
+      <nav aria-label="Filter breadcrumb">
+        <ol class="breadcrumb mb-0 bg-light rounded">
+          <li class="breadcrumb-item">
+            <i class="bi bi-funnel me-1"></i> Filter
+          </li>
+          <li class="breadcrumb-item">
+            <strong>{{ getCompanyDisplayName(currentFilter()?.company ?? '') }}</strong>
+          </li>
+          <li class="breadcrumb-item">
+            {{ getBranchDisplayName(currentFilter()?.cabang ?? '') }}
+          </li>
+          <li class="breadcrumb-item" aria-current="page">
+            {{ getPeriodDisplayName() }}
+            @if (currentFilter()?.compare) { |
+              <span class="breadcrumb-item active">Komparasi Data</span>
+            }
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ===================== ERROR ===================== -->
   @if (error() && !loading()) {
-  <div class="row mb-4">
+  <div class="row mb-3">
     <div class="col-12">
       <div class="alert alert-danger border-0 rounded-3" role="alert">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -59,19 +56,12 @@
   </div>
   }
 
-  <!-- Global Loading Spinner -->
+  <!-- ===================== LOADING (konsisten, tengah) ===================== -->
   @if (loading()) {
   <div class="row">
     <div class="col-12">
-      <div
-        class="d-flex justify-content-center align-items-center p-5"
-        style="min-height: 400px"
-      >
-        <div
-          class="spinner-border text-success"
-          style="width: 3rem; height: 3rem"
-          role="status"
-        >
+      <div class="d-flex justify-content-center align-items-center p-5" style="min-height: 400px">
+        <div class="spinner-border text-success" style="width: 3rem; height: 3rem" role="status">
           <span class="visually-hidden">Memuat dashboard after sales...</span>
         </div>
       </div>
@@ -85,9 +75,13 @@
 
   <div class="row g-2 mb-2">
     <div class="col-12">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-speedometer2 text-success me-2 fs-5"></i>
-        <h6 class="mb-0 fw-bold text-dark">After Sales Performance</h6>
+      <div
+        class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
+      >
+        <div class="d-flex align-items-center">
+          <i class="bi bi-speedometer2 text-success me-2 fs-5"></i>
+          <h6 class="mb-0 fw-bold text-dark">After Sales Performance</h6>
+        </div>
       </div>
     </div>
 
@@ -107,7 +101,7 @@
           '2024': 3,
           '2025': 3
         }"
-        [compareMode]="true"
+        [compareMode]="currentFilter()?.compare"
       />
     </div>
     }
@@ -125,13 +119,13 @@
         iconBgColor="#FEF3C7"
         [period]="periodForCards()"
         [series]="{
-          '2024-08': 2,
-          '2025-07': 3,
-          '2025-08': 3,
-          '2024': 3,
-          '2025': 3
+          '2024-08': 27,
+          '2025-07': 27,
+          '2025-08': 27,
+          '2024': 330,
+          '2025': 332
         }"
-        [compareMode]="true"
+        [compareMode]="currentFilter()?.compare"
       />
     </div>
     }
@@ -148,13 +142,13 @@
         iconBgColor="#DCFFD0"
         [period]="periodForCards()"
         [series]="{
-          '2024-08': 2,
-          '2025-07': 3,
-          '2025-08': 3,
-          '2024': 3,
-          '2025': 3
+          '2024-08': 60000000,
+          '2025-07': 65000000,
+          '2025-08': 67000000,
+          '2024': 90000000,
+          '2025': 1000000000
         }"
-        [compareMode]="true"
+        [compareMode]="currentFilter()?.compare"
       />
     </div>
 
@@ -168,16 +162,17 @@
         [subtitle]="compare ? '' : 'Total Pendapatan After Sales'"
         icon="bi bi-cash"
         iconColor="#2563EB"
+        dataType="currency"
         iconBgColor="#DBEAFE"
         [period]="periodForCards()"
         [series]="{
-          '2024-08': 2,
-          '2025-07': 3,
-          '2025-08': 3,
-          '2024': 3,
-          '2025': 3
+          '2024-08': 78000000,
+          '2025-07': 65000000,
+          '2025-08': 67000000,
+          '2024': 90000000,
+          '2025': 1000000000
         }"
-        [compareMode]="true"
+        [compareMode]="currentFilter()?.compare"
       />
     </div>
 
@@ -188,17 +183,18 @@
         [value]="formatCompactNumber(additionalKpiData()!.totalProfit)"
         [subtitle]="compare ? '' : 'Target'"
         icon="bi bi-bullseye"
+        dataType="currency"
         iconColor="#228000"
         iconBgColor="#DCFFD0"
         [period]="periodForCards()"
         [series]="{
-          '2024-08': 2,
-          '2025-07': 3,
-          '2025-08': 3,
-          '2024': 3,
-          '2025': 3
+          '2024-08': 5000000,
+          '2025-07': 65000000,
+          '2025-08': 67000000,
+          '2024': 90000000,
+          '2025': 1000000000
         }"
-        [compareMode]="true"
+        [compareMode]="currentFilter()?.compare"
       />
     </div>
 
@@ -211,15 +207,16 @@
         icon="bi bi-graph-up-arrow"
         iconColor="#16A34A"
         iconBgColor="#DCFCE7"
+        dataType="currency"
         [period]="periodForCards()"
         [series]="{
-          '2024-08': 2,
-          '2025-07': 3,
-          '2025-08': 3,
-          '2024': 3,
-          '2025': 3
+          '2024-08': 5000000,
+          '2025-07': 65000000,
+          '2025-08': 67000000,
+          '2024': 90000000,
+          '2025': 1000000000
         }"
-        [compareMode]="true"
+        [compareMode]="currentFilter()?.compare"
       />
     </div>
   </div>
@@ -441,6 +438,7 @@
         [loading]="loading()"
         [isUnit]="false"
         [isHarapanTarget]="true"
+        [compare]="currentFilter()?.compare || false"
       >
       </app-kpi-card-as>
     </div>

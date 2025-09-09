@@ -1,130 +1,145 @@
 @if (showAlert) {
-  <div class="position-fixed bottom-0 start-50 translate-middle-x mb-2"
-       style="z-index: 1050; width: 90%; max-width: 420px">
-    <div class="alert alert-{{ alertType }} alert-dismissible fade show shadow" role="alert">
-      <i class="bi {{
-            alertType === 'success'
-              ? 'bi-check-circle-fill'
-              : 'bi-exclamation-triangle-fill'
-          }} me-2"></i>
-      {{ alertMessage }}
-      <button type="button" class="btn-close" (click)="hideAlert()"></button>
-    </div>
+<div
+  class="position-fixed bottom-0 start-50 translate-middle-x mb-2"
+  style="z-index: 1050; width: 90%; max-width: 420px"
+  role="status"
+  aria-live="polite"
+>
+  <div
+    class="alert alert-{{
+      alertType
+    }} alert-dismissible fade show shadow-sm py-2 px-3 small"
+  >
+    <i
+      class="bi {{
+        alertType === 'success'
+          ? 'bi-check-circle-fill'
+          : 'bi-exclamation-triangle-fill'
+      }} me-2"
+      aria-hidden="true"
+    ></i>
+    <span class="me-3">{{ alertMessage }}</span>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="hideAlert()"
+      aria-label="Tutup"
+    ></button>
   </div>
+</div>
 }
 
-<!-- FILTER CARD -->
-<div class="bg-white shadow-sm rounded-3 p-3">
-  <!--
-    row-cols membuat semua kolom SIMETRIS.
-    - xs: 1 kolom (stack)
-    - sm: 2 kolom
-    - md: 3 kolom
-    - lg: 6 kolom (semua item muat dalam 1 baris simetris)
-  -->
-  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-6 g-2 align-items-end">
-
+<section
+  class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3"
+  role="search"
+  aria-label="Filter Dashboard"
+>
+  <div
+    class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-6 g-2 align-items-end"
+  >
     <!-- Perusahaan -->
-    <div class="col d-flex">
-      <div class="w-100 filter-item">
+    <div class="col-6 col-md-2">
         <label for="company" class="form-label mb-1 small">
-        Perusahaan<span class="text-danger">*</span>
-      </label>
+          Perusahaan <span class="text-danger">*</span>
+        </label>
         <select
           id="company"
           class="form-select form-select-sm"
           [(ngModel)]="company"
-          (change)="onFilterChange()">
-          <option value="">Pilih Perusahaan</option>
+          (change)="onFilterChange()"
+          aria-required="true"
+        >
+          <option value="">Pilih</option>
           @for (c of companies; track c.value) {
-            <option [value]="c.value">{{ c.name }}</option>
+          <option [value]="c.value">{{ c.name }}</option>
           }
         </select>
-      </div>
     </div>
 
     <!-- Cabang -->
-    <div class="col d-flex">
-      <div class="w-100 filter-item">
-        <label for="cabang" class="form-label small text-muted mb-1">Cabang</label>
+    <div class="col-6 col-md-2">
+        <label for="cabang" class="form-label mb-1 small">Cabang</label>
         <select
           id="cabang"
           class="form-select form-select-sm"
           [(ngModel)]="cabang"
-          (change)="onFilterChange()">
+          (change)="onFilterChange()"
+        >
           @for (cb of cabangOptions; track cb.value) {
-            <option [value]="cb.value">{{ cb.name }}</option>
+          <option [value]="cb.value">{{ cb.name }}</option>
           }
         </select>
-      </div>
     </div>
 
     <!-- Tahun -->
-    <div class="col d-flex">
-      <div class="w-100 filter-item">
-        <label for="period" class="form-label small text-muted mb-1">Tahun<span class="text-danger">*</span></label>
+    <div class="col-6 col-md-2">
+        <label for="period" class="form-label mb-1 small">
+          Tahun <span class="text-danger">*</span>
+        </label>
         <select
           id="period"
           class="form-select form-select-sm"
           [(ngModel)]="period"
-          (change)="onPeriodChange()">
+          (change)="onPeriodChange()"
+          aria-required="true"
+        >
           @for (p of periods; track p.value) {
-            <option [value]="p.value">{{ p.name }}</option>
+          <option [value]="p.value">{{ p.name }}</option>
           }
         </select>
-      </div>
     </div>
 
     <!-- Bulan -->
-    <div class="col d-flex">
-      <div class="w-100 filter-item">
-        <label for="month" class="form-label small text-muted mb-1">Bulan</label>
+    <div class="col-6 col-md-2">
+      <div class="form-item narrow">
+        <label for="month" class="form-label mb-1 small">Bulan</label>
         <select
           id="month"
           class="form-select form-select-sm"
           [(ngModel)]="month"
-          (change)="onFilterChange()">
+          (change)="onFilterChange()"
+        >
           @for (m of months; track m.value) {
-            <option [value]="m.value">{{ m.name }}</option>
+          <option [value]="m.value">{{ m.name }}</option>
           }
         </select>
       </div>
     </div>
 
     <!-- Toggle Komparasi -->
-    <div class="col d-flex">
-      <div class="w-100 filter-item">
-        <label class="form-label small text-muted mb-1 d-block">Komparasi</label>
-        <div class="form-check form-switch d-flex align-items-center">
-          <input
-            class="form-check-input me-2"
-            type="checkbox"
-            id="compareSwitch"
-            [(ngModel)]="compare"
-            (change)="onFilterChange()"/>
-          <label class="form-check-label small mb-0" for="compareSwitch">
-            {{ compare ? 'ON' : 'OFF' }}
-          </label>
-        </div>
+    <div class="col-6 col-md-1">
+      <label class="form-label small text-muted mb-1 d-block">Komparasi</label>
+      <div class="form-check form-switch d-flex align-items-center">
+        <input
+          class="form-check-input form-check-input-sm me-2"
+          type="checkbox"
+          id="compareSwitch"
+          [(ngModel)]="compare"
+          (change)="onFilterChange()"
+        />
+        <label class="form-check-label small mb-0" for="compareSwitch">
+          {{ compare ? "ON" : "OFF" }}
+        </label>
       </div>
     </div>
 
     <!-- Tombol Cari -->
-    <div class="col d-flex">
-      <div class="w-100 filter-item">
-        <label class="form-label small text-muted mb-1 d-block">&nbsp;</label>
-        <button
-          type="button"
-          class="btn btn-success btn-sm px-3 w-100"
-          (click)="onSearchClick()"
-          [disabled]="loading">
-          @if (loading) {
-            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-          }
-          <i class="bi bi-search me-1"></i> Cari Data
-        </button>
-      </div>
+    <div class="col-6 col-md-2 d-flex align-items-end">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm w-100"
+        (click)="onSearchClick()"
+        [disabled]="loading || !company || !period"
+      >
+        @if (loading) {
+        <span
+          class="spinner-border spinner-border-sm me-2"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        }
+        <i class="bi bi-search me-1"></i> Cari Data
+      </button>
     </div>
-
   </div>
-</div>
+</section>

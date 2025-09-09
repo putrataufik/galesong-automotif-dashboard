@@ -1,30 +1,43 @@
-/* Menyamakan tinggi input-group select dengan tampilan compact */
-.input-group > .form-select {
-    padding-top: .5rem;
-    padding-bottom: .5rem;
-  }
-/* Bikin tampilan compact dan konsisten */
-.filter-item .form-label {
-  margin-bottom: .25rem;
+.filter-card.compact {
+  --fc-item-min: 160px;
+  --fc-item-min-narrow: 120px;
+  --fc-control-h: 32px;
+}
+
+.filter-card.compact .form-label {
+  margin-bottom: .125rem;
   font-weight: 600;
+  font-size: .75rem;
+  color: #6c757d;
+  line-height: 1.1;
 }
 
-/* Supaya tidak terlalu sempit di layar kecil, tapi tetap fleksibel */
-.filter-item { min-width: 160px; }
+.filter-card.compact .form-item {
+  display: flex;
+  flex-direction: column;
+  min-width: var(--fc-item-min);
+  align-self: flex-end; /* bottom align */
+}
+.filter-card.compact .form-item.narrow { min-width: var(--fc-item-min-narrow); }
+.filter-card.compact .switch-align { padding-bottom: .125rem; }
 
-/* Rapikan switch agar sejajar vertikal dengan input lain */
-.form-check-input {
-  transform: scale(0.95);
+.filter-card.compact .form-select-sm,
+.filter-card.compact .btn-sm {
+  height: var(--fc-control-h);
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+  line-height: 1.2;
+}
+.filter-card.compact .form-select-sm { padding-left: .5rem; padding-right: 1.75rem; }
+
+.filter-card.compact .form-check.form-switch .form-check-input {
+  width: 2.1rem; height: 1.05rem; margin-top: .25rem;
 }
 
-/* Alert close button kecil */
-.alert .btn-close {
-  box-shadow: none;
-}
+.fit-card { width: max-content; max-width: 100%; display: inline-block; }
 
-  
-  /* Biar card filter terlihat “menempel” rapi pada layout */
-  :host ::ng-deep .bg-white.rounded-3.shadow-sm {
-    border: 1px solid rgba(0,0,0,.05);
-  }
-  
+@media (max-width: 1200px) { .filter-card.compact { --fc-item-min:150px; --fc-item-min-narrow:115px; } }
+@media (max-width: 992px)  { .filter-card.compact { --fc-item-min:140px; --fc-item-min-narrow:110px; } }
+@media (max-width: 768px)  { .filter-card.compact { --fc-item-min:130px; --fc-item-min-narrow:105px; } }
+@media (max-width: 576px)  { .filter-card.compact { --fc-item-min:120px; --fc-item-min-narrow:100px; } }
+                  

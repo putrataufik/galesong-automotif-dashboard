@@ -29,13 +29,14 @@
 </div>
 }
 <section
-  class="bg-white shadow-sm rounded-3 p-3"
+  class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3"
   role="search"
   aria-label="Filter Dashboard"
 >
-  
   <!-- BARIS: 5 pilihan + 1 toggle + 1 tombol, semuanya center -->
-  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-6 g-2 align-items-end">
+  <div
+    class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-6 g-2 align-items-end"
+  >
     <!-- Perusahaan -->
     <div class="col-6 col-md-2">
       <label for="company" class="form-label mb-1 small">
@@ -98,7 +99,7 @@
       </select>
     </div>
     <!-- Toggle Komparasi -->
-    <div class="col-6 col-md-1">
+    <div class="col-6 col-md-2">
       <label class="form-label small text-muted mb-1 d-block">Komparasi</label>
       <div class="form-check form-switch d-flex align-items-center">
         <input
@@ -109,12 +110,12 @@
           (change)="onFilterChange()"
         />
         <label class="form-check-label small mb-0" for="compareSwitch">
-            {{ compare ? 'ON' : 'OFF' }}
-          </label>
+          {{ compare ? "ON" : "OFF" }}
+        </label>
       </div>
     </div>
     <!-- Tombol Cari -->
-    <div class="col-6 col-md-1 d-flex align-items-end">
+    <div class="col-6 col-md-2 d-flex align-items-end">
       <button
         type="button"
         class="btn btn-primary btn-sm w-100"
