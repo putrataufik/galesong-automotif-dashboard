@@ -1,3 +1,4 @@
+<!-- filter-sales-dashboard.component.html -->
 @if (showAlert) {
 <div
   class="position-fixed bottom-0 start-50 translate-middle-x mb-2"
@@ -28,17 +29,16 @@
   </div>
 </div>
 }
+
 <section
   class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3"
   role="search"
   aria-label="Filter Dashboard"
 >
-  <!-- BARIS: 5 pilihan + 1 toggle + 1 tombol, semuanya center -->
-  <div
-    class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-6 g-2 align-items-end"
-  >
+  <!-- SATU BARIS: Semua filter dalam 1 baris -->
+  <div class="d-flex flex-wrap gap-2 align-items-end">
     <!-- Perusahaan -->
-    <div class="col-6 col-md-2">
+    <div class="flex-fill" style="min-width: 160px;">
       <label for="company" class="form-label mb-1 small">
         Perusahaan<span class="text-danger">*</span>
       </label>
@@ -54,8 +54,9 @@
         }
       </select>
     </div>
+
     <!-- Cabang -->
-    <div class="col-6 col-md-2">
+    <div class="flex-fill" style="min-width: 140px;">
       <label for="branch" class="form-label mb-1 small">Cabang</label>
       <select
         id="branch"
@@ -68,8 +69,10 @@
         }
       </select>
     </div>
-    <!-- Tahun -->
-    <div class="col-6 col-md-2">
+
+    <!-- Tahun (tampil jika useCustomDate = false) -->
+    @if (!useCustomDate) {
+    <div class="flex-fill" style="min-width: 120px;">
       <label for="year" class="form-label mb-1 small">
         Tahun<span class="text-danger">*</span>
       </label>
@@ -84,8 +87,11 @@
         }
       </select>
     </div>
-    <!-- Bulan -->
-    <div class="col-6 col-md-2">
+    }
+
+    <!-- Bulan (tampil jika useCustomDate = false) -->
+    @if (!useCustomDate) {
+    <div class="flex-fill" style="min-width: 120px;">
       <label for="month" class="form-label mb-1 small">Bulan</label>
       <select
         id="month"
@@ -98,8 +104,46 @@
         }
       </select>
     </div>
+    }
+
+    <!-- Date Picker (tampil jika useCustomDate = true) -->
+    @if (useCustomDate) {
+    <div class="flex-fill" style="min-width: 150px;">
+      <label for="selectedDate" class="form-label mb-1 small">
+        <i class="bi bi-calendar3 me-1"></i>
+        Tanggal<span class="text-danger">*</span>
+      </label>
+      <input
+        type="date"
+        id="selectedDate"
+        class="form-control form-control-sm"
+        [(ngModel)]="selectedDate"
+        (change)="onDateChange()"
+        max="2099-12-31"
+        min="2022-01-01"
+      />
+    </div>
+    }
+
+    <!-- Toggle Pilih Tanggal -->
+    <div style="min-width: 80px;">
+      <label class="form-label small text-muted mb-1 d-block">Pilih Tanggal</label>
+      <div class="form-check form-switch d-flex align-items-center">
+        <input
+          class="form-check-input form-check-input-sm me-2"
+          type="checkbox"
+          id="customDateSwitch"
+          [(ngModel)]="useCustomDate"
+          (change)="onCustomDateToggle()"
+        />
+        <label class="form-check-label small mb-0" for="customDateSwitch">
+          {{ useCustomDate ? "ON" : "OFF" }}
+        </label>
+      </div>
+    </div>
+
     <!-- Toggle Komparasi -->
-    <div class="col-6 col-md-2">
+    <div style="min-width: 80px;">
       <label class="form-label small text-muted mb-1 d-block">Komparasi</label>
       <div class="form-check form-switch d-flex align-items-center">
         <input
@@ -114,13 +158,14 @@
         </label>
       </div>
     </div>
+
     <!-- Tombol Cari -->
-    <div class="col-6 col-md-2 d-flex align-items-end">
+    <div style="min-width: 100px;">
       <button
         type="button"
         class="btn btn-primary btn-sm w-100"
         (click)="onSearchClick()"
-        [disabled]="loading || !company || !year"
+        [disabled]="loading || !company || (!year && !useCustomDate) || (useCustomDate && !selectedDate)"
       >
         <i class="bi bi-search me-1"></i> Cari
       </button>

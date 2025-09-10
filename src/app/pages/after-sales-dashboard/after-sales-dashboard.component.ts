@@ -46,9 +46,6 @@ import { ChartData } from '../../types/sales.model';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { KpiLegendButtonComponent } from '../../shared/components/kpi-legend-button/kpi-legend-button.component';
 import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
-import {
-  getSeriesCurrent as getSeriesCurrentUtil,
-} from '../../shared/utils/sales.utils';
 @Component({
   selector: 'app-after-sales-dashboard',
   standalone: true,

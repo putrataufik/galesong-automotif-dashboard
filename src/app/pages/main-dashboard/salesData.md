@@ -10,7 +10,8 @@ Keperluan Data Sales Dashboard.
 | `month` | String | Yes | Bulan ("01"-"12") atau "all-month" | "08", "all-month" |
 | `branch` | String | Yes | ID cabang atau "all-branch" | "0050", "all-branch" |
 | `compare` | Boolean | Yes | Flag untuk data perbandingan | true, false |
-
+| `useCustomDate` | Boolean | No |Flag penggunaan custom date (default: false) | true, false|
+| `selectedDate` | String | Conditional | Tanggal spesifik YYYY-MM-DD (required jika useCustomDate=true) | "2025-08-15"|
 ### 1. Sales Kpi
 ### Data yang dibutuhkan:
 - **Total Unit Sales**
@@ -46,8 +47,13 @@ Keperluan Data Sales Dashboard.
 ### Data Perbandingan (jika compare=true):
 - **prevYear**: Data Bulan yang sama tahun sebelumnya
 - **prevMonth**: Data bulan sebelumnya dalam tahun yang sama
+### jika useCostumDate = True :
+- **Year**: ``NUll``
+- **Month**:  `NULL`
 
-#### Response Structure Compare **ON**
+
+#### Response Structure Compare **True** & useCustom **True**
+
 ```json
 {
   "status": "success",
@@ -57,7 +63,10 @@ Keperluan Data Sales Dashboard.
       "companyId": "sinar-galesong-mobilindo",
       "year": 2025,
       "month": "08",
-      "branchId": "all-branch"
+      "branchId": "all-branch",
+      "useCustomDate": "true",
+      "selectedDate": "2025-09-09",
+      "compare": "true"
     },
     "kpis": {
       "totalUnitSales": {
@@ -95,17 +104,20 @@ Keperluan Data Sales Dashboard.
 }
 ```
 
-#### Response Structure Compare **OFF**
+#### Response Structure Compare **OFF** & useCustom **False**
+
 ```json
 {
   "status": "success",
   "message": "Data retrieved successfully",
   "data": {
-    "request": {
-      "companyId": "sinar-galesong-mobilindo",
-      "year": 2025,
-      "month": "08",
-      "branchId": "all-branch"
+    "companyId": "sinar-galesong-mobilindo",
+    "branchId": "all-branch",
+    "useCustomDate": false,
+    "compare": false,
+    "year": "2025",
+    "month": "8",
+    "selectedDate": null
     },
     "kpis": {
       "totalUnitSales": {

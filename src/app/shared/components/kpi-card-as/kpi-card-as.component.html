@@ -7,41 +7,10 @@
 
   <!-- Body -->
   <div class="content-section">
-    <!-- tambahkan flex-wrap agar rapi di layar kecil -->
-    <div
-      class="d-flex flex-wrap align-items-start justify-content-between gap-2 gap-md-2"
-    >
-      <!-- Persentase -->
-      <div
-        class="percentage-display flex-shrink-0 d-flex align-items-center justify-content-center"
-      >
-        {{ formatPercentage(percentage) }}
-      </div>
-
-      <!-- Detail Rows -->
-      <div class="details flex-grow-1">
-        <div class="detail-row">
-          <span>Deviasi Target</span>
-          <span class="fw-bold" [ngClass]="getValueColor(grandTotal)">
-            {{ formatValue(grandTotal) }}
-          </span>
-        </div>
-        <div class="detail-row">
-          <span>Rata - Rata</span>
-          <span class="fw-bold">{{ formatRataRataDisplay(rataRata) }}</span>
-        </div>
-        @if (showHarapanTarget) {
-        <div class="detail-row">
-          <span>Harapan Target</span>
-          <span class="fw-bold">
-            {{ formatValue(harapanTarget) }}{{ getUnitSuffix() }} / Hari
-          </span>
-        </div>
-        }
-      </div>
-
-      <!-- Progress taruh di baris baru saat kecil -->
-      <div class="w-100 mt-md-1">
+    <!-- Realisasi / Target -->
+    <div class="detail-row d-flex flex-column align-items-center">
+      <span class="">Realisasi / Target</span>
+      <div class="w-100">
         <div class="progress rounded-pill position-relative">
           <div
             class="progress-bar"
@@ -59,40 +28,78 @@
       </div>
     </div>
 
+    <!-- Ringkasan -->
+    <div class="row g-2 align-items-center justify-content-center">
+      <!-- Persentase -->
+      <div class="col-auto d-flex align-items-center">
+        <div
+          class="percentage-display d-flex align-items-center justify-content-center"
+        >
+          {{ formatPercentage(percentage) }}
+        </div>
+      </div>
+
+      <!-- Detail -->
+      <div class="col">
+        <div class="details">
+          <div class="detail-row d-flex justify-content-between">
+            <span>Deviasi Target</span>
+            <span class="fw-bold" [ngClass]="getValueColor(grandTotal)">
+              {{ formatValue(grandTotal) }}
+            </span>
+          </div>
+          <div class="detail-row d-flex justify-content-between">
+            <span>Rata - Rata</span>
+            <span class="fw-bold">{{ formatRataRataDisplay(rataRata) }}</span>
+          </div>
+          @if (showHarapanTarget) {
+          <div class="detail-row d-flex justify-content-between">
+            <span>Harapan Target</span>
+            <span class="fw-bold">
+              {{ formatValue(harapanTarget) }}{{ getUnitSuffix() }} / Hari
+            </span>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
     @if(compare){
     <hr class="period-sep my-2" />
 
     <!-- ====== PERIOD: 2025 July ====== -->
-    <div class="period-label mt-2">
+    <div class="period-label mt-1">
       <span class="badge badge-soft-primary">2025 July</span>
     </div>
 
-    <div
-      class="d-flex flex-wrap align-items-start justify-content-between gap-2 gap-md-2"
-    >
+    <div class="row g-2 align-items-start">
       <!-- Persentase -->
-      <div
-        class="percentage-display flex-shrink-0 d-flex align-items-center justify-content-center"
-      >
-        17%
+      <div class="col-auto">
+        <div
+          class="percentage-display d-flex align-items-center justify-content-center"
+        >
+          17%
+        </div>
       </div>
 
-      <!-- Detail Rows -->
-      <div class="details flex-grow-1">
-        <div class="detail-row">
-          <span>Deviasi Target</span>
-          <span class="fw-bold" [ngClass]="getValueColor(-150)">
-            {{ formatValue(-150) }}
-          </span>
-        </div>
-        <div class="detail-row">
-          <span>Rata - Rata</span>
-          <span class="fw-bold">{{ formatRataRataDisplay(150) }}</span>
+      <!-- Detail -->
+      <div class="col">
+        <div class="details">
+          <div class="detail-row d-flex justify-content-between">
+            <span>Deviasi Target</span>
+            <span class="fw-bold" [ngClass]="getValueColor(-150)">
+              {{ formatValue(-150) }}
+            </span>
+          </div>
+          <div class="detail-row d-flex justify-content-between">
+            <span>Rata - Rata</span>
+            <span class="fw-bold">{{ formatRataRataDisplay(150) }}</span>
+          </div>
         </div>
       </div>
 
       <!-- Progress -->
-      <div class="w-100 mt-md-1">
+      <div class="col-12 mt-1">
         <div class="progress rounded-pill position-relative">
           <div
             class="progress-bar"
@@ -110,7 +117,6 @@
       </div>
     </div>
 
-    <!-- Garis pemisah antar-periode -->
     <hr class="period-sep my-2" />
 
     <!-- ====== PERIOD: 2024 Aug ====== -->
@@ -118,32 +124,34 @@
       <span class="badge badge-soft-warning">2024 Aug</span>
     </div>
 
-    <div
-      class="d-flex flex-wrap align-items-start justify-content-between gap-2 gap-md-2"
-    >
+    <div class="row g-2 align-items-start">
       <!-- Persentase -->
-      <div
-        class="percentage-display flex-shrink-0 d-flex align-items-center justify-content-center"
-      >
-        {{ formatPercentage(17) }}
+      <div class="col-auto">
+        <div
+          class="percentage-display d-flex align-items-center justify-content-center"
+        >
+          {{ formatPercentage(17) }}
+        </div>
       </div>
 
-      <!-- Detail Rows -->
-      <div class="details flex-grow-1">
-        <div class="detail-row">
-          <span>Deviasi Target</span>
-          <span class="fw-bold" [ngClass]="getValueColor(-200000)">
-            {{ formatValue(-40000000) }}
-          </span>
-        </div>
-        <div class="detail-row">
-          <span>Rata - Rata</span>
-          <span class="fw-bold">{{ formatRataRataDisplay(150) }}</span>
+      <!-- Detail -->
+      <div class="col">
+        <div class="details">
+          <div class="detail-row d-flex justify-content-between">
+            <span>Deviasi Target</span>
+            <span class="fw-bold" [ngClass]="getValueColor(-200000)">
+              {{ formatValue(-40000000) }}
+            </span>
+          </div>
+          <div class="detail-row d-flex justify-content-between">
+            <span>Rata - Rata</span>
+            <span class="fw-bold">{{ formatRataRataDisplay(150) }}</span>
+          </div>
         </div>
       </div>
 
       <!-- Progress -->
-      <div class="w-100 mt-md-1">
+      <div class="col-12 mt-1">
         <div class="progress rounded-pill position-relative">
           <div
             class="progress-bar"

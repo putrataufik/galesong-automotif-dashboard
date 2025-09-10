@@ -26,6 +26,8 @@ export interface AppFilter {
   period?: string;         // "2025-08" (opsional)
   branch: string;
   compare?: boolean;
+  useCustomDate?: boolean;
+  selectedDate?: string;
 }
 
 /**

@@ -3,7 +3,6 @@
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.05);
   min-height: 50px;
-  padding-bottom: 20px;
   overflow: hidden;
 }
 
@@ -15,11 +14,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 30px 0px 30px 0px;
+  padding: 10px 0px 10px 0px;
 }
 
 .chip-title {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: bold;
   text-align: center;
   flex-grow: 1;
@@ -32,7 +31,7 @@
 
 /* Percentage Display */
 .percentage-display {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 800;
   color: #242424;
   margin-bottom: 0; /* Hilangkan margin-bottom */
@@ -49,7 +48,7 @@
 
 /* Progress Bar */
 .progress {
-  height: 25px;
+  height: 20px;
   background-color: #878787;
   margin-bottom: 0px;
   position: relative;
@@ -71,7 +70,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: #ffffff;
   z-index: 2;
@@ -86,7 +85,7 @@
   align-items: center;
   padding: 4px 0;
   border-bottom: 1px solid #e5e5e5;
-  font-size: 1rem;
+  font-size: 0.7rem;
 }
 
 .detail-row:last-child {
@@ -96,11 +95,11 @@
 .detail-row span:first-child {
   color: #6c757d;
   font-weight: 500;
-  font-size: 0.8rem;
+  font-size: 0.6rem;
 }
 
 .detail-row span:last-child {
-  font-size: 0.8rem;
+  font-size: 0.6rem;
   font-weight: bold;
 }
 
@@ -158,12 +157,13 @@
 .badge-soft-primary {
   background: #e0f2fe;
   color: #0c4a6e;
-  font-size: 0.75rem;
+  font-size: 0.6rem;
 }
+
 .badge-soft-warning {
   background: #fff1c2;
   color: #92400e;
-  font-size: 0.75rem;
+  font-size: 0.6rem;
 }
 
 /* Garis pemisah halus antar-periode */
