@@ -1,4 +1,4 @@
-// filter-sales-dashboard.component.ts
+// src/app/pages/sales-dashboard/shared/components/filter-sales-dashboard/filter-sales-dashboard.component.ts
 import {
   Component,
   EventEmitter,
@@ -22,11 +22,11 @@ interface Option {
 
 @Component({
   selector: 'app-filter-sales-dashboard',
+  standalone: true,
   imports: [FormsModule],
   templateUrl: './filter-sales-dashboard.component.html',
   styleUrl: './filter-sales-dashboard.component.css',
 })
-
 export class FilterSalesDashboardComponent implements OnInit, OnChanges, OnDestroy {
   // Props dari parent
   @Input() currentFilter: AppFilter | null = null;
@@ -42,27 +42,31 @@ export class FilterSalesDashboardComponent implements OnInit, OnChanges, OnDestr
 
   branches: Option[] = [
     { value: 'all-branch', name: 'Semua Cabang' },
-    { value: 'pettarani', name: 'Pettarani' },
-    { value: 'palu', name: 'Palu' },
-    { value: 'kendari', name: 'Kendari' },
-    { value: 'gorontalo', name: 'Gorontalo' },
-    { value: 'palopo', name: 'Palopo' },
+    { value: '0050', name: 'Pettarani' },
+    { value: '0051', name: 'Palu' },
+    { value: '0052', name: 'Kendari' },
+    { value: '0053', name: 'Gorontalo' },
+    { value: '0054', name: 'Palopo' },
   ];
 
   years: Option[] = this.generateYearYears();
-  months: Option[] = this.generateMonths();
+  months: Option[] = this.generateMonths(); // tanpa "all-month"
 
-  // State form (ngModel)
+  // State form (ngModel) — default tahun/bulan = sekarang
+  private readonly NOW = new Date();
+  private readonly CURR_YEAR = String(this.NOW.getFullYear());
+  private readonly CURR_MONTH = String(this.NOW.getMonth() + 1).padStart(2, '0');
+
   company = '';
   category: CategoryFilter = 'sales';
-  year = String(new Date().getFullYear());
-  month = 'all-month';
+  year = this.CURR_YEAR;          // default tahun ini
+  month = this.CURR_MONTH;        // default bulan ini (2 digit)
   branch = 'all-branch';
-  compare = false;
-  
-  // ✨ NEW: Single date picker state
-  useCustomDate = false;
-  selectedDate = '';
+  compare = true;
+
+  // ✨ Single date picker state (custom date mode)
+  useCustomDate = true;
+  selectedDate = new Date().toISOString().slice(0, 10); // yyyy-mm-dd
 
   // Alert
   showAlert = false;
@@ -73,9 +77,8 @@ export class FilterSalesDashboardComponent implements OnInit, OnChanges, OnDestr
   constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
+    this.setDefaultDate(); // set selectedDate = hari ini
     if (this.currentFilter) this.applyCurrentFilter(this.currentFilter);
-    // Set default date to today
-    this.setDefaultDate();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -88,30 +91,40 @@ export class FilterSalesDashboardComponent implements OnInit, OnChanges, OnDestr
     clearTimeout(this.alertTimeoutId);
   }
 
-  // ✨ NEW: Set default date to today
+  // ===== Helpers =====
   private setDefaultDate() {
     const today = new Date();
-    this.selectedDate = today.toISOString().split('T')[0];
+    this.selectedDate = today.toISOString().split('T')[0]; // YYYY-MM-DD
   }
 
   private applyCurrentFilter(filter: AppFilter | null) {
     if (!filter) return;
 
-    this.company = filter.company ?? this.company;
+    this.company  = filter.company  ?? this.company;
     this.category = (filter.category ?? this.category) as CategoryFilter;
 
-    if (filter.year && !this.years.find((p) => p.value === filter.year)) {
-      this.years = [{ value: filter.year, name: filter.year }, ...this.years];
+    // Year normalize
+    const normalizedYear =
+      (filter.year && filter.year.trim()) ? filter.year : this.CURR_YEAR;
+    if (!this.years.find(p => p.value === normalizedYear)) {
+      this.years = [{ value: normalizedYear, name: normalizedYear }, ...this.years];
     }
+    this.year = normalizedYear;
 
-    this.year = filter.year ?? this.year;
-    this.month = filter.month ?? 'all-month';
+    // Month normalize: wajib "MM"
+    const isValidMM = (m?: string) => !!m && /^\d{2}$/.test(m);
+    const normalizedMonth = isValidMM(filter.month) ? String(filter.month) : this.CURR_MONTH;
+    this.month = normalizedMonth;
+
     this.branch = filter.branch ?? 'all-branch';
     this.compare = !!filter.compare;
-    
-    // ✨ NEW: Apply custom date filter
+
+    // Custom date
     this.useCustomDate = !!filter.useCustomDate;
     this.selectedDate = filter.selectedDate ?? this.selectedDate;
+
+    // Jika mode custom date & belum ada tanggal → set default (hari ini)
+    if (this.useCustomDate && !this.selectedDate) this.setDefaultDate();
   }
 
   private generateYearYears(): Option[] {
@@ -130,7 +143,7 @@ export class FilterSalesDashboardComponent implements OnInit, OnChanges, OnDestr
       'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
     ];
-    const opts: Option[] = [{ value: 'all-month', name: 'Semua Bulan' }];
+    const opts: Option[] = []; // ← TANPA "all-month"
     for (let i = 0; i < 12; i++) {
       const v = String(i + 1).padStart(2, '0');
       opts.push({ value: v, name: names[i] });
@@ -138,12 +151,16 @@ export class FilterSalesDashboardComponent implements OnInit, OnChanges, OnDestr
     return opts;
   }
 
+  // ===== UI Change handlers =====
   onFilterChange() {
     if (this.showAlert) this.hideAlert();
   }
 
   onYearChange() {
-    this.month = 'all-month';
+    // pastikan month tetap valid "MM"
+    if (!this.month || !/^\d{2}$/.test(this.month)) {
+      this.month = this.CURR_MONTH;
+    }
     this.onFilterChange();
   }
 
@@ -152,29 +169,35 @@ export class FilterSalesDashboardComponent implements OnInit, OnChanges, OnDestr
     this.onFilterChange();
   }
 
-  // ✨ NEW: Handle custom date toggle
   onCustomDateToggle() {
     if (this.useCustomDate) {
-      // When enabling custom date, set to today
-      this.setDefaultDate();
+      if (!this.selectedDate) this.setDefaultDate();
+    } else {
+      // kembali ke mode periode: pastikan year & month valid
+      if (!this.year) this.year = this.CURR_YEAR;
+      if (!this.month || !/^\d{2}$/.test(this.month)) {
+        this.month = this.CURR_MONTH;   // ⬅️ bulan sekarang
+      }
     }
     this.onFilterChange();
   }
 
-  // ✨ NEW: Handle date change
+  // ✨ Handle date change
   onDateChange() {
     this.onFilterChange();
   }
 
+  // ===== Submit =====
   onSearchClick() {
     const empty: string[] = [];
     if (!this.company) empty.push('Perusahaan');
-    
-    // Validate based on mode
+
+    // Validasi sesuai mode
     if (this.useCustomDate) {
       if (!this.selectedDate) empty.push('Tanggal');
     } else {
       if (!this.year) empty.push('Tahun');
+      if (!this.month) empty.push('Bulan'); // ← bulan wajib
     }
 
     if (empty.length) {
@@ -185,8 +208,8 @@ export class FilterSalesDashboardComponent implements OnInit, OnChanges, OnDestr
     this.search.emit({
       company: this.company,
       category: this.category,
-      year: this.useCustomDate ? '' : this.year,
-      month: this.useCustomDate ? '' : this.month,
+      year: this.useCustomDate ? '' : this.year,     // kirim tahun hanya saat mode periode
+      month: this.useCustomDate ? '' : this.month,   // kirim bulan hanya saat mode periode
       branch: this.branch,
       compare: this.compare,
       useCustomDate: this.useCustomDate,
@@ -194,7 +217,7 @@ export class FilterSalesDashboardComponent implements OnInit, OnChanges, OnDestr
     });
   }
 
-  // Alert helpers
+  // ===== Alert helpers =====
   private show(msg: string, type: 'success' | 'danger') {
     this.alertMessage = msg;
     this.alertType = type;

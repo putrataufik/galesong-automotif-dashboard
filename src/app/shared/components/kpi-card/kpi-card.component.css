@@ -1,37 +1,82 @@
+/* Judul kecil di atas nilai */
 .kpi-title-compact {
   font-size: .75rem;
   letter-spacing: .3px;
   font-weight: 600;
   line-height: 1.1;
+  text-transform: uppercase;
+  color: #6c757d;
 }
 
+/* Nilai utama (current) */
 .kpi-value {
   font-size: 1.35rem;
   font-weight: 700;
   line-height: 1;
+  color: #212529;
 }
 
+/* Nilai pembanding (angka) */
 .comparison-main-value {
-  font-size: .75rem;
+  font-size: .85rem;
   font-weight: 700;
   line-height: 1.1;
   color: #495057;
 }
 
-/* Status warna untuk nilai utama */
+/* Nama di samping angka */
+.comparison-name {
+  font-size: .78rem;
+  font-weight: 500;
+  color: #6c757d;
+  max-width: 12rem;        /* batasi supaya tidak nabrak */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Separator bullet kecil di tengah */
+.comparison-sep {
+  display: inline-block;
+  margin: 0 .25rem;
+  color: #98a2b3;
+  font-size: .85rem;
+  line-height: 1;
+}
+
+/* Kontainer angka + nama → sejajar (inline) dan tetap center */
+.comparison-pair {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: .25rem;
+  flex-wrap: nowrap;
+}
+.text-muted-name{
+  font-size: 0.65rem;
+}
+
+/* Status warna */
 .kpi-up { color: #20c997; }    /* hijau */
 .kpi-down { color: #ff2525; }  /* merah */
-.kpi-flat { color: #495057; }  /* abu */
+.kpi-flat { color: #495057; }  /* abu-abu */
 
-/* Info button (kanan-atas) */
+/* Garis pemisah bagian comparison lebih lembut */
+.border-top {
+  border-top: 1px solid rgba(0,0,0,.06) !important;
+}
+
+/* Tombol info (kanan atas) */
 .info-btn {
+  position: absolute;
   top: .35rem;
   right: .5rem;
   color: #6c757d;
+  z-index: 61;               /* di atas bubble */
 }
 .info-btn:hover { color: #343a40; }
 
-/* Info bubble: boleh lebih besar dari card (overflow-visible di container) */
+/* Info bubble */
 .info-bubble {
   position: absolute;
   top: 2rem;
@@ -66,4 +111,6 @@
 @media (max-width: 576px) {
   .kpi-value { font-size: 1.2rem; }
   .comparison-main-value { font-size: .82rem; }
+  .comparison-name { max-width: 9rem; }
+  
 }

@@ -1,511 +1,259 @@
 // src/app/pages/sales-dashboard/sales-dashboard.component.ts
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
-import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
-import { BarChartCardComponent } from '../../shared/components/bar-chart-card/bar-chart-card.component';
-import { YoyProgressListComponent } from '../../shared/components/yoy-progress-list/yoy-progress-list.component';
 import { FilterSalesDashboardComponent } from '../../shared/components/filter-sales-dashboard/filter-sales-dashboard.component';
-
 import { AppFilter } from '../../types/filter.model';
 import { formatCompactCurrency as fmtCurrency } from '../../shared/utils/number-format.utils';
+import { SalesStateService } from '../../core/state/sales-state.service';
+import { SalesApiService, UiKpis, UiSalesKpiResponse } from '../../core/services/sales-api.service';
+import { SalesFilter } from '../../core/models/sales.models';
 
-// Types
-import { ChartData, SingleChartData, MultiChartData, ModelYoY } from '../../types/charts.model';
-
-// Dummy (sales-only)
+// ⬇️ NEW: import utils
 import {
-  CURR_YEAR,
-  PREV_YEAR,
-  DATA_TY,
-  DATA_LY,
-  SALES_KPI_DUMMY,
-  MODEL_DISTRIBUTION_YOY,
-  BRANCH_PERFORMANCE_DUMMY,
-  DATA_LM,
-  DATA_DO,
-  DATA_SPK,
-} from '../main-dashboard/dummy';
+  isUiKpisEmpty,
+  getCompanyDisplayName as utilCompanyName,
+  getCategoryDisplayName as utilCategoryName,
+  getBranchDisplayName as utilBranchName,
+  getPeriodDisplayName as utilPeriodName,
+  cmpLeftValue as utilCmpLeftValue,
+  cmpLeftSubtitle as utilCmpLeftSubtitle,
+  cmpRightValue as utilCmpRightValue,
+  cmpRightSubtitle as utilCmpRightSubtitle,
+} from './sales.utils';
 
-const MONTH_ABBR = [
-  'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',
-] as const;
-
-type ModelDistDummy = {
-  name: string;
-  curr: number;
-  prevY: number;
-  prevM: number;
+type SalesKpiSnapshot<TKpis = UiKpis> = {
+  request: any;
+  kpis: TKpis;
+  timestamp: number;
 };
-
-// Utils
-import {
-  monthNameToNumber,
-  stringifyUnit as stringifyUnitFn,
-  getSeriesCurrent as getSeriesCurrentUtil,
-  getCurrentName as getCurrentNameUtil,
-  buildPrevLabels as buildPrevLabelsUtil,
-} from '../../shared/utils/sales.utils';
 
 @Component({
   selector: 'app-sales-dashboard',
   standalone: true,
-  imports: [
-    CommonModule,
-    KpiCardComponent,
-    LineChartCardComponent,
-    BarChartCardComponent,
-    YoyProgressListComponent,
-    FilterSalesDashboardComponent,
-  ],
+  imports: [CommonModule, KpiCardComponent, FilterSalesDashboardComponent],
   templateUrl: './sales-dashboard.component.html',
   styleUrl: './sales-dashboard.component.css',
 })
 export class SalesDashboardComponent implements OnInit {
-  // ==== UI state ====
-  loading = signal(false);
-  error = signal<string | null>(null);
-  hasData = signal(true);
-  isDataEmpty = signal(false);
-  readonly formatCompactCurrency = fmtCurrency;
-  readonly stringifyUnit = stringifyUnitFn;
+  private readonly state = inject(SalesStateService);
+  private readonly api = inject(SalesApiService);
 
-  // ==== FILTER ====
+  // ===== Global Loading & Error =====
+  loading = signal(false);
+  loadingMessage = signal('Data Sedang di Siapkan...');
+  readonly MIN_SPINNER_MS = 1500;
+
+  error = signal<string | null>(null);
+  hasData = signal(false);
+  isDataEmpty = signal(true);
+
+  readonly formatCompactCurrency = fmtCurrency;
+
+  // ===== Filter saat ini (UI) =====
   currentFilter: AppFilter = {
     company: 'sinar-galesong-mobilindo',
-    category: 'sales',           // ← set khusus sales
-    year: '2025',
-    month: 'all-month',
+    category: 'sales',
+    year: String(new Date().getFullYear()),
+    month: String(new Date().getMonth() + 1).padStart(2, '0'),
     branch: 'all-branch',
-    compare: false,
+    compare: true,
+    useCustomDate: true,
+    selectedDate: new Date().toISOString().slice(0, 10), // yyyy-mm-dd
   };
 
-  // ==== SALES KPI ====
-  salesKpi = signal<any | null>(SALES_KPI_DUMMY);
+  // ===== KPI untuk UI (UI-ready) =====
+  salesKpi = signal<UiKpis | null>(this.state.getKpis() as UiKpis | null);
 
-  // ==== Charts (sales) ====
-  currYear = CURR_YEAR;
-  prevYear = PREV_YEAR;
-  dataTY = DATA_TY.slice();
-  dataLY = DATA_LY.slice();
-  dataLM = DATA_LM.slice();
+  // ===== Lifecycle =====
+  ngOnInit(): void {
+    const sf = this.state.getCurrentFilter();
+    const ui = this.toAppFilter(sf);
+    this.currentFilter = ui;
 
-  private readonly MONTH_LABELS = Array.from({ length: 12 }, (_, i) => `${i + 1}`);
-  lineMonthly = signal<MultiChartData | undefined>(undefined);
+    const salesFilter = this.toSalesFilter(ui);
 
-  private readonly LINE_COLORS = {
-    currBg: 'rgba(13,110,253,0.20)',
-    currBorder: '#0d6efd',
-    prevYBg: 'rgba(148,163,184,0.20)',
-    prevYBorder: '#94a3b8',
-    prevMBg: 'rgba(0, 192, 32, 0.47)',
-    prevMBorder: '#00d800ff',
-  };
-
-  private buildLineMonthly(): MultiChartData {
-    const labels = this.MONTH_LABELS;
-    const compare = this.compare;
-    const period = this.periodForCards;
-
-    const dataTY = this.dataTY;
-    const dataLY = this.dataLY;
-    const dataLM = this.dataLM;
-
-    if (!compare) {
-      return {
-        labels,
-        datasets: [
-          {
-            label: `Tahun ${this.currYear}`,
-            data: dataTY,
-            backgroundColor: this.LINE_COLORS.currBg,
-            borderColor: this.LINE_COLORS.currBorder,
-            borderWidth: 2,
-          },
-        ],
-      };
-    }
-
-    if (!period?.month) {
-      return {
-        labels,
-        datasets: [
-          {
-            label: `Tahun ${this.currYear}`,
-            data: dataTY,
-            backgroundColor: this.LINE_COLORS.currBg,
-            borderColor: this.LINE_COLORS.currBorder,
-            borderWidth: 2,
-          },
-          {
-            label: `Tahun ${this.prevYear}`,
-            data: dataLY,
-            backgroundColor: this.LINE_COLORS.prevYBg,
-            borderColor: this.LINE_COLORS.prevYBorder,
-            borderWidth: 1,
-          },
-        ],
-      };
-    }
-
-    const { prevM, prevY } = this.getModelDistributionPrevLabels();
-
-    return {
-      labels,
-      datasets: [
-        {
-          label: this.getCurrentPeriodLabel(),
-          data: dataTY,
-          backgroundColor: this.LINE_COLORS.currBg,
-          borderColor: this.LINE_COLORS.currBorder,
-          borderWidth: 2,
-        },
-        {
-          label: prevM ?? 'Bulan Lalu',
-          data: dataLY,
-          backgroundColor: this.LINE_COLORS.prevMBg,
-          borderColor: this.LINE_COLORS.prevMBorder,
-          borderWidth: 1,
-        },
-        {
-          label: prevY ?? 'Tahun Lalu',
-          data: dataLM,
-          backgroundColor: this.LINE_COLORS.prevYBg,
-          borderColor: this.LINE_COLORS.prevYBorder,
-          borderWidth: 1,
-        },
-      ],
-    };
-  }
-doVsSpk = signal<MultiChartData | undefined>(undefined);
-  private readonly doVsSpk_COLORS = {
-    currBg: 'rgba(48, 222, 60, 1)',
-    currBorder: '#00cb0eff',
-    prevYBg: 'rgba(57, 60, 238, 1)',
-    prevYBorder: '#0d6efd',
-  };
-
-  dataDo = DATA_DO.slice();
-  dataSpk = DATA_SPK.slice();
-  private buildDoVsSpk(): MultiChartData {
-    const labels = this.MONTH_LABELS;
-
-    const dataDo = this.dataDo;
-    const dataSpk = this.dataSpk;
-
-    // === compare = true & all-month → 2 dataset: Curr vs Prev Y (dua-duanya 12 bulan) ===
-
-    return {
-      labels,
-      datasets: [
-        {
-          label: `Delivery Order`,
-          data: dataDo,
-          backgroundColor: this.doVsSpk_COLORS.currBg,
-          borderColor: this.doVsSpk_COLORS.currBorder,
-          borderWidth: 2,
-        },
-        {
-          label: `Surat Pemesanan Kendaraan`,
-          data: dataSpk,
-          backgroundColor: this.doVsSpk_COLORS.prevYBg,
-          borderColor: this.doVsSpk_COLORS.prevYBorder,
-          borderWidth: 2,
-        },
-      ],
-    };
-  }
-  distributionModel = signal<ModelYoY[]>([...MODEL_DISTRIBUTION_YOY]);
-  modelDistributionYoY = signal<ModelYoY[]>([]);
-
-  /** Builder dinamis untuk model distribution sesuai filter */
-  private buildModelDistribution(): ModelYoY[] {
-    const base: ModelDistDummy[] = [...MODEL_DISTRIBUTION_YOY];
-    const compare = this.compare;
-    const period = this.periodForCards;
-
-    if (!compare) {
-      return base.map(({ name, curr }) => ({
-        name,
-        curr,
-        prevY: null,
-        prevM: null,
-      }));
-    }
-
-    if (!period?.month) {
-      return base.map(({ name, curr, prevY }) => ({
-        name,
-        curr,
-        prevY,
-        prevM: null,
-      }));
-    }
-
-    return base.map(({ name, curr, prevY, prevM }) => ({
-      name,
-      curr,
-      prevY,
-      prevM,
-    }));
-  }
-
-  branchPerformance = signal<ChartData | null>(null);
-  private buildBranchPerformance(): ChartData {
-    const labels = BRANCH_PERFORMANCE_DUMMY.map((b) => b.branch);
-
-    const currLabel = this.getCurrentPeriodLabel();
-    const { prevM, prevY } = this.getModelDistributionPrevLabels();
-
-    const dataCurr = BRANCH_PERFORMANCE_DUMMY.map((b) => b.curr);
-    const dataPrevM = BRANCH_PERFORMANCE_DUMMY.map((b) => b.prevM);
-    const dataPrevY = BRANCH_PERFORMANCE_DUMMY.map((b) => b.prevY);
-
-    if (!this.compare) {
-      return {
-        labels,
-        datasets: [
-          {
-            label: currLabel || 'Periode',
-            data: dataCurr,
-            backgroundColor: 'rgba(13,110,253)',
-            borderColor: '#0d6efd',
-            borderWidth: 1,
-          },
-        ],
-      };
-    }
-
-    const period = this.periodForCards;
-
-    if (!period?.month) {
-      return {
-        labels,
-        datasets: [
-          {
-            label: currLabel || 'Tahun Ini',
-            data: dataCurr,
-            backgroundColor: 'rgba(13,110,253)',
-            borderColor: '#0d6efd',
-            borderWidth: 1,
-          },
-          {
-            label: prevY || 'Tahun Lalu',
-            data: dataPrevY,
-            backgroundColor: 'rgba(148,163,184)',
-            borderColor: '#94a3b8',
-            borderWidth: 1,
-          },
-        ],
-      };
-    }
-
-    return {
-      labels,
-      datasets: [
-        {
-          label: currLabel || 'Periode',
-          data: dataCurr,
-          backgroundColor: 'rgba(13,110,253)',
-          borderColor: '#0d6efd',
-          borderWidth: 1,
-        },
-        {
-          label: prevM || 'Bulan Lalu',
-          data: dataPrevM,
-          backgroundColor: 'rgba(0,23,87)',
-          borderColor: '#001757ff',
-          borderWidth: 1,
-        },
-        {
-          label: prevY || 'Tahun Lalu',
-          data: dataPrevY,
-          backgroundColor: 'rgba(148,163,184)',
-          borderColor: '#94a3b8',
-          borderWidth: 1,
-        },
-      ],
-    };
-  }
-
-  // ==== Helpers filter/series ====
-  get periodForCards(): { year: number; month?: number } | null {
-    const f: any = this.currentFilter;
-
-    const periodRaw = f?.period ?? null;
-    if (typeof periodRaw === 'string' && /^\d{4}-\d{2}$/.test(periodRaw)) {
-      const [yStr, mStr] = periodRaw.split('-');
-      const y = Number(yStr);
-      const m = Number(mStr);
-      if (Number.isFinite(y) && Number.isFinite(m)) {
-        return { year: y, month: m };
-      }
-    }
-
-    const yearNum = Number(f?.year);
-    if (!Number.isFinite(yearNum)) return null;
-
-    const monthRaw = f?.month ?? 'all-month';
-    const monthNum = monthNameToNumber(monthRaw);
-
-    if (monthNum == null) return { year: yearNum };
-    return { year: yearNum, month: monthNum };
-  }
-
-  getSeriesCurrent(series?: Record<string, number> | null): number | null {
-    return getSeriesCurrentUtil(this.periodForCards, series);
-  }
-
-  get compare(): boolean {
-    return this.currentFilter.compare ?? false;
-  }
-
-  getCurrentName(nameSeries?: Record<string, string> | null): string | null {
-    return getCurrentNameUtil(this.periodForCards, nameSeries);
-  }
-
-  buildPrevLabels(
-    unitsSeries?: Record<string, number> | null,
-    nameSeries?: Record<string, string> | null
-  ): { prevY?: string; prevM?: string } {
-    return buildPrevLabelsUtil(this.periodForCards, unitsSeries, nameSeries);
-  }
-
-  getCurrentPeriodLabel(): string {
-    const period = this.periodForCards;
-    if (!period) return 'Current';
-
-    if (period.month) {
-      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      return `${monthNames[period.month - 1]} ${period.year}`;
+    if (this.state.isCacheValid(salesFilter)) {
+      const kpis = this.state.getKpis() as UiKpis | null;
+      this.salesKpi.set(kpis);
+      const ok = !!kpis;
+      this.hasData.set(ok);
+      this.isDataEmpty.set(!ok || isUiKpisEmpty(kpis));
     } else {
-      return period.year.toString();
+      this.fetchAndUpdate(salesFilter);
     }
   }
 
-  getModelDistributionPrevLabels(): { prevY?: string; prevM?: string } {
-    const period = this.periodForCards;
-    if (!period) return {};
+  // ===== Event: user klik "Cari" di filter =====
+  onSearch(filter: AppFilter): void {
+    const ui: AppFilter = { ...filter, category: 'sales' };
+    this.currentFilter = ui;
 
-    const out: { prevY?: string; prevM?: string } = {};
-    out.prevY = period.month
-      ? `${MONTH_ABBR[period.month - 1]} ${period.year - 1}`
-      : String(period.year - 1);
+    const salesFilter = this.toSalesFilter(ui);
 
-    if (period.month) {
-      let pm = period.month - 1;
-      let py = period.year;
-      if (pm === 0) {
-        pm = 12;
-        py = period.year - 1;
-      }
-      out.prevM = `${MONTH_ABBR[pm - 1]} ${py}`;
-    }
+    // if (this.state.isCacheValid(salesFilter)) {
+    //   const kpis = this.state.getKpis() as UiKpis | null;
+    //   this.salesKpi.set(kpis);
+    //   const ok = !!kpis;
+    //   this.hasData.set(ok);
+    //   this.isDataEmpty.set(!ok || isUiKpisEmpty(kpis));
+    //   return;
+    // }
 
-    return out;
+    this.fetchAndUpdate(salesFilter);
   }
 
-  isSingleDataset(chart: ChartData | null): chart is SingleChartData {
-    return chart !== null && 'data' in chart;
-  }
-  getChartData(chart: ChartData | null): number[] {
-    if (this.isSingleDataset(chart)) return chart.data;
-    return [];
+  // ===== Fetch KPI (UI-ready) + enforce min spinner time =====
+  private fetchAndUpdate(f: SalesFilter): void {
+    this.loadingMessage.set('Data Sedang di Siapkan...');
+    this.loading.set(true);
+    this.error.set(null);
+
+    const start = performance.now();
+
+    this.state.saveFilter(f);
+
+    this.api.getSalesKpiView(f).subscribe({
+      next: (resp: UiSalesKpiResponse) => {
+        const snap: SalesKpiSnapshot = {
+          request: resp.data.request,
+          kpis: resp.data.kpis,
+          timestamp: Date.now(),
+        };
+
+        this.state.saveKpiData(snap);
+        this.salesKpi.set(resp.data.kpis);
+        this.hasData.set(true);
+        this.isDataEmpty.set(isUiKpisEmpty(resp.data.kpis));
+
+        console.groupCollapsed('[Sales Dashboard] KPI (UI-ready)');
+        console.table(f);
+        console.log('UI Response:', resp);
+        console.log('Snapshot:', snap);
+        console.groupEnd();
+
+        const elapsed = performance.now() - start;
+        const remain = Math.max(0, this.MIN_SPINNER_MS - elapsed);
+        setTimeout(() => this.loading.set(false), remain);
+      },
+      error: (err: any) => {
+        const msg = err?.message || 'Gagal memuat data';
+        this.error.set(msg);
+        this.hasData.set(false);
+        this.isDataEmpty.set(true);
+
+        console.error('Sales KPI fetch error:', err);
+
+        const elapsed = performance.now() - start;
+        const remain = Math.max(0, this.MIN_SPINNER_MS - elapsed);
+        setTimeout(() => this.loading.set(false), remain);
+      },
+    });
   }
 
+  // ===== Compare helpers (delegasi ke utils agar template tetap sama) =====
+  get compare(): boolean {
+    return !!this.currentFilter.compare;
+  }
+
+  get isCustom(): boolean {
+    return !!this.currentFilter.useCustomDate;
+  }
+
+  cmpLeftValue(metric: any): number | string | null {
+    return utilCmpLeftValue(metric, this.isCustom);
+  }
+
+  cmpLeftSubtitle(metric: any): string | undefined {
+    return utilCmpLeftSubtitle(metric, this.isCustom);
+  }
+
+  cmpRightValue(metric: any): number | string | null {
+    return utilCmpRightValue(metric);
+  }
+
+  cmpRightSubtitle(metric: any): string | undefined {
+    return utilCmpRightSubtitle(metric);
+  }
+
+  // ===== Display helpers (delegasi ke utils; signature tetap agar template tidak berubah) =====
   getCompanyDisplayName(company: string): string {
-    const companyMap: Record<string, string> = {
-      'sinar-galesong-mobilindo': 'Sinar Galesong Mobilindo',
-      'pt-galesong-otomotif': 'PT Galesong Otomotif',
-      'all-company': 'Semua Perusahaan',
-    };
-    return companyMap[company] || company;
+    return utilCompanyName(company);
   }
 
   getCategoryDisplayName(category: string): string {
-    const categoryMap: Record<string, string> = {
-      'all-category': 'Semua Kategori',
-      sales: 'Sales',
-      // (hapus 'after-sales')
-    };
-    return categoryMap[category] || category;
+    return utilCategoryName(category);
   }
 
   getBranchDisplayName(branch: string): string {
-    const branchMap: Record<string, string> = {
-      'all-branch': 'Semua Cabang',
-      pettarani: 'Pettarani',
-      palopo: 'Palopo',
-      kendari: 'Kendari',
-      palu: 'Palu',
-      manado: 'Manado',
-    };
-    return branchMap[branch] || branch;
+    return utilBranchName(branch);
   }
 
   getPeriodDisplayName(): string {
-    const year = this.currentFilter.year;
-    const month = this.currentFilter.month;
+    return utilPeriodName({
+      useCustomDate: this.currentFilter.useCustomDate,
+      selectedDate: this.currentFilter.selectedDate,
+      year: this.currentFilter.year,
+      month: this.currentFilter.month,
+    });
+  }
 
-    const monthMap: Record<string, string> = {
-      'all-month': 'Semua Bulan',
-      '01': 'Januari','02': 'Februari','03': 'Maret','04': 'April','05': 'Mei','06': 'Juni',
-      '07': 'Juli','08': 'Agustus','09': 'September','10': 'Oktober','11': 'November','12': 'Desember',
-    };
-
-    const yearDisplay = year || 'Semua Tahun';
-    const monthDisplay = monthMap[month || 'all-month'] || month;
-
-    if (month === 'all-month' || !month) {
-      return yearDisplay;
+  // ===== Konversi filter (UI <-> API) =====
+  private toSalesFilter(ui: AppFilter): SalesFilter {
+    if (ui.useCustomDate) {
+      return {
+        companyId: ui.company,
+        branchId: ui.branch ?? 'all-branch',
+        useCustomDate: true,
+        compare: !!ui.compare,
+        year: null,
+        month: null,
+        selectedDate: ui.selectedDate ?? null,
+      };
     }
-    return `${monthDisplay} ${yearDisplay}`;
+
+    const monthVal = ui.month && ui.month !== 'all-month' ? String(ui.month).padStart(2, '0') : null;
+
+    return {
+      companyId: ui.company,
+      branchId: ui.branch ?? 'all-branch',
+      useCustomDate: false,
+      compare: !!ui.compare,
+      year: ui.year && ui.year.trim() ? ui.year : null,
+      month: monthVal,
+      selectedDate: null,
+    };
   }
 
-  ngOnInit(): void {
-    this.branchPerformance.set(this.buildBranchPerformance());
-    this.modelDistributionYoY.set(this.buildModelDistribution());
-    this.lineMonthly.set(this.buildLineMonthly());
-    this.doVsSpk.set(this.buildDoVsSpk());
-  }
+  private toAppFilter(f: SalesFilter): AppFilter {
+    if (f.useCustomDate) {
+      const today = new Date();
+      const sd = f.selectedDate ?? '';
+      const y = sd ? sd.slice(0, 4) : String(today.getFullYear());
+      const m = sd ? sd.slice(5, 7) : String(today.getMonth() + 1).padStart(2, '0');
 
-  onSearch(filter: AppFilter): void {
-    this.currentFilter = { ...filter, category: 'sales' }; // kunci ke sales
-    this.branchPerformance.set(this.buildBranchPerformance());
-    this.modelDistributionYoY.set(this.buildModelDistribution());
-    this.lineMonthly.set(this.buildLineMonthly());
-    this.doVsSpk.set(this.buildDoVsSpk());
+      return {
+        company: f.companyId,
+        category: 'sales',
+        year: y, // ⬅️ bukan '' lagi
+        month: m, // ⬅️ bukan 'all-month' lagi
+        branch: f.branchId ?? 'all-branch',
+        compare: f.compare ?? true,
+        useCustomDate: true,
+        selectedDate: f.selectedDate ?? today.toISOString().slice(0, 10),
+      };
+    }
 
-    console.group('[Sales Dashboard] Filter applied');
-    console.table(this.currentFilter);
-    console.log('As JSON:', JSON.stringify(this.currentFilter, null, 2));
-    console.log('Resolved periodForCards:', this.periodForCards);
-    console.groupEnd();
-  }
-
-  clearFilters(): void {
-    this.currentFilter = {
-      company: 'sinar-galesong-mobilindo',
+    // mode periode
+    return {
+      company: f.companyId,
       category: 'sales',
-      year: '2025',
-      month: 'all-month',
-      branch: 'all-branch',
-      compare: false,
+      year: f.year ?? String(new Date().getFullYear()),
+      month: (f.month ?? String(new Date().getMonth() + 1).padStart(2, '0')),
+      branch: f.branchId ?? 'all-branch',
+      compare: f.compare ?? true,
+      useCustomDate: false,
+      selectedDate: '',
     };
-  }
-
-  getFilterSummary(): string {
-    const parts: string[] = [];
-
-    if (this.currentFilter.category !== 'all-category') {
-      parts.push(this.getCategoryDisplayName(this.currentFilter.category));
-    }
-    if (this.currentFilter.branch !== 'all-branch') {
-      parts.push(this.getBranchDisplayName(this.currentFilter.branch));
-    }
-    parts.push(this.getPeriodDisplayName());
-
-    return parts.join(' • ');
   }
 }

@@ -2,7 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { forkJoin, map, Observable, of } from 'rxjs';
 
-import { SalesService } from './sales.service';
+import { SalesService } from './sales-api.service';
 import { AfterSalesService } from './aftersales.service';
 
 import {
