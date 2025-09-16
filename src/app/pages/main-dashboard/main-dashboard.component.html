@@ -1,4 +1,4 @@
-<div class="container-fluid p-4">
+<div class="container-fluid p-4 no-pt">
   <!-- ================= Filter ================= -->
   <div class="row mb-2">
     <div class="col-12">
@@ -40,10 +40,9 @@
   </div>
 
   <!-- ============ KPI Section ============ -->
-  @if (!loading()) {
-    @if (kpis(); as data) {
-      <div class="row g-2 mb-2">
-        <div class="col-12">
+  @if (!loading()) { @if (kpis(); as data) {
+  <div class="row g-2 mb-2">
+    <div class="col-12">
       <div
         class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
       >
@@ -53,111 +52,140 @@
         </div>
       </div>
     </div>
-        <!-- Total SPK -->
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-          <app-kpi-card
-            [title]="'Total SPK'"
-            dataType="unit"
-            [period]="data.totalSPK?.selected?.period ?? undefined"
-            [value]="data.totalSPK?.selected?.value ?? 0"
-            [compareMode]="compare"
-            unitLabel="unit"
-            [prevYearValue]="data.totalSPK?.prevYear?.value ?? null"
-            [prevYearSubtitle]="data.totalSPK?.prevYear?.period ?? undefined"
-            [prevMonthValue]="data.totalSPK?.prevMonth?.value ?? null"
-            [prevMonthSubtitle]="data.totalSPK?.prevMonth?.period ?? undefined"
-          />
-        </div>
+    <!-- Total SPK -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total SPK'"
+        dataType="unit"
+        [period]="data.totalSPK?.selected?.period ?? undefined"
+        [value]="data.totalSPK?.selected?.value ?? 0"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.totalSPK?.prevYear?.value ?? null"
+        [prevYearSubtitle]="data.totalSPK?.prevYear?.period ?? undefined"
+        [prevMonthValue]="data.totalSPK?.prevMonth?.value ?? null"
+        [prevMonthSubtitle]="data.totalSPK?.prevMonth?.period ?? undefined"
+      />
+    </div>
 
-        <!-- Total DO -->
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-          <app-kpi-card
-            [title]="'Total DO'"
-            dataType="unit"
-            [period]="data.totalDO?.selected?.period ?? undefined"
-            [value]="data.totalDO?.selected?.value ?? 0"
-            [compareMode]="compare"
-            unitLabel="unit"
-            [prevYearValue]="data.totalDO?.prevYear?.value ?? null"
-            [prevYearSubtitle]="data.totalDO?.prevYear?.period ?? undefined"
-            [prevMonthValue]="data.totalDO?.prevMonth?.value ?? null"
-            [prevMonthSubtitle]="data.totalDO?.prevMonth?.period ?? undefined"
-          />
-        </div>
+    <!-- Total DO -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total DO'"
+        dataType="unit"
+        [period]="data.totalDO?.selected?.period ?? undefined"
+        [value]="data.totalDO?.selected?.value ?? 0"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.totalDO?.prevYear?.value ?? null"
+        [prevYearSubtitle]="data.totalDO?.prevYear?.period ?? undefined"
+        [prevMonthValue]="data.totalDO?.prevMonth?.value ?? null"
+        [prevMonthSubtitle]="data.totalDO?.prevMonth?.period ?? undefined"
+      />
+    </div>
+    <!-- Total Prospect  -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total prospek'"
+        dataType="unit"
+        [period]="data.totalProspect?.selected?.period ?? undefined"
+        [value]="data.totalProspect?.selected?.value ?? 0"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.totalProspect?.prevYear?.value ?? null"
+        [prevYearSubtitle]="data.totalProspect?.prevYear?.period ?? undefined"
+        [prevMonthValue]="data.totalProspect?.prevMonth?.value ?? null"
+        [prevMonthSubtitle]="data.totalProspect?.prevMonth?.period ?? undefined"
+      />
+    </div>
+    <!-- Total Hot Prospect  -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total hot prospek'"
+        dataType="unit"
+        [period]="data.totalHotProspect?.selected?.period ?? undefined"
+        [value]="data.totalHotProspect?.selected?.value ?? 0"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.totalHotProspect?.prevYear?.value ?? null"
+        [prevYearSubtitle]="data.totalHotProspect?.prevYear?.period ?? undefined"
+        [prevMonthValue]="data.totalHotProspect?.prevMonth?.value ?? null"
+        [prevMonthSubtitle]="data.totalHotProspect?.prevMonth?.period ?? undefined"
+      />
+    </div>
+    <!-- Total Unit Sales -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total Unit Sales'"
+        dataType="unit"
+        [period]="data.totalUnitSales?.selected?.period ?? undefined"
+        [value]="data.totalUnitSales?.selected?.value ?? 0"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.totalUnitSales?.prevYear?.value ?? null"
+        [prevYearSubtitle]="data.totalUnitSales?.prevYear?.period ?? undefined"
+        [prevMonthValue]="data.totalUnitSales?.prevMonth?.value ?? null"
+        [prevMonthSubtitle]="
+          data.totalUnitSales?.prevMonth?.period ?? undefined
+        "
+      />
+    </div>
 
-        <!-- Total Unit Sales -->
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-          <app-kpi-card
-            [title]="'Total Unit Sales'"
-            dataType="unit"
-            [period]="data.totalUnitSales?.selected?.period ?? undefined"
-            [value]="data.totalUnitSales?.selected?.value ?? 0"
-            [compareMode]="compare"
-            unitLabel="unit"
-            [prevYearValue]="data.totalUnitSales?.prevYear?.value ?? null"
-            [prevYearSubtitle]="data.totalUnitSales?.prevYear?.period ?? undefined"
-            [prevMonthValue]="data.totalUnitSales?.prevMonth?.value ?? null"
-            [prevMonthSubtitle]="data.totalUnitSales?.prevMonth?.period ?? undefined"
-          />
-        </div>
-
-        <!-- Model Favorit -->
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-          <app-kpi-card
-            [title]="'Model Favorit'"
-            dataType="unit"
-            [period]="data.topModel?.selected?.period ?? undefined"
-            [value]="data.topModel?.selected?.name ?? 0"
-            [subtitle]="(data.topModel?.selected?.value || '—') + ' unit'"
-            [compareMode]="compare"
-            unitLabel="unit"
-            [prevYearValue]="data.topModel?.prevYear?.name ?? null"
-            [prevYearSubtitle]="data.topModel?.prevYear?.period ?? undefined"
-            [prevYearName]="data.topModel?.prevYear?.value + ' unit'"
-            [prevMonthValue]="data.topModel?.prevMonth?.name ?? null"
-            [prevMonthSubtitle]="data.topModel?.prevMonth?.period ?? undefined"
-            [prevMonthName]="data.topModel?.prevMonth?.value + ' unit'"
-          />
-        </div>
-
-        <!-- Cabang Penjualan Tertinggi -->
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-          <app-kpi-card
-            [title]="'Cabang Penjualan Tertinggi'"
-            dataType="unit"
-            [period]="data.topBranch?.selected?.period ?? undefined"
-            [value]="data.topBranch?.selected?.branchName ?? 0"
-            [subtitle]="(data.topBranch?.selected?.value) + ' unit'"
-            [compareMode]="compare"
-            unitLabel="unit"
-            [prevYearValue]="data.topBranch?.prevYear?.branchName ?? null"
-            [prevYearSubtitle]="data.topBranch?.prevYear?.period ?? undefined"
-            [prevYearName]="data.topBranch?.prevYear?.value + ' unit'"
-            [prevMonthValue]="data.topBranch?.prevMonth?.branchName ?? null"
-            [prevMonthSubtitle]="data.topBranch?.prevMonth?.period ?? undefined"
-            [prevMonthName]="data.topBranch?.prevMonth?.value + ' unit'"
-          />
-        </div>
+    <!-- Model Favorit -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Model Favorit'"
+        dataType="unit"
+        [period]="data.topModel?.selected?.period ?? undefined"
+        [value]="data.topModel?.selected?.name ?? 0"
+        [subtitle]="(data.topModel?.selected?.value || '—') + ' unit'"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.topModel?.prevYear?.name ?? null"
+        [prevYearSubtitle]="data.topModel?.prevYear?.period ?? undefined"
+        [prevYearName]="data.topModel?.prevYear?.value + ' unit'"
+        [prevMonthValue]="data.topModel?.prevMonth?.name ?? null"
+        [prevMonthSubtitle]="data.topModel?.prevMonth?.period ?? undefined"
+        [prevMonthName]="data.topModel?.prevMonth?.value + ' unit'"
+      />
+    </div>
+    <!-- Cabang Penjualan Tertinggi -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Cabang Penjualan Tertinggi'"
+        dataType="unit"
+        [period]="data.topBranch?.selected?.period ?? undefined"
+        [value]="data.topBranch?.selected?.branchName ?? 0"
+        [subtitle]="data.topBranch?.selected?.value + ' unit'"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.topBranch?.prevYear?.branchName ?? null"
+        [prevYearSubtitle]="data.topBranch?.prevYear?.period ?? undefined"
+        [prevYearName]="data.topBranch?.prevYear?.value + ' unit'"
+        [prevMonthValue]="data.topBranch?.prevMonth?.branchName ?? null"
+        [prevMonthSubtitle]="data.topBranch?.prevMonth?.period ?? undefined"
+        [prevMonthName]="data.topBranch?.prevMonth?.value + ' unit'"
+      />
+    </div>
+  </div>
+  } @else {
+  <!-- Empty State (no data) -->
+  <div class="row">
+    <div class="col-12">
+      <div class="text-center py-5">
+        @if (error()) {
+        <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3"></i>
+        <h6 class="text-muted mb-0">{{ error() }}</h6>
+        } @else {
+        <i class="bi bi-bar-chart text-muted fs-1 mb-3"></i>
+        <h6 class="text-muted mb-0">
+          Belum ada data untuk ditampilkan. Silakan pilih filter dan klik cari.
+        </h6>
+        }
       </div>
-    } @else {
-      <!-- Empty State (no data) -->
-      <div class="row">
-        <div class="col-12">
-          <div class="text-center py-5">
-            @if (error()) {
-              <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3"></i>
-              <h6 class="text-muted mb-0">{{ error() }}</h6>
-            } @else {
-              <i class="bi bi-bar-chart text-muted fs-1 mb-3"></i>
-              <h6 class="text-muted mb-0">
-                Belum ada data untuk ditampilkan. Silakan pilih filter dan klik cari.
-              </h6>
-            }
-          </div>
-        </div>
-      </div>
-    }
-  }
+    </div>
+  </div>
+  } }
 
   <!-- Spacer bawah -->
   <div style="height: 8px"></div>
@@ -167,7 +195,11 @@
 <div class="global-loading-overlay" *ngIf="loading()">
   <div class="loader-box">
     <div class="spinner-with-logo mb-3" aria-label="Loading">
-      <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+      <div
+        class="spinner-border text-primary"
+        role="status"
+        aria-hidden="true"
+      ></div>
       <img src="/favicon.ico" alt="Loading" class="spinner-logo" />
     </div>
     <div class="loading-text">{{ loadingMessage() }}</div>

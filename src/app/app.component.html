@@ -1,4 +1,17 @@
-<div class="d-flex vh-100 overflow-hidden">
+<!-- app.component.html -->
+
+<!-- Splash Screen - tampil saat app belum ready -->
+<app-splash-screen 
+  *ngIf="!isAppReady()"
+  [progress]="splashProgress()"
+  [message]="splashMessage()"
+  [hasError]="hasError()"
+  (retry)="retryInitialization()"
+>
+</app-splash-screen>
+
+<!-- Main Application - tampil setelah app ready -->
+<div class="d-flex vh-100 overflow-hidden" *ngIf="isAppReady()">
   <!-- Sidebar (Desktop: Left sidebar, Mobile: Top navigation) -->
   <app-sidebar
     [isCollapsed]="isSidebarCollapsed()"
@@ -10,13 +23,9 @@
   <div
     class="flex-fill d-flex flex-column main-content-desktop main-content-mobile"
   >
-    <!-- No Mobile Header needed -->
-
     <!-- Page Content -->
     <main class="flex-fill bg-light overflow-auto">
       <router-outlet></router-outlet>
     </main>
   </div>
-
-  <!-- No Mobile Overlay needed -->
 </div>

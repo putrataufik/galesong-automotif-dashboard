@@ -150,3 +150,7 @@
   max-width: 800px;
   margin: 0 auto;
 }
+
+.no-pt {
+  padding-top: 0 !important;
+}

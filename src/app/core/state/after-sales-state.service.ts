@@ -1,187 +1,152 @@
-// =============================
 // src/app/core/state/after-sales-state.service.ts
-// =============================
 import { Injectable, signal, effect, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { AfterSalesFilter } from '../../shared/components/filter-aftersales-dashboard/filter-aftersales-dashboard.component';
-import { ChartData } from '../../types/sales.model';
 
-// === TYPES: After Sales KPI ===
-export interface AfterSalesKpiSnapshot {
-  afterSales: { realisasi: number; target: number };
-  serviceCabang: { realisasi: number; target: number };
-  jasaService: { realisasi: number; target: number };
-  unitEntry: { realisasi: number; target: number };
-  sparepartTunai: { realisasi: number; target: number };
-  sparepartBengkel: { realisasi: number; target: number };
-  oli: { realisasi: number; target: number };
-  totalUnitEntry: number;
+/* ============================================================
+   TYPES — UI-ready (selaras dengan AfterSalesApiService.getAfterSalesKpiView)
+   ============================================================ */
+
+export type UiPoint = { value: number; period: string };
+
+export interface UiMetricPair {
+  realisasi: number;
+  target: number;
+}
+
+export interface UiAfterSalesTotals {
+  mekanik: number;
+  hariKerja: number;
+  biayaUsaha: number;
   profit: number;
-  // CPUS SERVICE
-  jasaServiceBerat: { realisasi: number; target: number };
-  jasaServiceBodyRepair: { realisasi: number; target: number };
-  jasaServiceExpress: { realisasi: number; target: number };
-  jasaServiceKelistrikan: { realisasi: number; target: number };
-  jasaServiceOli: { realisasi: number; target: number };
-  jasaServiceOverSize: { realisasi: number; target: number };
-  jasaServiceOverhoul: { realisasi: number; target: number };
-  jasaServicePdc: { realisasi: number; target: number };
-  jasaServiceRutin: { realisasi: number; target: number };
-  jasaServiceSedang: { realisasi: number; target: number };
 
-  // Non CPUS Service
-  jasaServiceClaim: { realisasi: number; target: number };
-  jasaServiceKupon: { realisasi: number; target: number };
-  jasaServiceCvt: { realisasi: number; target: number };
-
-  // Tambahan untuk sparepart
-  partBengkelExpress: { realisasi: number; target: number };
-  partBengkelOli: { realisasi: number; target: number };
-  partBengkelOverhoul: { realisasi: number; target: number };
-  partBengkelRutin: { realisasi: number; target: number };
-  partBengkelSedang: { realisasi: number; target: number };
-  partBengkelBerat: { realisasi: number; target: number };
-
-  unitEntryExpressRealisasi: { realisasi: number; target: number };
-  unitEntryRutinRealisasi: { realisasi: number; target: number };
-  unitEntrySedangRealisasi: { realisasi: number; target: number };
-  unitEntryBeratRealisasi: { realisasi: number; target: number };
-  unitEntryOverhoulRealisasi: { realisasi: number; target: number };
-  unitEntryClaimRealisasi: { realisasi: number; target: number };
-  unitEntryKelistrikanRealisasi: { realisasi: number; target: number };
-  unitEntryKuponRealisasi: { realisasi: number; target: number };
-  unitEntryOverSizeRealisasi: { realisasi: number; target: number };
-  unitEntryPdcRealisasi: { realisasi: number; target: number };
-  unitEntryCvtRealisasi: { realisasi: number; target: number };
-  unitEntryBodyRepairRealisasi: { realisasi: number; target: number };
-  unitEntryOliRealisasi: { realisasi: number; target: number };
+  afterSales: UiMetricPair;
+  unitEntry: UiMetricPair;
+  jasaService: UiMetricPair;
+  partBengkel: UiMetricPair;
+  partTunai: UiMetricPair;
+  totalRevenue: UiMetricPair;
 }
 
-// ✅ TYPES: Additional KPI
-export interface AdditionalKpiSnapshot {
-  jumlahMekanik: number;
-  jumlahHariKerja: number;
-  totalBiayaUsaha: number;
-  totalProfit: number;
-  totalRevenueRealisasi: number;
-  totalProfitRealisasi: number;
+export interface UiBreakdownEntry { name: string; value: number; }
+export interface UiBreakdowns {
+  unitEntryByType: UiBreakdownEntry[];
+  jasaServiceByType: UiBreakdownEntry[];
+  partBengkelByType: UiBreakdownEntry[];
 }
 
-// === TYPES: Sisa Hari Kerja ===
-export interface SisaHariKerjaState {
-  options: Array<{ value: string; name: string }>;
-  selectedValue: string;
-  isVisible: boolean;
+export interface UiComparison {
+  period: string;        // label periode terformat
+  totals: UiAfterSalesTotals;
+  breakdowns: UiBreakdowns;
 }
 
-// === TYPES: Charts ===
-export interface AfterSalesChartsState {
-  realisasiVsTarget: ChartData | null;
-  profitByBranch: ChartData | null;
-  totalRevenue: ChartData | null; 
-  afterSalesDistribution: ChartData | null;
-  trendOverTime: ChartData | null;
+export interface UiProporsiSlice {
+  name: string;
+  selected: UiPoint;
+  prevDate?: UiPoint;
+  prevMonth?: UiPoint;
+  prevYear?: UiPoint;
 }
 
-// === STATE ROOT ===
-interface AfterSalesState {
+export interface UiAfterSalesKpis {
+  selected: UiComparison;
+  prevDate?: UiComparison;
+  prevMonth?: UiComparison;
+  prevYear?: UiComparison; // optional future-proof
+}
+
+export interface UiAfterSalesViewResponse {
+  status: string;
+  message: string;
+  data: {
+    kpis: UiAfterSalesKpis;
+    proporsi: UiProporsiSlice[];
+    request: any;
+  };
+}
+
+export type ComparisonPeriod = 'prevMonth' | 'prevYear' | 'prevDate';
+
+/** Filter API (pakai yang sama dengan Sales) */
+export interface AfterSalesFilter {
+  companyId: string;
+  branchId: string;            // 'all-branch' atau kode cabang after-sales
+  useCustomDate: boolean;      // true => pakai selectedDate
+  compare: boolean;
+  year: string | null;         // saat useCustomDate=false
+  month: string | null;        // '01'..'12' atau null (year-only)
+  selectedDate: string | null; // YYYY-MM-DD saat useCustomDate=true
+}
+
+/** Snapshot KPI yang disimpan di state */
+export type AfterSalesKpiSnapshot = {
+  request: any;
+  kpis: UiAfterSalesKpis;
+  proporsi: UiProporsiSlice[];
+  timestamp: number;
+};
+
+export interface AfterSalesState {
   filter: AfterSalesFilter | null;
-  kpi: AfterSalesKpiSnapshot;
-  additionalKpi: AdditionalKpiSnapshot;
-  sisaHariKerja: SisaHariKerjaState;
-  charts: AfterSalesChartsState;
+  kpiData: AfterSalesKpiSnapshot | null;
   lastUpdated: number | null;
 }
 
-// ====== INITIALS ======
-const initialKpi: AfterSalesKpiSnapshot = {
-  afterSales: { realisasi: 0, target: 0 },
-  serviceCabang: { realisasi: 0, target: 0 },
-  jasaService: { realisasi: 0, target: 0 },
-  unitEntry: { realisasi: 0, target: 0 },
-  sparepartTunai: { realisasi: 0, target: 0 },
-  sparepartBengkel: { realisasi: 0, target: 0 },
-  oli: { realisasi: 0, target: 0 },
-  totalUnitEntry: 0,
-  profit: 0,
-  jasaServiceBerat: { realisasi: 0, target: 0 },
-  jasaServiceBodyRepair: { realisasi: 0, target: 0 },
-  jasaServiceExpress: { realisasi: 0, target: 0 },
-  jasaServiceKelistrikan: { realisasi: 0, target: 0 },
-  jasaServiceOli: { realisasi: 0, target: 0 },
-  jasaServiceOverSize: { realisasi: 0, target: 0 },
-  jasaServiceOverhoul: { realisasi: 0, target: 0 },
-  jasaServicePdc: { realisasi: 0, target: 0 },
-  jasaServiceRutin: { realisasi: 0, target: 0 },
-  jasaServiceSedang: { realisasi: 0, target: 0 },
-  jasaServiceClaim: { realisasi: 0, target: 0 },
-  jasaServiceKupon: { realisasi: 0, target: 0 },
-  jasaServiceCvt: { realisasi: 0, target: 0 },
+/* ============================================================
+   DEFAULTS
+   ============================================================ */
 
-  partBengkelExpress: { realisasi: 0, target: 0 },
-  partBengkelOli: { realisasi: 0, target: 0 },
-  partBengkelOverhoul: { realisasi: 0, target: 0 },
-  partBengkelRutin: { realisasi: 0, target: 0 },
-  partBengkelSedang: { realisasi: 0, target: 0 },
-  partBengkelBerat: { realisasi: 0, target: 0 },
-
-  unitEntryExpressRealisasi: { realisasi: 0, target: 0 },
-  unitEntryRutinRealisasi: { realisasi: 0, target: 0 },
-  unitEntrySedangRealisasi: { realisasi: 0, target: 0 },
-  unitEntryBeratRealisasi: { realisasi: 0, target: 0 },
-  unitEntryOverhoulRealisasi: { realisasi: 0, target: 0 },
-  unitEntryClaimRealisasi: { realisasi: 0, target: 0 },
-  unitEntryKelistrikanRealisasi: { realisasi: 0, target: 0 },
-  unitEntryKuponRealisasi: { realisasi: 0, target: 0 },
-  unitEntryOverSizeRealisasi: { realisasi: 0, target: 0 },
-  unitEntryPdcRealisasi: { realisasi: 0, target: 0 },
-  unitEntryCvtRealisasi: { realisasi: 0, target: 0 },
-  unitEntryBodyRepairRealisasi: { realisasi: 0, target: 0 },
-  unitEntryOliRealisasi: { realisasi: 0, target: 0 },
+export const defaultAfterSalesFilter: AfterSalesFilter = {
+  companyId: 'sinar-galesong-mobilindo',
+  branchId: 'all-branch',
+  useCustomDate: true,
+  compare: true,
+  year: null,
+  month: null, // null = year-only
+  selectedDate: new Date().toISOString().slice(0, 10),
 };
 
-// ✅ Initial Additional KPI
-const initialAdditionalKpi: AdditionalKpiSnapshot = {
-  jumlahMekanik: 0,
-  jumlahHariKerja: 0,
-  totalBiayaUsaha: 0,
-  totalProfit: 0,
-  totalRevenueRealisasi: 0,
-  totalProfitRealisasi: 0,
-};
-
-const initialSisaHariKerja: SisaHariKerjaState = {
-  options: [],
-  selectedValue: '',
-  isVisible: false,
-};
-
-const initialCharts: AfterSalesChartsState = {
-  realisasiVsTarget: null,
-  profitByBranch: null,
-  totalRevenue: null, 
-  afterSalesDistribution: null,
-  trendOverTime: null,
-};
-
-const initialState: AfterSalesState = {
-  filter: null,
-  kpi: initialKpi,
-  additionalKpi: initialAdditionalKpi,
-  sisaHariKerja: initialSisaHariKerja,
-  charts: initialCharts,
+export const initialAfterSalesState: AfterSalesState = {
+  filter: defaultAfterSalesFilter,
+  kpiData: null,
   lastUpdated: null,
 };
 
-// ====== STORAGE CONFIG ======
-const STORAGE_KEY = 'afterSalesState:v3'; // ✅ Bump version untuk schema change
+/* ============================================================
+   BRANCH MAP (kode AFTER SALES sesuai mapping terbaru)
+   ============================================================ */
+const CABANG_NAME_MAP_AFTER: Readonly<Record<string, string>> = {
+  '0001': 'PETTARANI',
+  '0003': 'PALU',
+  '0004': 'KENDARI',
+  '0002': 'GORONTALO',
+  '0005': 'PALOPO',
+  '0006': 'SUNGGUMINASA',
+} as const;
+
+function pad4(code?: string | null): string {
+  return code ? String(code).padStart(4, '0') : '';
+}
+function getCabangNameAfter(code: string): string {
+  const c = pad4(code);
+  return CABANG_NAME_MAP_AFTER[c] ?? c;
+}
+
+/* ============================================================
+   STORAGE CONFIG
+   ============================================================ */
+const STORAGE_KEY = 'afterSalesState:v1';
+
+/* ============================================================
+   SERVICE
+   ============================================================ */
 
 @Injectable({ providedIn: 'root' })
 export class AfterSalesStateService {
   // Single source of truth
-  private readonly _state = signal<AfterSalesState>(initialState);
+  private readonly _state = signal<AfterSalesState>(initialAfterSalesState);
 
-  // Flag SSR/browser
+  // SSR/browser flag
   private readonly isBrowser: boolean;
 
   constructor(@Inject(PLATFORM_ID) platformId: object) {
@@ -196,15 +161,15 @@ export class AfterSalesStateService {
       effect(() => {
         const value = this._state();
         try {
-          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
         } catch {
-          // ignore: quota penuh / private mode / blocked storage
+          // ignore storage errors (quota/private mode/blocked)
         }
       });
     }
   }
 
-  // ====== PATCH HELPERS ======
+  /* =============== PATCH HELPERS =============== */
   private patch(partial: Partial<AfterSalesState>) {
     this._state.update((s) => ({
       ...s,
@@ -213,301 +178,280 @@ export class AfterSalesStateService {
     }));
   }
 
-  private patchKpi(partial: Partial<AfterSalesKpiSnapshot>) {
-    this._state.update((s) => ({
-      ...s,
-      kpi: { ...s.kpi, ...partial },
-      lastUpdated: Date.now(),
-    }));
+  /* =============== FILTER MANAGEMENT =============== */
+
+  saveFilter(filter: AfterSalesFilter) {
+    // normalisasi month ke 2 digit jika ada
+    const month = filter.month == null ? null : String(filter.month).padStart(2, '0');
+    this.patch({ filter: { ...filter, month } });
   }
 
-  private patchAdditionalKpi(partial: Partial<AdditionalKpiSnapshot>) {
-    this._state.update((s) => ({
-      ...s,
-      additionalKpi: { ...s.additionalKpi, ...partial },
-      lastUpdated: Date.now(),
-    }));
-  }
-
-  private patchSisaHariKerja(partial: Partial<SisaHariKerjaState>) {
-    this._state.update((s) => ({
-      ...s,
-      sisaHariKerja: { ...s.sisaHariKerja, ...partial },
-      lastUpdated: Date.now(),
-    }));
-  }
-
-  private patchCharts(partial: Partial<AfterSalesChartsState>) {
-    this._state.update((s) => ({
-      ...s,
-      charts: { ...s.charts, ...partial },
-      lastUpdated: Date.now(),
-    }));
-  }
-
-  // ====== FILTER MANAGEMENT ======
-  saveFilterAfterSales(filter: AfterSalesFilter) {
-    this.patch({ filter });
-  }
-
-  getFilterAfterSales(): AfterSalesFilter | null {
+  getFilter(): AfterSalesFilter | null {
     return this._state().filter;
+  }
+
+  getCurrentFilter(): AfterSalesFilter {
+    const f = this._state().filter ?? defaultAfterSalesFilter;
+    const month = f.month == null ? null : String(f.month).padStart(2, '0');
+    return { ...f, month };
   }
 
   clearFilter() {
     this.patch({ filter: null });
   }
 
-  // ====== KPI MANAGEMENT ======
-  saveKpi(kpi: Partial<AfterSalesKpiSnapshot>) {
-    this.patchKpi({
-      afterSales: kpi.afterSales ?? this._state().kpi.afterSales,
-      serviceCabang: kpi.serviceCabang ?? this._state().kpi.serviceCabang,
-      jasaService: kpi.jasaService ?? this._state().kpi.jasaService,
-      unitEntry: kpi.unitEntry ?? this._state().kpi.unitEntry,
-      sparepartTunai: kpi.sparepartTunai ?? this._state().kpi.sparepartTunai,
-      sparepartBengkel:
-        kpi.sparepartBengkel ?? this._state().kpi.sparepartBengkel,
-      oli: kpi.oli ?? this._state().kpi.oli,
-      jasaServiceBerat:
-        kpi.jasaServiceBerat ?? this._state().kpi.jasaServiceBerat,
-      jasaServiceBodyRepair:
-        kpi.jasaServiceBodyRepair ?? this._state().kpi.jasaServiceBodyRepair,
-      jasaServiceExpress:
-        kpi.jasaServiceExpress ?? this._state().kpi.jasaServiceExpress,
-      jasaServiceKelistrikan:
-        kpi.jasaServiceKelistrikan ?? this._state().kpi.jasaServiceKelistrikan,
-      jasaServiceOli: kpi.jasaServiceOli ?? this._state().kpi.jasaServiceOli,
-      jasaServiceOverSize:
-        kpi.jasaServiceOverSize ?? this._state().kpi.jasaServiceOverSize,
-      jasaServiceOverhoul:
-        kpi.jasaServiceOverhoul ?? this._state().kpi.jasaServiceOverhoul,
-      jasaServicePdc: kpi.jasaServicePdc ?? this._state().kpi.jasaServicePdc,
-      jasaServiceRutin:
-        kpi.jasaServiceRutin ?? this._state().kpi.jasaServiceRutin,
-      jasaServiceSedang:
-        kpi.jasaServiceSedang ?? this._state().kpi.jasaServiceSedang,
-      jasaServiceClaim:
-        kpi.jasaServiceClaim ?? this._state().kpi.jasaServiceClaim,
-      jasaServiceKupon:
-        kpi.jasaServiceKupon ?? this._state().kpi.jasaServiceKupon,
-      jasaServiceCvt: kpi.jasaServiceCvt ?? this._state().kpi.jasaServiceCvt,
-
-      partBengkelExpress:
-        kpi.partBengkelExpress ?? this._state().kpi.partBengkelExpress,
-      partBengkelOli: kpi.partBengkelOli ?? this._state().kpi.partBengkelOli,
-      partBengkelOverhoul:
-        kpi.partBengkelOverhoul ?? this._state().kpi.partBengkelOverhoul,
-      partBengkelRutin:
-        kpi.partBengkelRutin ?? this._state().kpi.partBengkelRutin,
-      partBengkelSedang:
-        kpi.partBengkelSedang ?? this._state().kpi.partBengkelSedang,
-      partBengkelBerat:
-        kpi.partBengkelBerat ?? this._state().kpi.partBengkelBerat,
-
-      totalUnitEntry: kpi.totalUnitEntry ?? this._state().kpi.totalUnitEntry,
-      profit: kpi.profit ?? this._state().kpi.profit,
-
-      unitEntryExpressRealisasi:
-        kpi.unitEntryExpressRealisasi ??
-        this._state().kpi.unitEntryExpressRealisasi,
-      unitEntryRutinRealisasi:
-        kpi.unitEntryRutinRealisasi ??
-        this._state().kpi.unitEntryRutinRealisasi,
-      unitEntrySedangRealisasi:
-        kpi.unitEntrySedangRealisasi ??
-        this._state().kpi.unitEntrySedangRealisasi,
-      unitEntryBeratRealisasi:
-        kpi.unitEntryBeratRealisasi ??
-        this._state().kpi.unitEntryBeratRealisasi,
-      unitEntryOverhoulRealisasi:
-        kpi.unitEntryOverhoulRealisasi ??
-        this._state().kpi.unitEntryOverhoulRealisasi,
-      unitEntryClaimRealisasi:
-        kpi.unitEntryClaimRealisasi ??
-        this._state().kpi.unitEntryClaimRealisasi,
-      unitEntryKelistrikanRealisasi:
-        kpi.unitEntryKelistrikanRealisasi ??
-        this._state().kpi.unitEntryKelistrikanRealisasi,
-      unitEntryKuponRealisasi:
-        kpi.unitEntryKuponRealisasi ??
-        this._state().kpi.unitEntryKuponRealisasi,
-      unitEntryOverSizeRealisasi:
-        kpi.unitEntryOverSizeRealisasi ??
-        this._state().kpi.unitEntryOverSizeRealisasi,
-      unitEntryPdcRealisasi:
-        kpi.unitEntryPdcRealisasi ?? this._state().kpi.unitEntryPdcRealisasi,
-      unitEntryCvtRealisasi:
-        kpi.unitEntryCvtRealisasi ?? this._state().kpi.unitEntryCvtRealisasi,
-      unitEntryBodyRepairRealisasi:
-        kpi.unitEntryBodyRepairRealisasi ??
-        this._state().kpi.unitEntryBodyRepairRealisasi,
-      unitEntryOliRealisasi:
-        kpi.unitEntryOliRealisasi ?? this._state().kpi.unitEntryOliRealisasi,
+  updateFilterField<K extends keyof AfterSalesFilter>(field: K, value: AfterSalesFilter[K]) {
+    const currentFilter = this.getCurrentFilter();
+    this.saveFilter({
+      ...currentFilter,
+      [field]: value,
     });
   }
 
-  getKpi(): AfterSalesKpiSnapshot {
-    return this._state().kpi;
+  /* =============== KPI DATA MANAGEMENT =============== */
+
+  saveKpiData(view: UiAfterSalesViewResponse) {
+    const snapshot: AfterSalesKpiSnapshot = {
+      request: view.data.request,
+      kpis: view.data.kpis,
+      proporsi: view.data.proporsi,
+      timestamp: Date.now(),
+    };
+    this.patch({ kpiData: snapshot });
   }
 
-  hasKpi(): boolean {
-    const k = this._state().kpi;
-    return (
-      k.totalUnitEntry > 0 ||
-      k.afterSales.realisasi > 0 ||
-      k.serviceCabang.realisasi > 0 ||
-      k.sparepartTunai.realisasi > 0
-    );
+  getKpiSnapshot(): AfterSalesKpiSnapshot | null {
+    return this._state().kpiData;
   }
 
-  clearKpi() {
-    this.patchKpi(initialKpi);
+  getKpis(): UiAfterSalesKpis | null {
+    const kd = this._state().kpiData;
+    return kd ? kd.kpis : null;
   }
 
-  // ====== ADDITIONAL KPI MANAGEMENT ======
-  saveAdditionalKpi(additionalKpi: Partial<AdditionalKpiSnapshot>) {
-    this.patchAdditionalKpi({
-      jumlahMekanik:
-        additionalKpi.jumlahMekanik ??
-        this._state().additionalKpi.jumlahMekanik,
-      jumlahHariKerja:
-        additionalKpi.jumlahHariKerja ??
-        this._state().additionalKpi.jumlahHariKerja,
-      totalBiayaUsaha:
-        additionalKpi.totalBiayaUsaha ??
-        this._state().additionalKpi.totalBiayaUsaha,
-      totalProfit:
-        additionalKpi.totalProfit ?? this._state().additionalKpi.totalProfit,
-      totalRevenueRealisasi:
-        additionalKpi.totalRevenueRealisasi ??
-        this._state().additionalKpi.totalRevenueRealisasi,
-      totalProfitRealisasi:
-        additionalKpi.totalProfitRealisasi ??
-        this._state().additionalKpi.totalProfitRealisasi,
-    });
+  getProporsi(): UiProporsiSlice[] {
+    const kd = this._state().kpiData;
+    return kd ? kd.proporsi : [];
   }
 
-  getAdditionalKpi(): AdditionalKpiSnapshot {
-    return this._state().additionalKpi;
+  hasKpiData(): boolean {
+    return !!this._state().kpiData;
   }
 
-  hasAdditionalKpi(): boolean {
-    const k = this._state().additionalKpi;
-    return (
-      k.jumlahMekanik > 0 ||
-      k.jumlahHariKerja > 0 ||
-      k.totalBiayaUsaha > 0 ||
-      k.totalProfit !== 0 ||
-      k.totalRevenueRealisasi > 0
-    );
+  clearKpiData() {
+    this.patch({ kpiData: null });
   }
 
-  clearAdditionalKpi() {
-    this.patchAdditionalKpi(initialAdditionalKpi);
+  /* =============== KPI COMPARISON HELPERS =============== */
+
+  // Generalized comparison for totals key
+  private getTotalsComparison(
+    totalsKey: keyof UiAfterSalesTotals,
+    comparisonPeriod: ComparisonPeriod
+  ):
+    | {
+        current: number;
+        previous: number;
+        change: number;
+        changePercent: number;
+        period: string;
+        previousPeriod: string;
+      }
+    | null {
+    const kpis = this.getKpis();
+    if (!kpis?.selected) return null;
+
+    const sel = kpis.selected;
+    const prev = (kpis as any)[comparisonPeriod] as UiComparison | undefined;
+    if (!prev) return null;
+
+    const currentPair = (sel.totals as any)[totalsKey] as UiMetricPair | number;
+    const prevPair = (prev.totals as any)[totalsKey] as UiMetricPair | number;
+
+    // dukung nilai number (mekanik/hariKerja/profit/biayaUsaha) dan pair (realisasi/target)
+    const current =
+      typeof currentPair === 'number' ? currentPair : Number(currentPair?.realisasi ?? 0);
+    const previous =
+      typeof prevPair === 'number' ? prevPair : Number(prevPair?.realisasi ?? 0);
+
+    const change = current - previous;
+    const changePercent = previous === 0 ? (current === 0 ? 0 : 100) : (change / previous) * 100;
+
+    return {
+      current,
+      previous,
+      change,
+      changePercent,
+      period: String(sel.period ?? ''),
+      previousPeriod: String(prev.period ?? ''),
+    };
   }
 
-  // ====== SISA HARI KERJA MANAGEMENT ======
-  saveSisaHariKerjaOptions(options: Array<{ value: string; name: string }>) {
-    this.patchSisaHariKerja({ options });
+  // Helper publik per KPI utama
+  getAfterSalesGrowth(period: ComparisonPeriod = 'prevMonth') {
+    return this.getTotalsComparison('afterSales', period);
+  }
+  getUnitEntryGrowth(period: ComparisonPeriod = 'prevMonth') {
+    return this.getTotalsComparison('unitEntry', period);
+  }
+  getJasaServiceGrowth(period: ComparisonPeriod = 'prevMonth') {
+    return this.getTotalsComparison('jasaService', period);
+  }
+  getPartBengkelGrowth(period: ComparisonPeriod = 'prevMonth') {
+    return this.getTotalsComparison('partBengkel', period);
+  }
+  getPartTunaiGrowth(period: ComparisonPeriod = 'prevMonth') {
+    return this.getTotalsComparison('partTunai', period);
+  }
+  getTotalRevenueGrowth(period: ComparisonPeriod = 'prevMonth') {
+    return this.getTotalsComparison('totalRevenue', period);
   }
 
-  setSisaHariKerjaValue(selectedValue: string) {
-    this.patchSisaHariKerja({ selectedValue });
+  // Quick access angka realisasi/target terkini
+  getCurrentTotals():
+    | {
+        period: string;
+        afterSales: UiMetricPair;
+        unitEntry: UiMetricPair;
+        jasaService: UiMetricPair;
+        partBengkel: UiMetricPair;
+        partTunai: UiMetricPair;
+        totalRevenue: UiMetricPair;
+        mekanik: number;
+        hariKerja: number;
+        biayaUsaha: number;
+        profit: number;
+      }
+    | null {
+    const kpis = this.getKpis();
+    if (!kpis?.selected) return null;
+    const t = kpis.selected.totals;
+    return {
+      period: kpis.selected.period,
+      afterSales: t.afterSales,
+      unitEntry: t.unitEntry,
+      jasaService: t.jasaService,
+      partBengkel: t.partBengkel,
+      partTunai: t.partTunai,
+      totalRevenue: t.totalRevenue,
+      mekanik: t.mekanik,
+      hariKerja: t.hariKerja,
+      biayaUsaha: t.biayaUsaha,
+      profit: t.profit,
+    };
   }
 
-  setSisaHariKerjaVisibility(isVisible: boolean) {
-    this.patchSisaHariKerja({ isVisible });
+  // Breakdown/Proporsi helpers
+  getCurrentBreakdowns(): UiBreakdowns | null {
+    const kpis = this.getKpis();
+    return kpis?.selected?.breakdowns ?? null;
   }
 
-  getSisaHariKerjaState(): SisaHariKerjaState {
-    return this._state().sisaHariKerja;
+  getProporsiFor(name: string): {
+    name: string;
+    selected?: UiPoint;
+    prevDate?: UiPoint;
+    prevMonth?: UiPoint;
+    prevYear?: UiPoint;
+  } | null {
+    const items = this.getProporsi();
+    const found = items.find((x) => x.name.toUpperCase() === name.toUpperCase());
+    return found ? found : null;
   }
 
-  getSisaHariKerjaValue(): string {
-    return this._state().sisaHariKerja.selectedValue;
+  /* =============== EXECUTIVE SUMMARY-LIKE SNAPSHOT =============== */
+
+  getCurrentPeriodSummary():
+    | {
+        period: string;
+        afterSalesRealisasi: number;
+        unitEntryRealisasi: number;
+        jasaServiceRealisasi: number;
+        partBengkelRealisasi: number;
+        partTunaiRealisasi: number;
+        totalRevenueRealisasi: number;
+        topUnitEntryType?: string;   // tipe dengan value terbesar
+        topServiceType?: string;
+        topPartBengkelType?: string;
+        branchName?: string;         // opsional jika kamu simpan di request
+      }
+    | null {
+    const kpis = this.getKpis();
+    if (!kpis?.selected) return null;
+
+    const { totals, breakdowns, period } = kpis.selected;
+    const top = (arr: UiBreakdownEntry[]) =>
+      arr && arr.length ? arr.reduce((a, b) => (b.value > a.value ? b : a)).name : undefined;
+
+    // coba tarik nama cabang dari request (kalau ada)
+    const req = this._state().kpiData?.request ?? {};
+    const branchId = (req.branchId ?? req.branch ?? '') as string;
+    const branchName = branchId && branchId !== 'all-branch'
+      ? getCabangNameAfter(String(branchId))
+      : undefined;
+
+    return {
+      period,
+      afterSalesRealisasi: totals.afterSales.realisasi,
+      unitEntryRealisasi: totals.unitEntry.realisasi,
+      jasaServiceRealisasi: totals.jasaService.realisasi,
+      partBengkelRealisasi: totals.partBengkel.realisasi,
+      partTunaiRealisasi: totals.partTunai.realisasi,
+      totalRevenueRealisasi: totals.totalRevenue.realisasi,
+      topUnitEntryType: top(breakdowns.unitEntryByType),
+      topServiceType: top(breakdowns.jasaServiceByType),
+      topPartBengkelType: top(breakdowns.partBengkelByType),
+      branchName,
+    };
   }
 
-  getSisaHariKerjaNumber(): number | undefined {
-    const value = this._state().sisaHariKerja.selectedValue;
-    return value ? Number(value) : undefined;
-  }
-
-  clearSisaHariKerja() {
-    this.patchSisaHariKerja(initialSisaHariKerja);
-  }
-
-  // ====== CHARTS MANAGEMENT ======
-  saveRealisasiVsTargetChart(data: ChartData | null) {
-    this.patchCharts({ realisasiVsTarget: data });
-  }
-
-  getRealisasiVsTargetChart(): ChartData | null {
-    return this._state().charts.realisasiVsTarget;
-  }
-
-  saveProfitByBranchChart(data: ChartData | null) {
-    this.patchCharts({ profitByBranch: data });
-  }
-
-  getProfitByBranchChart(): ChartData | null {
-    return this._state().charts.profitByBranch;
-  }
-
-  // ✅ TOTAL REVENUE CHART MANAGEMENT
-  saveTotalRevenueChart(data: ChartData | null) {
-    this.patchCharts({ totalRevenue: data });
-  }
-
-  getTotalRevenueChart(): ChartData | null {
-    return this._state().charts.totalRevenue;
-  }
-
-  saveAfterSalesDistribution(data : ChartData | null) {
-    this.patchCharts({afterSalesDistribution: data});
-  }
-
-  getAfterSalesDistribution(): ChartData | null{
-    return this._state().charts.afterSalesDistribution;
-  }
-
-  saveTrendOverTimeChart(data: ChartData | null) {
-    this.patchCharts({ trendOverTime: data });
-  }
-
-  getTrendOverTimeChart(): ChartData | null {
-    return this._state().charts.trendOverTime;
-  }
-
-  getCharts(): AfterSalesChartsState {
-    return this._state().charts;
-  }
-
-  clearCharts() {
-    this.patchCharts(initialCharts);
-  }
-
-  // ====== UTILITY METHODS ======
-  getLastUpdated(): Date | null {
-    const timestamp = this._state().lastUpdated;
-    return timestamp ? new Date(timestamp) : null;
-  }
+  /* =============== CACHE / AGE MANAGEMENT =============== */
 
   isDataStale(maxAgeMinutes: number = 30): boolean {
-    const lastUpdated = this.getLastUpdated();
+    const lastUpdated = this._state().lastUpdated;
     if (!lastUpdated) return true;
-
-    const now = new Date();
-    const diffMinutes = (now.getTime() - lastUpdated.getTime()) / (1000 * 60);
+    const now = Date.now();
+    const diffMinutes = (now - lastUpdated) / (1000 * 60);
     return diffMinutes > maxAgeMinutes;
   }
 
-  // ====== RESET HELPERS ======
+  getLastUpdated(): Date | null {
+    const ts = this._state().lastUpdated;
+    return ts ? new Date(ts) : null;
+  }
+
+  isCacheValid(filter: AfterSalesFilter, maxAgeMinutes: number = 30): boolean {
+    if (this.isDataStale(maxAgeMinutes)) return false;
+    const currentFilter = this.getFilter();
+    if (!currentFilter) return false;
+    return this.filtersMatch(filter, currentFilter);
+  }
+
+  private filtersMatch(a: AfterSalesFilter, b: AfterSalesFilter): boolean {
+    return (
+      a.companyId === b.companyId &&
+      a.branchId === b.branchId &&
+      a.useCustomDate === b.useCustomDate &&
+      a.compare === b.compare &&
+      (a.year ?? null) === (b.year ?? null) &&
+      (a.month ?? null) === (b.month ?? null) &&
+      (a.selectedDate ?? null) === (b.selectedDate ?? null)
+    );
+  }
+
+  /* =============== STATE INTROSPECTION =============== */
+
+  getFullState(): AfterSalesState {
+    return this._state();
+  }
+
+  /* =============== CLEAR / RESET =============== */
+
   clearAll() {
-    this._state.set(initialState);
+    this._state.set(initialAfterSalesState);
     if (this.isBrowser) {
       try {
-        sessionStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_KEY);
       } catch {}
     }
   }
@@ -516,158 +460,23 @@ export class AfterSalesStateService {
     this.clearAll();
   }
 
-  // ====== DEBUG HELPERS ======
-  getFullState(): AfterSalesState {
-    return this._state();
-  }
+  /* =============== STORAGE (hydrate) =============== */
 
-  // ====== STORAGE (hydrate) ======
   private hydrate(): AfterSalesState | null {
+    if (!this.isBrowser) return null;
     try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
+
       const parsed = JSON.parse(raw) as Partial<AfterSalesState>;
 
-      // Minimal validation + defaults agar aman bila versi berubah
       return {
-        filter: parsed.filter ?? null,
-        kpi: {
-          afterSales: parsed.kpi?.afterSales ?? { realisasi: 0, target: 0 },
-          serviceCabang: parsed.kpi?.serviceCabang ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaService: parsed.kpi?.jasaService ?? { realisasi: 0, target: 0 },
-          unitEntry: parsed.kpi?.unitEntry ?? { realisasi: 0, target: 0 },
-          sparepartTunai: parsed.kpi?.sparepartTunai ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          sparepartBengkel: parsed.kpi?.sparepartBengkel ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          oli: parsed.kpi?.oli ?? { realisasi: 0, target: 0 },
-
-          jasaServiceBerat: parsed.kpi?.jasaServiceBerat ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServiceBodyRepair: parsed.kpi?.jasaServiceBodyRepair ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServiceExpress: parsed.kpi?.jasaServiceExpress ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServiceKelistrikan: parsed.kpi?.jasaServiceKelistrikan ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServiceOli: parsed.kpi?.jasaServiceOli ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServiceOverSize: parsed.kpi?.jasaServiceOverSize ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServiceOverhoul: parsed.kpi?.jasaServiceOverhoul ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServicePdc: parsed.kpi?.jasaServicePdc ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServiceRutin: parsed.kpi?.jasaServiceRutin ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServiceSedang: parsed.kpi?.jasaServiceSedang ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServiceClaim: parsed.kpi?.jasaServiceClaim ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServiceKupon: parsed.kpi?.jasaServiceKupon ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          jasaServiceCvt: parsed.kpi?.jasaServiceCvt ?? {
-            realisasi: 0,
-            target: 0,
-          },
-
-          partBengkelExpress: parsed.kpi?.partBengkelExpress ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          partBengkelOli: parsed.kpi?.partBengkelOli ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          partBengkelOverhoul: parsed.kpi?.partBengkelOverhoul ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          partBengkelRutin: parsed.kpi?.partBengkelRutin ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          partBengkelSedang: parsed.kpi?.partBengkelSedang ?? {
-            realisasi: 0,
-            target: 0,
-          },
-          partBengkelBerat: parsed.kpi?.partBengkelBerat ?? {
-            realisasi: 0,
-            target: 0,
-          },
-
-          totalUnitEntry: parsed.kpi?.totalUnitEntry ?? 0,
-          profit: parsed.kpi?.profit ?? 0,
-
-          unitEntryExpressRealisasi: parsed.kpi?.unitEntryExpressRealisasi ?? { realisasi: 0, target: 0 },
-          unitEntryRutinRealisasi: parsed.kpi?.unitEntryRutinRealisasi ??{ realisasi: 0, target: 0 },
-          unitEntrySedangRealisasi: parsed.kpi?.unitEntrySedangRealisasi ??{ realisasi: 0, target: 0 },
-          unitEntryBeratRealisasi: parsed.kpi?.unitEntryBeratRealisasi ??{ realisasi: 0, target: 0 },
-          unitEntryOverhoulRealisasi: parsed.kpi?.unitEntryOverhoulRealisasi ??{ realisasi: 0, target: 0 },
-          unitEntryClaimRealisasi: parsed.kpi?.unitEntryClaimRealisasi ??{ realisasi: 0, target: 0 },
-          unitEntryKelistrikanRealisasi: parsed.kpi?.unitEntryKelistrikanRealisasi ??{ realisasi: 0, target: 0 },
-          unitEntryKuponRealisasi: parsed.kpi?.unitEntryKuponRealisasi ??{ realisasi: 0, target: 0 },
-          unitEntryOverSizeRealisasi: parsed.kpi?.unitEntryOverSizeRealisasi ??{ realisasi: 0, target: 0 },
-          unitEntryPdcRealisasi: parsed.kpi?.unitEntryPdcRealisasi ??{ realisasi: 0, target: 0 },
-          unitEntryCvtRealisasi: parsed.kpi?.unitEntryCvtRealisasi ??{ realisasi: 0, target: 0 },
-          unitEntryBodyRepairRealisasi: parsed.kpi?.unitEntryBodyRepairRealisasi ??{ realisasi: 0, target: 0 },
-          unitEntryOliRealisasi: parsed.kpi?.unitEntryOliRealisasi ??{ realisasi: 0, target: 0 },
-        },
-        additionalKpi: {
-          jumlahMekanik: parsed.additionalKpi?.jumlahMekanik ?? 0,
-          jumlahHariKerja: parsed.additionalKpi?.jumlahHariKerja ?? 0,
-          totalBiayaUsaha: parsed.additionalKpi?.totalBiayaUsaha ?? 0,
-          totalProfit: parsed.additionalKpi?.totalProfit ?? 0,
-          totalRevenueRealisasi:
-            parsed.additionalKpi?.totalRevenueRealisasi ?? 0,
-          totalProfitRealisasi: parsed.additionalKpi?.totalProfitRealisasi ?? 0,
-        },
-        sisaHariKerja: {
-          options: parsed.sisaHariKerja?.options ?? [],
-          selectedValue: parsed.sisaHariKerja?.selectedValue ?? '',
-          isVisible: parsed.sisaHariKerja?.isVisible ?? false,
-        },
-        charts: {
-          realisasiVsTarget: parsed.charts?.realisasiVsTarget ?? null,
-          profitByBranch: parsed.charts?.profitByBranch ?? null,
-          totalRevenue: parsed.charts?.totalRevenue ?? null,
-          afterSalesDistribution: parsed.charts?.afterSalesDistribution ?? null,
-          trendOverTime: parsed.charts?.trendOverTime ?? null,
-        },
+        filter: parsed.filter ?? defaultAfterSalesFilter,
+        kpiData: parsed.kpiData ?? null,
         lastUpdated: parsed.lastUpdated ?? null,
       };
-    } catch {
+    } catch (error) {
+      console.warn('Failed to hydrate after-sales state from localStorage:', error);
       return null;
     }
   }

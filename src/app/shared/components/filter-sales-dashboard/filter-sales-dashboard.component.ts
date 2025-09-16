@@ -31,7 +31,10 @@ export class FilterSalesDashboardComponent implements OnInit, OnChanges, OnDestr
   // Props dari parent
   @Input() currentFilter: AppFilter | null = null;
   @Input() loading = false;
-
+  isFilterExpanded = true; // default compact
+  toggleFilter() {
+    this.isFilterExpanded = !this.isFilterExpanded;
+  }
   // Emit ke parent
   @Output() search = new EventEmitter<AppFilter>();
 

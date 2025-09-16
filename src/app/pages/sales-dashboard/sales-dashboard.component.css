@@ -46,12 +46,11 @@
     font-size: 0.75rem; /* Diperkecil dari 0.85rem */
     padding: 0.75rem 1rem !important;
   }
-  
+
   .breadcrumb-item {
     margin-bottom: 0.25rem;
   }
 }
-
 
 .global-loading-overlay {
   position: fixed;
@@ -150,4 +149,8 @@
   padding: 40px;
   max-width: 800px;
   margin: 0 auto;
+}
+
+.no-pt {
+  padding-top: 0 !important;
 }

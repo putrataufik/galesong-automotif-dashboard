@@ -1,113 +1,107 @@
+<!-- src/app/shared/components/filter-aftersales-dashboard/filter-aftersales-dashboard.component.html -->
 @if (showAlert) {
-<div
-  class="position-fixed bottom-0 start-50 translate-middle-x mb-2"
-  style="z-index: 1050; width: 90%; max-width: 420px"
-  role="status"
-  aria-live="polite"
->
   <div
-    class="alert alert-{{
-      alertType
-    }} alert-dismissible fade show shadow-sm py-2 px-3 small"
+    class="position-fixed bottom-0 start-50 translate-middle-x mb-2"
+    style="z-index: 1050; width: 90%; max-width: 420px"
+    role="status"
+    aria-live="polite"
   >
-    <i
-      class="bi {{
-        alertType === 'success'
-          ? 'bi-check-circle-fill'
-          : 'bi-exclamation-triangle-fill'
-      }} me-2"
-      aria-hidden="true"
-    ></i>
-    <span class="me-3">{{ alertMessage }}</span>
-    <button
-      type="button"
-      class="btn-close"
-      (click)="hideAlert()"
-      aria-label="Tutup"
-    ></button>
+    <div class="alert alert-{{ alertType }} alert-dismissible fade show shadow-sm py-2 px-3 small">
+      <i class="bi {{ alertType === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill' }} me-2"></i>
+      <span class="me-3">{{ alertMessage }}</span>
+      <button type="button" class="btn-close" (click)="hideAlert()" aria-label="Tutup"></button>
+    </div>
   </div>
-</div>
 }
 
-<section
-  class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3"
-  role="search"
-  aria-label="Filter Dashboard"
->
-  <div
-    class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-6 g-2 align-items-end"
-  >
+<section class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3" role="search" aria-label="Filter After Sales">
+  <div class="d-flex flex-wrap gap-2 align-items-end">
     <!-- Perusahaan -->
-    <div class="col-6 col-md-2">
-        <label for="company" class="form-label mb-1 small">
-          Perusahaan <span class="text-danger">*</span>
-        </label>
-        <select
-          id="company"
-          class="form-select form-select-sm"
-          [(ngModel)]="company"
-          (change)="onFilterChange()"
-          aria-required="true"
-        >
-          <option value="">Pilih</option>
-          @for (c of companies; track c.value) {
+    <div class="flex-fill" style="min-width: 160px;">
+      <label for="company" class="form-label mb-1 small">
+        Perusahaan<span class="text-danger">*</span>
+      </label>
+      <select id="company" class="form-select form-select-sm" [(ngModel)]="company" (change)="onCompanyChange()">
+        <option value="">Pilih</option>
+        @for (c of companies; track c.value) {
           <option [value]="c.value">{{ c.name }}</option>
-          }
-        </select>
+        }
+      </select>
     </div>
 
     <!-- Cabang -->
-    <div class="col-6 col-md-2">
-        <label for="cabang" class="form-label mb-1 small">Cabang</label>
-        <select
-          id="cabang"
-          class="form-select form-select-sm"
-          [(ngModel)]="cabang"
-          (change)="onFilterChange()"
-        >
-          @for (cb of cabangOptions; track cb.value) {
-          <option [value]="cb.value">{{ cb.name }}</option>
-          }
-        </select>
+    <div class="flex-fill" style="min-width: 140px;">
+      <label for="branch" class="form-label mb-1 small">Cabang</label>
+      <select id="branch" class="form-select form-select-sm" [(ngModel)]="cabang" (change)="onFilterChange()">
+        @for (b of cabangOptions; track b.value) {
+          <option [value]="b.value">{{ b.name }}</option>
+        }
+      </select>
     </div>
 
-    <!-- Tahun -->
-    <div class="col-6 col-md-2">
-        <label for="period" class="form-label mb-1 small">
-          Tahun <span class="text-danger">*</span>
+    <!-- Tahun (tampil jika useCustomDate = false) -->
+    @if (!useCustomDate) {
+      <div class="flex-fill" style="min-width: 120px;">
+        <label for="year" class="form-label mb-1 small">
+          Tahun<span class="text-danger">*</span>
         </label>
-        <select
-          id="period"
-          class="form-select form-select-sm"
-          [(ngModel)]="period"
-          (change)="onPeriodChange()"
-          aria-required="true"
-        >
+        <select id="year" class="form-select form-select-sm" [(ngModel)]="period" (change)="onPeriodChange()">
           @for (p of periods; track p.value) {
-          <option [value]="p.value">{{ p.name }}</option>
+            <option [value]="p.value">{{ p.name }}</option>
           }
         </select>
-    </div>
+      </div>
+    }
 
-    <!-- Bulan -->
-    <div class="col-6 col-md-2">
-      <div class="form-item narrow">
+    <!-- Bulan (tampil jika useCustomDate = false) -->
+    @if (!useCustomDate) {
+      <div class="flex-fill" style="min-width: 120px;">
         <label for="month" class="form-label mb-1 small">Bulan</label>
-        <select
-          id="month"
-          class="form-select form-select-sm"
-          [(ngModel)]="month"
-          (change)="onFilterChange()"
-        >
+        <select id="month" class="form-select form-select-sm" [(ngModel)]="month" (change)="onFilterChange()">
           @for (m of months; track m.value) {
-          <option [value]="m.value">{{ m.name }}</option>
+            <option [value]="m.value">{{ m.name }}</option>
           }
         </select>
+      </div>
+    }
+
+    <!-- Date Picker (tampil jika useCustomDate = true) -->
+    @if (useCustomDate) {
+      <div class="flex-fill" style="min-width: 150px;">
+        <label for="selectedDate" class="form-label mb-1 small">
+          <i class="bi bi-calendar3 me-1"></i>Tanggal<span class="text-danger">*</span>
+        </label>
+        <input
+          type="date"
+          id="selectedDate"
+          class="form-control form-control-sm"
+          [(ngModel)]="selectedDate"
+          (change)="onDateChange()"
+          max="2099-12-31"
+          min="2022-01-01"
+        />
+      </div>
+    }
+
+    <!-- Toggle Pilih Tanggal -->
+    <div style="min-width: 80px;">
+      <label class="form-label small text-muted mb-1 d-block">Pilih Tanggal</label>
+      <div class="form-check form-switch d-flex align-items-center">
+        <input
+          class="form-check-input form-check-input-sm me-2"
+          type="checkbox"
+          id="customDateSwitch"
+          [(ngModel)]="useCustomDate"
+          (change)="onCustomDateToggle()"
+        />
+        <label class="form-check-label small mb-0" for="customDateSwitch">
+          {{ useCustomDate ? 'ON' : 'OFF' }}
+        </label>
       </div>
     </div>
 
     <!-- Toggle Komparasi -->
-    <div class="col-6 col-md-1">
+    <div style="min-width: 80px;">
       <label class="form-label small text-muted mb-1 d-block">Komparasi</label>
       <div class="form-check form-switch d-flex align-items-center">
         <input
@@ -118,27 +112,25 @@
           (change)="onFilterChange()"
         />
         <label class="form-check-label small mb-0" for="compareSwitch">
-          {{ compare ? "ON" : "OFF" }}
+          {{ compare ? 'ON' : 'OFF' }}
         </label>
       </div>
     </div>
 
     <!-- Tombol Cari -->
-    <div class="col-6 col-md-2 d-flex align-items-end">
+    <div style="min-width: 100px;">
       <button
         type="button"
         class="btn btn-primary btn-sm w-100"
         (click)="onSearchClick()"
-        [disabled]="loading || !company || !period"
+        [disabled]="
+          loading ||
+          !company ||
+          (useCustomDate && !selectedDate) ||
+          (!useCustomDate && !period)
+        "
       >
-        @if (loading) {
-        <span
-          class="spinner-border spinner-border-sm me-2"
-          role="status"
-          aria-hidden="true"
-        ></span>
-        }
-        <i class="bi bi-search me-1"></i> Cari Data
+        <i class="bi bi-search me-1"></i> Cari
       </button>
     </div>
   </div>

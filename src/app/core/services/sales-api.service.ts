@@ -5,7 +5,6 @@ import { Observable, throwError, catchError, tap, finalize, map } from 'rxjs';
 import { BaseApiService } from './base-api.service';
 import {
   SalesKpiResponse,
-  SalesKpiRequest,
   SalesFilter
 } from '../models/sales.models';
 
@@ -58,11 +57,14 @@ export type UiKpiBranchPoint = UiKpiPoint & { code: string; branchName: string }
 export type UiKpiModelPoint = UiKpiPoint & { name: string };
 
 export interface UiKpis {
-  totalUnitSales?: { selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
-  totalSPK?:       { selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
-  totalDO?:        { selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
-  topBranch?:      { selected?: UiKpiBranchPoint; prevMonth?: UiKpiBranchPoint; prevYear?: UiKpiBranchPoint; prevDate?: UiKpiBranchPoint };
-  topModel?:       { selected?: UiKpiModelPoint;  prevMonth?: UiKpiModelPoint;  prevYear?: UiKpiModelPoint;  prevDate?: UiKpiModelPoint  };
+  totalUnitSales?:  { selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
+  totalSPK?:        { selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
+  totalDO?:         { selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
+  totalProspect?:   { selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
+  totalHotProspect?:{ selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
+  topBranch?:       { selected?: UiKpiBranchPoint; prevMonth?: UiKpiBranchPoint; prevYear?: UiKpiBranchPoint; prevDate?: UiKpiBranchPoint };
+  topModel?:        { selected?: UiKpiModelPoint;  prevMonth?: UiKpiModelPoint;  prevYear?: UiKpiModelPoint;  prevDate?: UiKpiModelPoint  };
+
 }
 
 export interface UiSalesKpiResponse {
@@ -305,6 +307,18 @@ export class SalesApiService extends BaseApiService {
         prevMonth: this.mapPoint(k.totalDO?.prevMonth, useCustomDate),
         prevYear:  this.mapPoint(k.totalDO?.prevYear,  useCustomDate),
         prevDate:  this.mapPoint(k.totalDO?.prevDate,  useCustomDate),
+      },
+      totalProspect: {
+        selected:  this.mapPoint(k.totalProspect?.selected,  useCustomDate),
+        prevMonth: this.mapPoint(k.totalProspect?.prevMonth, useCustomDate),
+        prevYear:  this.mapPoint(k.totalProspect?.prevYear,  useCustomDate),
+        prevDate:  this.mapPoint(k.totalProspect?.prevDate,  useCustomDate),
+      },
+      totalHotProspect: {
+        selected:  this.mapPoint(k.totalHotProspect?.selected,  useCustomDate),
+        prevMonth: this.mapPoint(k.totalHotProspect?.prevMonth, useCustomDate),
+        prevYear:  this.mapPoint(k.totalHotProspect?.prevYear,  useCustomDate),
+        prevDate:  this.mapPoint(k.totalHotProspect?.prevDate,  useCustomDate),
       },
       topBranch: {
         selected:  this.mapBranchPoint(k.topBranch?.selected,  useCustomDate),

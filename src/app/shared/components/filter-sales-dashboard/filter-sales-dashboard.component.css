@@ -1,8 +1,8 @@
 .filter-card.compact {
-  --fc-item-min: 160px;
-  --fc-item-min-narrow: 120px;
-  --fc-control-h: 32px;
+  padding-left: .5rem;   /* sama dengan px-2 */
+  padding-right: .5rem;
 }
+
 
 .filter-card.compact .form-label {
   margin-bottom: .125rem;
@@ -16,7 +16,7 @@
   display: flex;
   flex-direction: column;
   min-width: var(--fc-item-min);
-  align-self: flex-end; /* bottom align */
+  align-self: flex-end;
 }
 .filter-card.compact .form-item.narrow { min-width: var(--fc-item-min-narrow); }
 .filter-card.compact .switch-align { padding-bottom: .125rem; }
@@ -41,3 +41,10 @@
 @media (max-width: 768px)  { .filter-card.compact { --fc-item-min:130px; --fc-item-min-narrow:105px; } }
 @media (max-width: 576px)  { .filter-card.compact { --fc-item-min:120px; --fc-item-min-narrow:100px; } }
                   
+
+/* Garis pemisah di bawah header */
+.fsd-header {
+  border-bottom: 1px solid rgb(93, 178, 248);
+  margin-bottom: .75rem;
+} 
+

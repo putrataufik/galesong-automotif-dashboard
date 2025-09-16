@@ -1,4 +1,6 @@
-<div class="container-fluid p-4">
+<div class="container-fluid p-4 no-pt">
+  <!-- ===================== HEADER ===================== -->
+
   <!-- Filter -->
   <div class="row mb-2">
     <div class="col-12">
@@ -89,6 +91,40 @@
         [prevMonthSubtitle]="cmpRightSubtitle(sales.totalDO)"
       />
     </div>
+    <!-- Prospek -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total Prospek'"
+        dataType="unit"
+        [subtitle]="compare ? '' : 'Prospek Penjualan'"
+        info="Jumlah unit yang telah dibuatkan Prospek Penjualan pada periode terpilih."
+        [period]="sales.totalProspect?.selected?.period ?? undefined"
+        [value]="sales.totalProspect?.selected?.value ?? 0"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="cmpLeftValue(sales.totalProspect)"
+        [prevYearSubtitle]="cmpLeftSubtitle(sales.totalProspect)"
+        [prevMonthValue]="cmpRightValue(sales.totalProspect)"
+        [prevMonthSubtitle]="cmpRightSubtitle(sales.totalProspect)"
+      />
+    </div>
+    <!--Hot Prospek -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total Hot Prospek'"
+        dataType="unit"
+        [subtitle]="compare ? '' : 'Prospek Penjualan'"
+        info="Jumlah hot prospek pada periode terpilih."
+        [period]="sales.totalHotProspect?.selected?.period ?? undefined"
+        [value]="sales.totalHotProspect?.selected?.value ?? 0"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="cmpLeftValue(sales.totalHotProspect)"
+        [prevYearSubtitle]="cmpLeftSubtitle(sales.totalHotProspect)"
+        [prevMonthValue]="cmpRightValue(sales.totalHotProspect)"
+        [prevMonthSubtitle]="cmpRightSubtitle(sales.totalProspect)"
+      />
+    </div>
 
     <!-- Total Unit Sales -->
     <div class="col-6 col-sm-4 col-md-3 col-lg-2">
@@ -118,36 +154,32 @@
         [period]="sales.topModel?.selected?.period ?? undefined"
         [compareMode]="compare"
         unitLabel="unit"
-        [prevYearValue]="cmpLeftValue(sales.topModel)"
-        [prevYearSubtitle]="cmpLeftSubtitle(sales.topModel)"
-        [prevYearName]="
-          isCustom
-            ? sales.topModel?.prevDate?.name
-            : sales.topModel?.prevYear?.name
-        "
-        [prevMonthValue]="cmpRightValue(sales.topModel)"
-        [prevMonthSubtitle]="cmpRightSubtitle(sales.topModel)"
-        [prevMonthName]="sales.topModel?.prevMonth?.name"
+        [prevYearValue]="sales.topModel?.prevYear?.name ?? null"
+        [prevYearSubtitle]="sales.topModel?.prevYear?.period ?? undefined"
+        [prevYearName]="sales.topModel?.prevYear?.value + ' unit'"
+        [prevMonthValue]="sales.topModel?.prevMonth?.name ?? null"
+        [prevMonthSubtitle]="sales.topModel?.prevMonth?.period ?? undefined"
+        [prevMonthName]="sales.topModel?.prevMonth?.value + ' unit'"
       />
     </div>
 
     <!-- Cabang Penjualan Tertinggi -->
     <div class="col-6 col-sm-4 col-md-3 col-lg-2">
       <app-kpi-card
-            [title]="'Cabang Penjualan Tertinggi'"
-            dataType="unit"
-            [period]="sales.topBranch?.selected?.period ?? undefined"
-            [value]="sales.topBranch?.selected?.branchName ?? 0"
-            [subtitle]="(sales.topBranch?.selected?.value) + ' unit'"
-            [compareMode]="compare"
-            unitLabel="unit"
-            [prevYearValue]="sales.topBranch?.prevYear?.branchName ?? null"
-            [prevYearSubtitle]="sales.topBranch?.prevYear?.period ?? undefined"
-            [prevYearName]="sales.topBranch?.prevYear?.value + ' unit'"
-            [prevMonthValue]="sales.topBranch?.prevMonth?.branchName ?? null"
-            [prevMonthSubtitle]="sales.topBranch?.prevMonth?.period ?? undefined"
-            [prevMonthName]="sales.topBranch?.prevMonth?.value + ' unit'"
-          />
+        [title]="'Cabang Penjualan Tertinggi'"
+        dataType="unit"
+        [period]="sales.topBranch?.selected?.period ?? undefined"
+        [value]="sales.topBranch?.selected?.branchName ?? 0"
+        [subtitle]="sales.topBranch?.selected?.value + ' unit'"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="sales.topBranch?.prevYear?.branchName ?? null"
+        [prevYearSubtitle]="sales.topBranch?.prevYear?.period ?? undefined"
+        [prevYearName]="sales.topBranch?.prevYear?.value + ' unit'"
+        [prevMonthValue]="sales.topBranch?.prevMonth?.branchName ?? null"
+        [prevMonthSubtitle]="sales.topBranch?.prevMonth?.period ?? undefined"
+        [prevMonthName]="sales.topBranch?.prevMonth?.value + ' unit'"
+      />
     </div>
   </div>
   }
@@ -179,7 +211,11 @@
 <div class="global-loading-overlay" *ngIf="loading()">
   <div class="loader-box">
     <div class="spinner-with-logo mb-3" aria-label="Loading">
-      <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+      <div
+        class="spinner-border text-primary"
+        role="status"
+        aria-hidden="true"
+      ></div>
       <img src="/favicon.ico" alt="Loading" class="spinner-logo" />
     </div>
     <div class="loading-text">{{ loadingMessage() }}</div>

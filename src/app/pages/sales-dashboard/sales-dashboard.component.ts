@@ -83,7 +83,7 @@ export class SalesDashboardComponent implements OnInit {
       this.fetchAndUpdate(salesFilter);
     }
   }
-
+  
   // ===== Event: user klik "Cari" di filter =====
   onSearch(filter: AppFilter): void {
     const ui: AppFilter = { ...filter, category: 'sales' };

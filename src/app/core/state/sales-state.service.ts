@@ -29,6 +29,18 @@ export interface UiKpis {
     prevYear?: UiKpiPoint;
     prevDate?: UiKpiPoint;
   };
+  totalProspek?: {
+    selected?: UiKpiPoint;
+    prevMonth?: UiKpiPoint;
+    prevYear?: UiKpiPoint;
+    prevDate?: UiKpiPoint;
+  }
+  totalHotProspek?: {
+    selected?: UiKpiPoint;
+    prevMonth?: UiKpiPoint;
+    prevYear?: UiKpiPoint;
+    prevDate?: UiKpiPoint;
+  }
   topBranch?: {
     selected?: UiKpiBranchPoint;
     prevMonth?: UiKpiBranchPoint;
@@ -229,7 +241,7 @@ export class SalesStateService {
   /* =============== KPI COMPARISON HELPERS =============== */
 
   getKpiComparison(
-    metricType: 'totalUnitSales' | 'totalSPK' | 'totalDO',
+    metricType: 'totalUnitSales' | 'totalSPK' | 'totalDO' | 'totalProspek' | 'totalHotProspek',
     comparisonPeriod: ComparisonPeriod
   ): KpiComparison | null {
     const kpis = this.getKpis();
@@ -305,6 +317,14 @@ export class SalesStateService {
     const c = this.getKpiComparison('totalDO', 'prevMonth');
     return c ? c.changePercent : null;
   }
+  getTotalProspekGrowth(): number | null {
+    const c = this.getKpiComparison('totalProspek', 'prevMonth');
+    return c ? c.changePercent : null;
+  }
+  getTotalHotProspekGrowth(): number | null {
+    const c = this.getKpiComparison('totalHotProspek', 'prevMonth');
+    return c ? c.changePercent : null;
+  }
 
   /* =============== EXECUTIVE SUMMARY-LIKE SNAPSHOT =============== */
 
@@ -313,6 +333,8 @@ export class SalesStateService {
         totalUnitSales: number;
         totalSPK: number;
         totalDO: number;
+        totalProspek: number;
+        totalHotProspek: number;
         topModel: string;
         topBranch: string;
         period: string;
@@ -328,6 +350,8 @@ export class SalesStateService {
       totalUnitSales: Number(kpis.totalUnitSales.selected.value ?? 0),
       totalSPK: Number(kpis.totalSPK?.selected?.value ?? 0),
       totalDO: Number(kpis.totalDO?.selected?.value ?? 0),
+      totalProspek: Number(kpis.totalProspek?.selected?.value ?? 0),
+      totalHotProspek: Number(kpis.totalHotProspek?.selected?.value ?? 0),
       topModel: topModelName,
       topBranch: getCabangName(String(topBranchCode)),
       period: String(kpis.totalUnitSales.selected.period ?? ''),

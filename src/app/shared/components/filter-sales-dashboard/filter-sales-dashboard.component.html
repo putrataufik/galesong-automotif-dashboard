@@ -29,146 +29,170 @@
   </div>
 </div>
 }
+<!-- HEADER COMPACT (tetap) -->
+<header class="bg-white px-2 px-md-3 py-2" role="banner" aria-label="Header Dashboard">
+  <div class="d-flex align-items-center justify-content-between gap-2">
+    <h6 class="mb-0 fw-bold text-dark d-flex align-items-center">
+      <i class="bi bi-speedometer2 me-2"></i>
+      <span>Sales Dashboard</span>
+    </h6>
 
-<section
-  class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3"
-  role="search"
-  aria-label="Filter Dashboard"
->
-  <!-- SATU BARIS: Semua filter dalam 1 baris -->
-  <div class="d-flex flex-wrap gap-2 align-items-end">
-    <!-- Perusahaan -->
-    <div class="flex-fill" style="min-width: 160px;">
-      <label for="company" class="form-label mb-1 small">
-        Perusahaan<span class="text-danger">*</span>
-      </label>
-      <select
-        id="company"
-        class="form-select form-select-sm"
-        [(ngModel)]="company"
-        (change)="onCompanyChange()"
-      >
-        <option value="">Pilih</option>
-        @for (c of companies; track c.value) {
-        <option [value]="c.value">{{ c.name }}</option>
-        }
-      </select>
-    </div>
-
-    <!-- Cabang -->
-    <div class="flex-fill" style="min-width: 140px;">
-      <label for="branch" class="form-label mb-1 small">Cabang</label>
-      <select
-        id="branch"
-        class="form-select form-select-sm"
-        [(ngModel)]="branch"
-        (change)="onFilterChange()"
-      >
-        @for (b of branches; track b.value) {
-        <option [value]="b.value">{{ b.name }}</option>
-        }
-      </select>
-    </div>
-
-    <!-- Tahun (tampil jika useCustomDate = false) -->
-    @if (!useCustomDate) {
-    <div class="flex-fill" style="min-width: 120px;">
-      <label for="year" class="form-label mb-1 small">
-        Tahun<span class="text-danger">*</span>
-      </label>
-      <select
-        id="year"
-        class="form-select form-select-sm"
-        [(ngModel)]="year"
-        (change)="onYearChange()"
-      >
-        @for (p of years; track p.value) {
-        <option [value]="p.value">{{ p.name }}</option>
-        }
-      </select>
-    </div>
-    }
-
-    <!-- Bulan (tampil jika useCustomDate = false) -->
-    @if (!useCustomDate) {
-    <div class="flex-fill" style="min-width: 120px;">
-      <label for="month" class="form-label mb-1 small">Bulan</label>
-      <select
-        id="month"
-        class="form-select form-select-sm"
-        [(ngModel)]="month"
-        (change)="onFilterChange()"
-      >
-        @for (m of months; track m.value) {
-        <option [value]="m.value">{{ m.name }}</option>
-        }
-      </select>
-    </div>
-    }
-
-    <!-- Date Picker (tampil jika useCustomDate = true) -->
-    @if (useCustomDate) {
-    <div class="flex-fill" style="min-width: 150px;">
-      <label for="selectedDate" class="form-label mb-1 small">
-        <i class="bi bi-calendar3 me-1"></i>
-        Tanggal<span class="text-danger">*</span>
-      </label>
-      <input
-        type="date"
-        id="selectedDate"
-        class="form-control form-control-sm"
-        [(ngModel)]="selectedDate"
-        (change)="onDateChange()"
-        max="2099-12-31"
-        min="2022-01-01"
-      />
-    </div>
-    }
-
-    <!-- Toggle Pilih Tanggal -->
-    <div style="min-width: 80px;">
-      <label class="form-label small text-muted mb-1 d-block">Pilih Tanggal</label>
-      <div class="form-check form-switch d-flex align-items-center">
-        <input
-          class="form-check-input form-check-input-sm me-2"
-          type="checkbox"
-          id="customDateSwitch"
-          [(ngModel)]="useCustomDate"
-          (change)="onCustomDateToggle()"
-        />
-        <label class="form-check-label small mb-0" for="customDateSwitch">
-          {{ useCustomDate ? "ON" : "OFF" }}
-        </label>
-      </div>
-    </div>
-
-    <!-- Toggle Komparasi -->
-    <div style="min-width: 80px;">
-      <label class="form-label small text-muted mb-1 d-block">Komparasi</label>
-      <div class="form-check form-switch d-flex align-items-center">
-        <input
-          class="form-check-input form-check-input-sm me-2"
-          type="checkbox"
-          id="compareSwitch"
-          [(ngModel)]="compare"
-          (change)="onFilterChange()"
-        />
-        <label class="form-check-label small mb-0" for="compareSwitch">
-          {{ compare ? "ON" : "OFF" }}
-        </label>
-      </div>
-    </div>
-
-    <!-- Tombol Cari -->
-    <div style="min-width: 100px;">
-      <button
-        type="button"
-        class="btn btn-primary btn-sm w-100"
-        (click)="onSearchClick()"
-        [disabled]="loading || !company || (!year && !useCustomDate) || (useCustomDate && !selectedDate)"
-      >
-        <i class="bi bi-search me-1"></i> Cari
-      </button>
+    <div class="text-end lh-sm">
+      <div class="fw-medium small text-dark">Putra Taufik</div>
+      <div class="text-muted small">Direktur</div>
     </div>
   </div>
-</section>
+</header>
+
+<div class="filters-wrap">
+  <section
+    class="filter-card compact bg-white p-2 p-md-3"
+    role="search"
+    aria-label="Filter Dashboard"
+  >
+    <!-- ======= ISI FILTER KAMU (TIDAK DIUBAH) ======= -->
+    <div class="row g-2 g-md-3 align-items-end">
+      <!-- Perusahaan -->
+      <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+        <label for="company" class="form-label mb-1 small">
+          Perusahaan<span class="text-danger">*</span>
+        </label>
+        <select
+          id="company"
+          class="form-select form-select-sm"
+          [(ngModel)]="company"
+          (change)="onCompanyChange()"
+        >
+          <option value="">Pilih</option>
+          @for (c of companies; track c.value) {
+            <option [value]="c.value">{{ c.name }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Cabang -->
+      <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+        <label for="branch" class="form-label mb-1 small">Cabang</label>
+        <select
+          id="branch"
+          class="form-select form-select-sm"
+          [(ngModel)]="branch"
+          (change)="onFilterChange()"
+        >
+          @for (b of branches; track b.value) {
+            <option [value]="b.value">{{ b.name }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Tahun -->
+      @if (!useCustomDate) {
+      <div class="col-6 col-sm-4 col-md-2 col-lg-2">
+        <label for="year" class="form-label mb-1 small">
+          Tahun<span class="text-danger">*</span>
+        </label>
+        <select
+          id="year"
+          class="form-select form-select-sm"
+          [(ngModel)]="year"
+          (change)="onYearChange()"
+        >
+          @for (p of years; track p.value) {
+            <option [value]="p.value">{{ p.name }}</option>
+          }
+        </select>
+      </div>
+      }
+
+      <!-- Bulan -->
+      @if (!useCustomDate) {
+      <div class="col-6 col-sm-4 col-md-2 col-lg-2">
+        <label for="month" class="form-label mb-1 small">Bulan</label>
+        <select
+          id="month"
+          class="form-select form-select-sm"
+          [(ngModel)]="month"
+          (change)="onFilterChange()"
+        >
+          @for (m of months; track m.value) {
+            <option [value]="m.value">{{ m.name }}</option>
+          }
+        </select>
+      </div>
+      }
+
+      <!-- Date Picker -->
+      @if (useCustomDate) {
+      <div class="col-12 col-sm-6 col-md-4 col-lg-4">
+        <label for="selectedDate" class="form-label mb-1 small d-block">
+          <i class="bi bi-calendar3 me-1 small align-middle"></i>
+          Tanggal<span class="text-danger">*</span>
+        </label>
+        <input
+          type="date"
+          id="selectedDate"
+          class="form-control form-control-sm"
+          [(ngModel)]="selectedDate"
+          (change)="onDateChange()"
+          max="2099-12-31"
+          min="2022-01-01"
+        />
+      </div>
+      }
+
+      <!-- Toggle Pilih Tanggal -->
+      <div class="col-3 col-sm-4 col-md-3 col-lg-1">
+        <label class="form-label mb-1 small d-block">Pilih Tanggal</label>
+        <div class="form-check form-switch d-flex align-items-center justify-content-start">
+          <input
+            class="form-check-input form-check-input-sm me-2"
+            type="checkbox"
+            id="customDateSwitch"
+            [(ngModel)]="useCustomDate"
+            (change)="onCustomDateToggle()"
+          />
+          <label class="form-check-label small mb-0" for="customDateSwitch">
+            {{ useCustomDate ? "ON" : "OFF" }}
+          </label>
+        </div>
+      </div>
+
+      <!-- Toggle Komparasi -->
+      <div class="col-3 col-sm-4 col-md-3 col-lg-1">
+        <label class="form-label mb-1 small d-block">Komparasi</label>
+        <div class="form-check form-switch d-flex align-items-center justify-content-start">
+          <input
+            class="form-check-input form-check-input-sm me-2"
+            type="checkbox"
+            id="compareSwitch"
+            [(ngModel)]="compare"
+            (change)="onFilterChange()"
+          />
+          <label class="form-check-label small mb-0" for="compareSwitch">
+            {{ compare ? "ON" : "OFF" }}
+          </label>
+        </div>
+      </div>
+
+      <!-- Tombol Cari -->
+      <div class="col-12 col-sm-6 col-md-3 col-lg-2 d-grid">
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          (click)="onSearchClick()"
+          [disabled]="loading || !company || (!year && !useCustomDate) || (useCustomDate && !selectedDate)"
+        >
+          <i class="bi bi-search me-1"></i> Cari
+        </button>
+      </div>
+    </div>
+
+    <!-- Tombol panah ↑ di bawah section (muncul saat terbuka)
+    <div class="toggle-up mt-2 d-flex justify-content-center">
+      <label for="filterToggle" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
+        <i class="bi bi-chevron-up"></i>
+        <span>Sembunyikan Filter</span>
+      </label>
+    </div> -->
+  </section>
+</div>

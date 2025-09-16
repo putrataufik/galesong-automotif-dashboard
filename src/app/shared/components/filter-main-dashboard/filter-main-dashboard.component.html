@@ -6,9 +6,7 @@
   aria-live="polite"
 >
   <div
-    class="alert alert-{{
-      alertType
-    }} alert-dismissible fade show shadow-sm py-2 px-3 small"
+    class="alert alert-{{ alertType }} alert-dismissible fade show shadow-sm py-2 px-3 small"
   >
     <i
       class="bi {{
@@ -28,12 +26,26 @@
   </div>
 </div>
 }
+
+<header class="bg-white px-2 px-md-3 py-2" role="banner" aria-label="Header Dashboard">
+  <div class="d-flex align-items-center justify-content-between gap-2">
+    <h6 class="mb-0 fw-bold text-dark d-flex align-items-center">
+      <i class="bi bi-speedometer2 me-2"></i>
+      <span>Sales Dashboard</span>
+    </h6>
+
+    <div class="text-end lh-sm">
+      <div class="fw-medium small text-dark">Putra Taufik</div>
+      <div class="text-muted small">Direktur</div>
+    </div>
+  </div>
+</header>
+
 <section
   class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3"
   role="search"
   aria-label="Filter Dashboard"
 >
-  
   <!-- BARIS: 5 pilihan + 1 toggle + 1 tombol, semuanya center -->
   <div class="row g-1 g-md-2 align-items-end justify-content-center">
     <!-- Perusahaan -->
@@ -49,10 +61,11 @@
       >
         <option value="">Pilih</option>
         @for (c of companies; track c.value) {
-        <option [value]="c.value">{{ c.name }}</option>
+          <option [value]="c.value">{{ c.name }}</option>
         }
       </select>
     </div>
+
     <!-- Cabang -->
     <div class="col-6 col-md-2">
       <label for="branch" class="form-label mb-1 small">Cabang</label>
@@ -63,10 +76,11 @@
         (change)="onFilterChange()"
       >
         @for (b of branches; track b.value) {
-        <option [value]="b.value">{{ b.name }}</option>
+          <option [value]="b.value">{{ b.name }}</option>
         }
       </select>
     </div>
+
     <!-- Kategori -->
     <div class="col-6 col-md-2">
       <label for="category" class="form-label mb-1 small">Kategori</label>
@@ -77,10 +91,11 @@
         (change)="onFilterChange()"
       >
         @for (k of categories; track k.value) {
-        <option [value]="k.value">{{ k.name }}</option>
+          <option [value]="k.value">{{ k.name }}</option>
         }
       </select>
     </div>
+
     <!-- Tahun -->
     <div class="col-6 col-md-2">
       <label for="year" class="form-label mb-1 small">
@@ -93,10 +108,11 @@
         (change)="onYearChange()"
       >
         @for (p of years; track p.value) {
-        <option [value]="p.value">{{ p.name }}</option>
+          <option [value]="p.value">{{ p.name }}</option>
         }
       </select>
     </div>
+
     <!-- Bulan -->
     <div class="col-6 col-md-2">
       <label for="month" class="form-label mb-1 small">Bulan</label>
@@ -107,12 +123,13 @@
         (change)="onFilterChange()"
       >
         @for (m of months; track m.value) {
-        <option [value]="m.value">{{ m.name }}</option>
+          <option [value]="m.value">{{ m.name }}</option>
         }
       </select>
     </div>
+
     <!-- Toggle Komparasi -->
-    <div class="col-6 col-md-1">
+    <div class="col-3 col-sm-4 col-md-3 col-lg-1">
       <label class="form-label mb-1 small d-block">Komparasi</label>
       <div class="form-check form-switch d-flex justify-content-start">
         <input
@@ -123,10 +140,11 @@
           (change)="onFilterChange()"
         />
         <label class="form-check-label small mb-0" for="compareSwitch">
-            {{ compare ? 'ON' : 'OFF' }}
-          </label>
+          {{ compare ? 'ON' : 'OFF' }}
+        </label>
       </div>
     </div>
+
     <!-- Tombol Cari -->
     <div class="col-6 col-md-1 d-flex align-items-end">
       <button
