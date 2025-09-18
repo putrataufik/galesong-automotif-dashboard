@@ -36,8 +36,8 @@ type SalesKpiSnapshot<TKpis = UiKpis> = {
   styleUrl: './sales-dashboard.component.css',
 })
 export class SalesDashboardComponent implements OnInit {
-  private readonly state = inject(SalesStateService);
   private readonly api = inject(SalesApiService);
+  private readonly state = inject(SalesStateService);
 
   // ===== Global Loading & Error =====
   loading = signal(false);
@@ -64,6 +64,7 @@ export class SalesDashboardComponent implements OnInit {
 
   // ===== KPI untuk UI (UI-ready) =====
   salesKpi = signal<UiKpis | null>(this.state.getKpis() as UiKpis | null);
+  
 
   // ===== Lifecycle =====
   ngOnInit(): void {

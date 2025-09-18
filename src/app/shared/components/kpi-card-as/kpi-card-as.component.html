@@ -9,7 +9,7 @@
   <div class="content-section">
     <!-- Realisasi / Target -->
     <div class="detail-row d-flex flex-column align-items-center">
-      <span class="">Realisasi / Target</span>
+      <span>Realisasi / Target</span>
       <div class="w-100">
         <div class="progress rounded-pill position-relative">
           <div
@@ -42,7 +42,9 @@
       <!-- Detail -->
       <div class="col">
         <div class="details">
-          <div class="detail-row d-flex justify-content-between">
+          <div
+            class="detail-row d-flex justify-content-between align-items-center"
+          >
             <span>Deviasi Target</span>
             <span class="fw-bold" [ngClass]="getValueColor(grandTotal)">
               {{ formatValue(grandTotal) }}
@@ -52,6 +54,7 @@
             <span>Rata - Rata</span>
             <span class="fw-bold">{{ formatRataRataDisplay(rataRata) }}</span>
           </div>
+
           @if (showHarapanTarget) {
           <div class="detail-row d-flex justify-content-between">
             <span>Harapan Target</span>
@@ -64,111 +67,123 @@
       </div>
     </div>
 
-    @if(compare){
-    <hr class="period-sep my-2" />
+    <!-- Compare blocks -->
+    @if (compare) {
+    <hr class="period-sep" />
 
-    <!-- ====== PERIOD: 2025 July ====== -->
-    <div class="period-label mt-1">
-      <span class="badge badge-soft-primary">2025 July</span>
+    <!-- Prev Month -->
+    @if (prevMPeriod) {
+    <div class="period-label mb-2">
+      <span class="badge badge-soft-primary">{{ prevMPeriod }}</span>
     </div>
 
     <div class="row g-2 align-items-start">
-      <!-- Persentase -->
-      <div class="col-auto">
-        <div
-          class="percentage-display d-flex align-items-center justify-content-center"
-        >
-          17%
-        </div>
-      </div>
-
-      <!-- Detail -->
-      <div class="col">
-        <div class="details">
-          <div class="detail-row d-flex justify-content-between">
-            <span>Deviasi Target</span>
-            <span class="fw-bold" [ngClass]="getValueColor(-150)">
-              {{ formatValue(-150) }}
-            </span>
-          </div>
-          <div class="detail-row d-flex justify-content-between">
-            <span>Rata - Rata</span>
-            <span class="fw-bold">{{ formatRataRataDisplay(150) }}</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Progress -->
       <div class="col-12 mt-1">
         <div class="progress rounded-pill position-relative">
           <div
             class="progress-bar"
-            [ngStyle]="getProgressBarStyle()"
+            [ngStyle]="getProgressBarStyleForPercent(prevMPercentage)"
             role="progressbar"
-            [attr.aria-valuenow]="clampedPercent"
+            [attr.aria-valuenow]="prevMPercentage"
             aria-valuemin="0"
             aria-valuemax="100"
-            [style.width.%]="clampedPercent"
+            [style.width.%]="prevMPercentage"
           ></div>
           <div class="progress-text position-absolute w-100 text-center">
-            {{ formatValue(600000000) }} / {{ formatValue(550000000) }}
+            {{ formatValue(prevMRealisasi) }} / {{ formatValue(prevMTarget) }}
+          </div>
+        </div>
+      </div>
+      <div class="row g-2 align-items-center justify-content-center">
+        <!-- Persentase -->
+        <div class="col-auto">
+          <div
+            class="percentage-display d-flex align-items-center justify-content-center"
+          >
+            {{ formatPercentage(prevMPercentage) }}
+          </div>
+        </div>
+
+        <!-- Detail -->
+        <div class="col">
+          <div class="details">
+            <div
+              class="detail-row d-flex justify-content-between align-items-center"
+            >
+              <span>Deviasi Target</span>
+              <span class="fw-bold" [ngClass]="getValueColor(prevMDeviation)">
+                {{ formatValue(prevMDeviation) }}
+              </span>
+            </div>
+            <div class="detail-row d-flex justify-content-between">
+              <span>Rata - Rata</span>
+              <span class="fw-bold">{{
+                formatRataRataDisplay(prevMRataRata)
+              }}</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <hr class="period-sep my-2" />
+    <hr class="period-sep" />
+    }
 
-    <!-- ====== PERIOD: 2024 Aug ====== -->
+    <!-- Prev Year -->
+    @if (prevYPeriod) {
     <div class="period-label">
-      <span class="badge badge-soft-warning">2024 Aug</span>
+      <span class="badge badge-soft-warning mb-2">{{ prevYPeriod }}</span>
     </div>
 
     <div class="row g-2 align-items-start">
-      <!-- Persentase -->
-      <div class="col-auto">
-        <div
-          class="percentage-display d-flex align-items-center justify-content-center"
-        >
-          {{ formatPercentage(17) }}
-        </div>
-      </div>
-
-      <!-- Detail -->
-      <div class="col">
-        <div class="details">
-          <div class="detail-row d-flex justify-content-between">
-            <span>Deviasi Target</span>
-            <span class="fw-bold" [ngClass]="getValueColor(-200000)">
-              {{ formatValue(-40000000) }}
-            </span>
-          </div>
-          <div class="detail-row d-flex justify-content-between">
-            <span>Rata - Rata</span>
-            <span class="fw-bold">{{ formatRataRataDisplay(150) }}</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Progress -->
       <div class="col-12 mt-1">
         <div class="progress rounded-pill position-relative">
           <div
             class="progress-bar"
-            [ngStyle]="getProgressBarStyle()"
+            [ngStyle]="getProgressBarStyleForPercent(prevYPercentage)"
             role="progressbar"
-            [attr.aria-valuenow]="clampedPercent"
+            [attr.aria-valuenow]="prevYPercentage"
             aria-valuemin="0"
             aria-valuemax="100"
-            [style.width.%]="clampedPercent"
+            [style.width.%]="prevYPercentage"
           ></div>
           <div class="progress-text position-absolute w-100 text-center">
-            {{ formatValue(1000000) }} / {{ formatValue(20000000) }}
+            {{ formatValue(prevYRealisasi) }} / {{ formatValue(prevYTarget) }}
+          </div>
+        </div>
+      </div>
+      <div class="row g-2 align-items-center justify-content-center">
+        <!-- Persentase -->
+        <div class="col-auto">
+          <div
+            class="percentage-display d-flex align-items-center justify-content-center"
+          >
+            {{ formatPercentage(prevYPercentage) }}
+          </div>
+        </div>
+
+        <!-- Detail -->
+        <div class="col">
+          <div class="details">
+            <div class="detail-row d-flex justify-content-between">
+              <span>Deviasi Target</span>
+              <span class="fw-bold" [ngClass]="getValueColor(prevYDeviation)">
+                {{ formatValue(prevYDeviation) }}
+              </span>
+            </div>
+            <div class="detail-row d-flex justify-content-between">
+              <span>Rata - Rata</span>
+              <span class="fw-bold">{{
+                formatRataRataDisplay(prevYRataRata)
+              }}</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    } @if (loading) {
+    } } @if (loading) {
     <div
       class="loading-overlay d-flex align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100"
     >

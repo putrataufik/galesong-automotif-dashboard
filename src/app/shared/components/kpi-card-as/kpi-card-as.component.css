@@ -30,21 +30,19 @@
 }
 
 /* Percentage Display */
+/* Versi dinamis, tanpa tinggi tetap */
 .percentage-display {
   font-size: 0.9rem;
   font-weight: 800;
   color: #242424;
-  margin-bottom: 0; /* Hilangkan margin-bottom */
   line-height: 1;
-  animation: countUp 0.6s ease-out;
-
-  /* Tambahan untuk center vertikal */
-  min-height: 60px; /* Sesuaikan dengan tinggi area detail */
-  display: flex;
+  display: inline-flex;         /* biar sekecil konten */
   align-items: center;
-  justify-content: center;
+  justify-content: center;             /* beri sedikit bantalan saja */
+  min-height: 0;                /* pastikan tidak dipaksa tinggi */
   margin-right: 5px;
 }
+
 
 /* Progress Bar */
 .progress {
@@ -82,9 +80,7 @@
 .detail-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 4px 0;
-  border-bottom: 1px solid #e5e5e5;
   font-size: 0.7rem;
 }
 
@@ -171,5 +167,6 @@
   border: 0;
   height: 1px;
   background: linear-gradient(to right, transparent, #000000, transparent);
-  margin: 0.5rem 0;
+  margin: 0.2rem 0;
 }
+

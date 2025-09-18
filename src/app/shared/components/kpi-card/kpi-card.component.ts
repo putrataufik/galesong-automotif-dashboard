@@ -42,7 +42,6 @@ export class KpiCardComponent implements OnChanges {
   @Input() loading = false;
 
   @Input() period?: string;
-  @Input() series: Record<string, number> | null = null;
 
   compare = signal(false);
   @Input() set compareMode(v: boolean | null | undefined) {
@@ -80,9 +79,9 @@ export class KpiCardComponent implements OnChanges {
     let multiplier = 1;
     const lower = s.toLowerCase();
     if (/(rb|ribu|k)\b/.test(lower)) multiplier = 1e3;
-    else if (/(jt|juta|m)\b/.test(lower)) multiplier = 1e6;
-    else if (/(b|miliar|billion)\b/.test(lower)) multiplier = 1e9;
-    else if (/(t|triliun|trillion)\b/.test(lower)) multiplier = 1e12;
+    else if (/(Jt|juta|m)\b/.test(lower)) multiplier = 1e6;
+    else if (/(M|miliar|billion)\b/.test(lower)) multiplier = 1e9;
+    else if (/(T|triliun|trillion)\b/.test(lower)) multiplier = 1e12;
 
     s = s.replace(/[^0-9,.\-+]/g, '').replace(/\s+/g, '');
 

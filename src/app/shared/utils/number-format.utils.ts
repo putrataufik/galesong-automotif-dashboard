@@ -40,13 +40,13 @@ export function formatCompactCurrency(
   let unit = '';
   if (abs >= 1e9) {
     scaled = abs / 1e9;
-    unit = 'B';
+    unit = 'M';
   } else if (abs >= 1e6) {
     scaled = abs / 1e6;
-    unit = 'M';
+    unit = 'Jt';
   } else if (abs >= 1e3) {
     scaled = abs / 1e3;
-    unit = 'K';
+    unit = 'Rb';
   }
 
   // Format dengan maksimal 2 digit desimal

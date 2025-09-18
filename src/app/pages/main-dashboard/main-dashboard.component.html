@@ -108,9 +108,13 @@
         [compareMode]="compare"
         unitLabel="unit"
         [prevYearValue]="data.totalHotProspect?.prevYear?.value ?? null"
-        [prevYearSubtitle]="data.totalHotProspect?.prevYear?.period ?? undefined"
+        [prevYearSubtitle]="
+          data.totalHotProspect?.prevYear?.period ?? undefined
+        "
         [prevMonthValue]="data.totalHotProspect?.prevMonth?.value ?? null"
-        [prevMonthSubtitle]="data.totalHotProspect?.prevMonth?.period ?? undefined"
+        [prevMonthSubtitle]="
+          data.totalHotProspect?.prevMonth?.period ?? undefined
+        "
       />
     </div>
     <!-- Total Unit Sales -->
@@ -166,6 +170,156 @@
         [prevMonthSubtitle]="data.topBranch?.prevMonth?.period ?? undefined"
         [prevMonthName]="data.topBranch?.prevMonth?.value + ' unit'"
       />
+    </div>
+  </div>
+  <div class="row g-2 mb-2">
+    <div class="col-12">
+      <div
+        class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
+      >
+        <div class="d-flex align-items-center">
+          <i class="bi bi-speedometer2 text-info me-2 fs-5"></i>
+          <h6 class="mb-0 fw-bold text-dark">Sales Performance</h6>
+        </div>
+      </div>
+    </div>
+    <!-- Total SPK -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Jumlah Mekanik'"
+        [value]="selectedMetrics()?.mekanik ?? 0"
+        [unitLabel]="'orang'"
+        [subtitle]="'Total mekanik aktif'"
+        [compareMode]="currentFilter.compare || false"
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.mekanik ??
+          prevDateBlock()?.metrics?.mekanik ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="prevMonthBlock()?.metrics?.mekanik ?? 0"
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
+      />
+    </div>
+    <div class="col-6 col-sm-4 col-md-6 col-lg-2">
+      <app-kpi-card
+        [title]="'Jumlah Hari Kerja'"
+        [value]="selectedMetrics()?.hari_kerja ?? 0"
+        unit="hari"
+        [subtitle]="compare ? '' : 'Total hari operasional'"
+        icon="bi bi-calendar-check-fill"
+        iconColor="#F59E0B"
+        iconBgColor="#FEF3C7"
+        [compareMode]="currentFilter.compare"
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.hari_kerja ??
+          prevDateBlock()?.metrics?.hari_kerja ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="prevMonthBlock()?.metrics?.hari_kerja ?? 0"
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
+      />
+    </div>
+
+    <div class="col-6 col-sm-4 col-md-6 col-lg-2">
+      <app-kpi-card
+        [title]="'Total Biaya Usaha'"
+        [value]="selectedMetrics()?.biaya_usaha ?? 0"
+        [subtitle]="compare ? '' : 'Break Even Point'"
+        dataType="currency"
+        icon="bi bi-cash-stack"
+        iconColor="#228000"
+        iconBgColor="#DCFFD0"
+        [compareMode]="
+          currentFilter.useCustomDate ? false : currentFilter.compare
+        "
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.biaya_usaha ??
+          prevDateBlock()?.metrics?.biaya_usaha ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="prevMonthBlock()?.metrics?.biaya_usaha ?? 0"
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
+      />
+    </div>
+
+    <div class="col-6 col-sm-4 col-md-6 col-lg-2">
+      <app-kpi-card
+        [title]="'Total Revenue Ater Sales'"
+        [value]="selectedMetrics()?.total_revenue_realisasi ?? 0"
+        [subtitle]="compare ? '' : 'Total Pendapatan After Sales'"
+        icon="bi bi-cash"
+        iconColor="#2563EB"
+        dataType="currency"
+        iconBgColor="#DBEAFE"
+        [compareMode]="currentFilter.compare"
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.total_revenue_realisasi ??
+          prevDateBlock()?.metrics?.total_revenue_realisasi ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="
+          prevMonthBlock()?.metrics?.total_revenue_realisasi ?? 0
+        "
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
+      />
+    </div>
+    <!-- Total Profit -->
+    <div class="col-6 col-sm-4 col-md-6 col-lg-2">
+      <app-kpi-card
+        [title]="'Total Profit Target'"
+        [value]="selectedMetrics()?.profit ?? 0"
+        [subtitle]="compare ? '' : 'Target'"
+        icon="bi bi-bullseye"
+        dataType="currency"
+        iconColor="#228000"
+        iconBgColor="#DCFFD0"
+        [compareMode]="currentFilter.compare"
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.profit ??
+          prevDateBlock()?.metrics?.profit ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="prevMonthBlock()?.metrics?.profit ?? 0"
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
+      />`
+    </div>
+    <!-- Total Profit Realisasi-->
+    <div class="col-6 col-sm-4 col-md-6 col-lg-2">
+      <app-kpi-card
+        [title]="'Total Profit Realisasi'"
+        [value]="selectedMetrics()?.profit_realisasi ?? 0"
+        [subtitle]="compare ? '' : 'Target'"
+        icon="bi bi-bullseye"
+        dataType="currency"
+        iconColor="#228000"
+        iconBgColor="#DCFFD0"
+        [compareMode]="currentFilter.compare"
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.profit_realisasi ??
+          prevDateBlock()?.metrics?.profit_realisasi ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="prevMonthBlock()?.metrics?.profit_realisasi ?? 0"
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
+      />`
     </div>
   </div>
   } @else {

@@ -11,77 +11,27 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-// === Child components yang dipakai di template (tetap) ===
+// Child components
 import {
   FilterAftersalesDashboardComponent,
   AfterSalesFilter as UiFilter, // filter dari komponen filter (UI)
 } from '../../shared/components/filter-aftersales-dashboard/filter-aftersales-dashboard.component';
 import { KpiCardAsComponent } from '../../shared/components/kpi-card-as/kpi-card-as.component';
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
-import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { KpiLegendButtonComponent } from '../../shared/components/kpi-legend-button/kpi-legend-button.component';
-import { PieChartCardComponent } from '../../shared/components/pie-chart-card/pie-chart-card.component';
 
-// === Service & State After Sales (yang baru) ===
+// API (RAW)
 import {
-  AfterSalesStateService,
-  UiAfterSalesKpis,
-  UiAfterSalesViewResponse,
-  UiProporsiSlice,
-  AfterSalesFilter as ApiFilter, // filter untuk API/state
-} from '../../core/state/after-sales-state.service';
-import { AfterSalesApiService } from '../../core/services/after-sales-api.service';
+  AfterSalesApiService,
+  RawAfterSalesResponse,
+  RawAfterSalesMetrics,
+  RawProporsiItem,
+} from '../../core/services/after-sales-api.service';
 
-// util format
+// util format (tetap dipakai)
 import { formatCompactCurrency as fmtCurrency } from '../../shared/utils/number-format.utils';
 
-// Tipe kecil untuk binding kartu
-type KpiAmount = { realisasi: number; target: number };
-type KpiData = {
-  afterSales: KpiAmount;
-  serviceCabang: KpiAmount;     // alias jasaService
-  jasaService: KpiAmount;
-  unitEntry: KpiAmount;
-  sparepartTunai: KpiAmount;    // partTunai
-  sparepartBengkel: KpiAmount;  // partBengkel
-  oli: KpiAmount;
-
-  // SRO (Jasa Service)
-  jasaServiceExpress: KpiAmount;
-  jasaServiceRutin: KpiAmount;
-  jasaServiceSedang: KpiAmount;
-  jasaServiceBerat: KpiAmount;
-  jasaServiceOli: KpiAmount;
-  jasaServiceOverhoul: KpiAmount;
-  jasaServiceKelistrikan: KpiAmount;
-  jasaServiceKupon: KpiAmount;
-  jasaServicePdc: KpiAmount;
-  jasaServiceCvt: KpiAmount;
-  jasaServiceBodyRepair: KpiAmount;
-  jasaServiceOverSize: KpiAmount;
-
-  // Sparepart Bengkel
-  partBengkelExpress: KpiAmount;
-  partBengkelRutin: KpiAmount;
-  partBengkelSedang: KpiAmount;
-  partBengkelBerat: KpiAmount;
-  partBengkelOli: KpiAmount;
-  partBengkelOverhoul: KpiAmount;
-
-  // Unit Entry
-  unitEntryOliRealisasi: KpiAmount;
-  unitEntryExpressRealisasi: KpiAmount;
-  unitEntryRutinRealisasi: KpiAmount;
-  unitEntrySedangRealisasi: KpiAmount;
-  unitEntryBeratRealisasi: KpiAmount;
-  unitEntryOverhoulRealisasi: KpiAmount;
-  unitEntryKelistrikanRealisasi: KpiAmount;
-  unitEntryOverSizeRealisasi: KpiAmount;
-  unitEntryBodyRepairRealisasi: KpiAmount;
-  unitEntryClaimRealisasi: KpiAmount;
-  unitEntryKuponRealisasi: KpiAmount;
-  unitEntryPdcRealisasi: KpiAmount;
-};
+type SisaHariOption = { value: number; name: string };
 
 @Component({
   selector: 'app-after-sales-dashboard',
@@ -92,53 +42,39 @@ type KpiData = {
     FilterAftersalesDashboardComponent,
     KpiCardAsComponent,
     KpiCardComponent,
-    LineChartCardComponent,
     KpiLegendButtonComponent,
-    PieChartCardComponent,
   ],
   templateUrl: './after-sales-dashboard.component.html',
   styleUrls: ['./after-sales-dashboard.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AfterSalesDashboardComponent implements OnInit {
-  // Services
+  // Service
   private readonly api = inject(AfterSalesApiService);
-  private readonly state = inject(AfterSalesStateService);
 
-  // ===== Signals yang dipakai langsung di HTML (jaga nama & pemanggilan () ) =====
+  // ===== Signals yang dipakai di HTML =====
   loading = signal(false);
   error = signal<string | null>(null);
   hasData = signal(false);
 
-  // filter di HTML: currentFilter()?.company / ?.cabang / ?.period / ?.month / ?.compare / ?.useCustomDate / ?.selectedDate
-  currentFilter = signal<UiFilter | null>({
+  // RAW payload dari API
+  private _raw = signal<RawAfterSalesResponse | null>(null);
+
+  // Filter UI (default)
+  currentFilter: UiFilter = {
     company: 'sinar-galesong-mobilindo',
-    cabang: 'all-branch',            // konsisten dengan service
+    cabang: 'all-branch',
     period: String(new Date().getFullYear()),
     month: String(new Date().getMonth() + 1).padStart(2, '0'),
     compare: true,
     useCustomDate: true,
     selectedDate: new Date().toISOString().slice(0, 10),
-  });
+  };
 
-  // Data siap render
-  private _kpis = signal<UiAfterSalesKpis | null>(null);
-  private _proporsi = signal<UiProporsiSlice[]>([]);
-  private _kpiData = signal<KpiData | null>(null);
+  // Ekspor formatter agar sama dengan template
+  formatCompactNumber = fmtCurrency;
 
-  // Chart signals yang dipanggil sebagai fungsi di template
-  totalRevenueChart = signal<{ labels: string[]; data: number[] } | null>(null);
-  afterSalesDistribution = signal<{ labels: string[]; data: number[] } | null>(null);
-
-  // Sisa Hari Kerja (opsional—placeholder agar UI jalan)
-  sisaHariKerja = 0;
-  sisaHariKerjaOptions = [
-    { value: 0, name: 'Off' },
-    { value: 5, name: '5 Hari' },
-    { value: 10, name: '10 Hari' },
-  ];
-
-  // Legend (tetap dari kode lama)
+  // Legend
   legendOpen = false;
   @HostListener('document:click') closeLegendOnOutsideClick() {
     if (this.legendOpen) this.legendOpen = false;
@@ -148,100 +84,101 @@ export class AfterSalesDashboardComponent implements OnInit {
     this.legendOpen = !this.legendOpen;
   }
 
-  // Ekspor formatter agar sama dengan template
-  formatCompactNumber = fmtCurrency;
+  // ========== Sisa Hari Kerja (fitur dari kode lama, di-port ke sini) ==========
+  /** Nilai terpilih di dropdown; null = disembunyikan */
+  sisaHariKerja: number | null = null;
+  /** Opsi dropdown (dibangun dinamis N..1) */
+  sisaHariKerjaOptions: SisaHariOption[] = [];
 
-  // ======= Computed dari HTML lamamu =======
+  onSisaHariKerjaChange(): void {
+    // cukup re-render; binding kartu menggunakan getSisaHariKerja()
+    // if needed: trigger signal set to force change detection on push
+    this.sisaHariKerja = Number(this.sisaHariKerja);
+  }
+  getSisaHariKerja(): number {
+    return this.sisaHariKerja ?? 0;
+  }
+
+  // ===== Computed kecil untuk visibilitas lain =====
   showJumlahMekanik = computed(() => {
-    const f = this.currentFilter();
+    const f = this.currentFilter;
     if (!f) return false;
-    // tampilkan bila custom-date (harian) ATAU bulan spesifik
     return !!f.useCustomDate || (!!f.month && f.month !== 'all-month');
   });
 
   showJumlahHariKerja = computed(() => {
-    const f = this.currentFilter();
+    const f = this.currentFilter;
     if (!f) return false;
-    // sembunyikan jika all-cabang / all-branch & all-month
     return !(f.cabang === 'all-branch' && (!f.month || f.month === 'all-month'));
   });
 
-  // HTML panggil sebagai fungsi:
-  kpiData() { return this._kpiData(); }
-  additionalKpiData() {
-    const k = this._kpis();
-    if (!k?.selected) return null;
-    const t = k.selected.totals;
-    return {
-      jumlahMekanik: t.mekanik,
-      jumlahHariKerja: t.hariKerja,
-      totalBiayaUsaha: t.biayaUsaha,
-      totalProfit: t.profit,
-      totalRevenueRealisasi: t.totalRevenue.realisasi,
-      totalProfitRealisasi: t.profit, // belum ada target profit → pakai sama
-    };
+  // ====== Getter RAW yang dipakai di template ======
+  /** Akses cepat ke block kpi_data (RAW) */
+  kpiDataRaw() {
+    return this._raw()?.data?.kpi_data ?? null;
+  }
+
+  /** Akses metrics terpilih (RAW selected metrics) */
+  selectedMetrics(): RawAfterSalesMetrics | null {
+    return this.kpiDataRaw()?.selected ?? null;
+  }
+
+  /** Akses comparisons (prevDate/prevMonth/prevYear) bila ada */
+  prevDateBlock() {
+    return this.kpiDataRaw()?.comparisons?.prevDate ?? null;
+  }
+  prevMonthBlock() {
+    return this.kpiDataRaw()?.comparisons?.prevMonth ?? null;
+  }
+  prevYearBlock() {
+    return this.kpiDataRaw()?.comparisons?.prevYear ?? null;
+  }
+
+  /** Proporsi (RAW) */
+  proporsiItems(): RawProporsiItem[] {
+    return this._raw()?.data?.proporsi_after_sales?.data?.items ?? [];
+  }
+
+  /** Total Unit Entry (untuk kartu yang butuh denominator) */
+  getTotalUnitEntry(): number {
+    return Number(this.selectedMetrics()?.unit_entry_realisasi ?? 0);
   }
 
   // ===== Lifecycle =====
   ngOnInit(): void {
-    // hydrate dari state (kalau ada)
-    const saved = this.state.getKpiSnapshot();
-    if (saved) {
-      this._kpis.set(saved.kpis);
-      this._proporsi.set(saved.proporsi);
-      this._kpiData.set(this.mapUiToKpiData(saved.kpis));
-      this.totalRevenueChart.set(this.buildRevenueChart(saved.kpis));
-      this.afterSalesDistribution.set(this.buildDistribution(saved.proporsi));
-      this.hasData.set(true);
-    } else {
-      // fetch default
-      const f = this.toApiFilter(this.currentFilter()!);
-      this.fetchAndUpdate(f);
-    }
+    // fetch default
+    this.fetchAndUpdate(this.toApiQuery(this.currentFilter));
   }
 
   /* ===================== Events ===================== */
   onSearch(filter: UiFilter): void {
-    this.currentFilter.set(filter);
-    const f = this.toApiFilter(filter);
-    this.fetchAndUpdate(f);
+    this.currentFilter = filter;
+    this.fetchAndUpdate(this.toApiQuery(filter));
   }
 
-  onSisaHariKerjaChange(): void {
-    // Tidak mempengaruhi data dari API saat ini; hanya propagate untuk kartu yang mungkin perlu.
-    if (this._kpiData()) this._kpiData.set({ ...this._kpiData()! });
-  }
-
-  getSisaHariKerja(): number {
-    return this.sisaHariKerja;
-  }
-
-  getTotalUnitEntry(): number {
-    const k = this._kpis();
-    return k?.selected?.totals?.unitEntry?.realisasi ?? 0;
-  }
-
-  /* ===================== Fetch ===================== */
-  private fetchAndUpdate(f: ApiFilter) {
+  /* ===================== Fetch (RAW) ===================== */
+  private fetchAndUpdate(params: {
+    companyId: string;
+    branchId: string;
+    useCustomDate: boolean;
+    compare: boolean;
+    selectedDate: string | null;
+    year: string | null;
+    month: string | null;
+  }) {
     this.loading.set(true);
     this.error.set(null);
 
-    this.state.saveFilter(f);
-
     const start = performance.now();
-    const MIN_SPINNER_MS = 1200;
+    const MIN_SPINNER_MS = 900;
 
-    this.api.getAfterSalesKpiView(f).subscribe({
-      next: (resp: UiAfterSalesViewResponse) => {
-        // persist + update UI
-        this.state.saveKpiData(resp);
-
-        this._kpis.set(resp.data.kpis);
-        this._proporsi.set(resp.data.proporsi);
-        this._kpiData.set(this.mapUiToKpiData(resp.data.kpis));
-        this.totalRevenueChart.set(this.buildRevenueChart(resp.data.kpis));
-        this.afterSalesDistribution.set(this.buildDistribution(resp.data.proporsi));
+    this.api.getAfterSalesView(params).subscribe({
+      next: (resp) => {
+        this._raw.set(resp);
         this.hasData.set(true);
+
+        // 🔽 bangun opsi sisa hari kerja sesuai periode & data terkini
+        this.updateSisaHariKerjaOptions(this.currentFilter, resp);
 
         const elapsed = performance.now() - start;
         const remain = Math.max(0, MIN_SPINNER_MS - elapsed);
@@ -249,111 +186,17 @@ export class AfterSalesDashboardComponent implements OnInit {
       },
       error: (err) => {
         this.error.set(err?.message || 'Gagal memuat data after sales.');
-        this._kpis.set(null);
-        this._proporsi.set([]);
-        this._kpiData.set(null);
-        this.totalRevenueChart.set(null);
-        this.afterSalesDistribution.set(null);
+        this._raw.set(null);
         this.hasData.set(false);
+
+        // reset dropdown sisa hari kerja
+        this.hideSisaHariKerja();
 
         const elapsed = performance.now() - start;
         const remain = Math.max(0, MIN_SPINNER_MS - elapsed);
         setTimeout(() => this.loading.set(false), remain);
       },
     });
-  }
-
-  /* ===================== Builder helpers ===================== */
-  private buildRevenueChart(k: UiAfterSalesKpis | null): { labels: string[]; data: number[] } | null {
-    if (!k?.selected) return null;
-    const labels: string[] = [];
-    const data: number[] = [];
-
-    if (k.prevMonth) {
-      labels.push(k.prevMonth.period);
-      data.push(k.prevMonth.totals.totalRevenue.realisasi);
-    }
-    if (k.prevDate) {
-      labels.push(k.prevDate.period);
-      data.push(k.prevDate.totals.totalRevenue.realisasi);
-    }
-    labels.push(k.selected.period);
-    data.push(k.selected.totals.totalRevenue.realisasi);
-
-    return { labels, data };
-  }
-
-  private buildDistribution(items: UiProporsiSlice[]): { labels: string[]; data: number[] } | null {
-    if (!items || !items.length) return null;
-    return {
-      labels: items.map(i => i.name),
-      data: items.map(i => i.selected?.value ?? 0),
-    };
-  }
-
-  private mapUiToKpiData(ui: UiAfterSalesKpis): KpiData {
-    const sel = ui.selected.totals;
-    const bd = ui.selected.breakdowns;
-
-    const pick = (arr: {name:string; value:number}[], key:string) =>
-      (arr.find(x => x.name.toUpperCase() === key.toUpperCase())?.value ?? 0);
-
-    const toAmt = (realisasi: number, target = 0): KpiAmount => ({ realisasi, target });
-
-    // Jasa Service / Parts / UE
-    const svc = bd.jasaServiceByType;
-    const pb  = bd.partBengkelByType;
-    const ue  = bd.unitEntryByType;
-
-    // OLI: dari proporsi kalau ada, fallback ke breakdown jasa service 'OLI'
-    const oliFromProporsi =
-      (this._proporsi().find(p => p.name.toUpperCase() === 'OLI')?.selected?.value) ?? 0;
-
-    return {
-      afterSales: toAmt(sel.afterSales.realisasi, sel.afterSales.target),
-      serviceCabang: toAmt(sel.jasaService.realisasi, sel.jasaService.target),
-      jasaService: toAmt(sel.jasaService.realisasi, sel.jasaService.target),
-      unitEntry: toAmt(sel.unitEntry.realisasi, sel.unitEntry.target),
-      sparepartTunai: toAmt(sel.partTunai.realisasi, sel.partTunai.target),
-      sparepartBengkel: toAmt(sel.partBengkel.realisasi, sel.partBengkel.target),
-      oli: toAmt(oliFromProporsi || pick(svc, 'OLI')),
-
-      // SRO Jasa Service (targets belum ada → 0)
-      jasaServiceExpress: toAmt(pick(svc, 'EXPRESS')),
-      jasaServiceRutin: toAmt(pick(svc, 'RUTIN')),
-      jasaServiceSedang: toAmt(pick(svc, 'SEDANG')),
-      jasaServiceBerat: toAmt(pick(svc, 'BERAT')),
-      jasaServiceOli: toAmt(pick(svc, 'OLI')),
-      jasaServiceOverhoul: toAmt(pick(svc, 'OVERHOUL')),
-      jasaServiceKelistrikan: toAmt(pick(svc, 'KELISTRIKAN')),
-      jasaServiceKupon: toAmt(pick(svc, 'KUPON')),
-      jasaServicePdc: toAmt(pick(svc, 'PDC')),
-      jasaServiceCvt: toAmt(pick(svc, 'CVT')),
-      jasaServiceBodyRepair: toAmt(pick(svc, 'BODY REPAIR')),
-      jasaServiceOverSize: toAmt(pick(svc, 'OVER SIZE')),
-
-      // Sparepart Bengkel
-      partBengkelExpress: toAmt(pick(pb, 'EXPRESS')),
-      partBengkelRutin: toAmt(pick(pb, 'RUTIN')),
-      partBengkelSedang: toAmt(pick(pb, 'SEDANG')),
-      partBengkelBerat: toAmt(pick(pb, 'BERAT')),
-      partBengkelOli: toAmt(pick(pb, 'OLI')),
-      partBengkelOverhoul: toAmt(pick(pb, 'OVERHOUL')),
-
-      // Unit Entry (targets belum ada → 0)
-      unitEntryOliRealisasi: toAmt(pick(ue, 'OLI')),
-      unitEntryExpressRealisasi: toAmt(pick(ue, 'EXPRESS')),
-      unitEntryRutinRealisasi: toAmt(pick(ue, 'RUTIN')),
-      unitEntrySedangRealisasi: toAmt(pick(ue, 'SEDANG')),
-      unitEntryBeratRealisasi: toAmt(pick(ue, 'BERAT')),
-      unitEntryOverhoulRealisasi: toAmt(pick(ue, 'OVERHOUL')),
-      unitEntryKelistrikanRealisasi: toAmt(pick(ue, 'KELISTRIKAN')),
-      unitEntryOverSizeRealisasi: toAmt(pick(ue, 'OVER SIZE')),
-      unitEntryBodyRepairRealisasi: toAmt(pick(ue, 'BODY REPAIR')),
-      unitEntryClaimRealisasi: toAmt(pick(ue, 'CLAIM')),
-      unitEntryKuponRealisasi: toAmt(pick(ue, 'KUPON')),
-      unitEntryPdcRealisasi: toAmt(pick(ue, 'PDC')),
-    };
   }
 
   /* ===================== Display helpers (breadcrumb) ===================== */
@@ -368,28 +211,19 @@ export class AfterSalesDashboardComponent implements OnInit {
 
   getBranchDisplayName(branch: string): string {
     if (!branch || branch === 'all-branch') return 'Semua Cabang';
-    // kalau mau nama: mapping 0001→PETTARANI dst.
     return branch.toUpperCase();
   }
 
   getPeriodDisplayName(): string {
-    const year = this.currentFilter()?.period;
-    const month = this.currentFilter()?.month;
+    const year = this.currentFilter?.period;
+    const month = this.currentFilter?.month;
 
     const monthMap: Record<string, string> = {
       'all-month': 'Semua Bulan',
-      '01': 'Januari',
-      '02': 'Februari',
-      '03': 'Maret',
-      '04': 'April',
-      '05': 'Mei',
-      '06': 'Juni',
-      '07': 'Juli',
-      '08': 'Agustus',
-      '09': 'September',
-      '10': 'Oktober',
-      '11': 'November',
-      '12': 'Desember',
+      '01': 'Januari', '02': 'Februari', '03': 'Maret',
+      '04': 'April',   '05': 'Mei',      '06': 'Juni',
+      '07': 'Juli',    '08': 'Agustus',  '09': 'September',
+      '10': 'Oktober', '11': 'November', '12': 'Desember',
     };
 
     const y = year || 'Semua Tahun';
@@ -400,11 +234,19 @@ export class AfterSalesDashboardComponent implements OnInit {
   }
 
   get compare(): boolean {
-    return this.currentFilter()?.compare ?? false;
+    return this.currentFilter?.compare ?? false;
   }
 
-  /* ===================== Converter UI <-> API ===================== */
-  private toApiFilter(ui: UiFilter): ApiFilter {
+  /* ===================== Converter UI -> API (RAW) ===================== */
+  private toApiQuery(ui: UiFilter): {
+    companyId: string;
+    branchId: string;
+    useCustomDate: boolean;
+    compare: boolean;
+    selectedDate: string | null;
+    year: string | null;
+    month: string | null;
+  } {
     if (ui.useCustomDate) {
       return {
         companyId: ui.company,
@@ -417,7 +259,9 @@ export class AfterSalesDashboardComponent implements OnInit {
       };
     }
     const month =
-      ui.month && ui.month !== 'all-month' ? String(ui.month).padStart(2, '0') : null;
+      ui.month && ui.month !== 'all-month'
+        ? String(ui.month).padStart(2, '0')
+        : null;
 
     return {
       companyId: ui.company,
@@ -428,5 +272,151 @@ export class AfterSalesDashboardComponent implements OnInit {
       month,
       selectedDate: null,
     };
+  }
+
+  // =====================================================================
+  // ------------------------ SISA HARI KERJA -----------------------------
+  // =====================================================================
+
+  /** Hitung opsi + set visibilitas dropdown, mengikuti perilaku kode lama */
+  private updateSisaHariKerjaOptions(
+    filter: UiFilter,
+    resp: RawAfterSalesResponse
+  ): void {
+    const today = new Date();
+
+    // Tentukan target year & month dari filter (dukung custom-date dan bulan)
+    const { yearNum, monthNum } = this.resolveFilterYearMonth(filter);
+
+    // Munculkan hanya bila periode sama dengan bulan & tahun berjalan
+    if (
+      yearNum === null ||
+      monthNum === null ||
+      !this.isSameMonthYear(monthNum, yearNum, today)
+    ) {
+      this.hideSisaHariKerja();
+      return;
+    }
+
+    // Ambil total hari kerja target dari metrics kalau tersedia
+    const totalHariKerjaRaw = resp?.data?.kpi_data?.selected?.hari_kerja;
+    const totalHariKerja =
+      typeof totalHariKerjaRaw === 'number' && isFinite(totalHariKerjaRaw)
+        ? totalHariKerjaRaw
+        : undefined;
+
+    // Estimasi sisa hari kerja
+    const remaining = this.estimateRemainingWorkdays(
+      yearNum,
+      monthNum,
+      today,
+      totalHariKerja
+    );
+
+    if (remaining <= 0) {
+      this.hideSisaHariKerja();
+      return;
+    }
+
+    // Build opsi N..1 (tanpa "Off" agar seragam dg kode lama)
+    this.sisaHariKerjaOptions = this.buildDescendingDayOptions(remaining);
+    // Default pilih nilai maksimum = sisa hari
+    this.sisaHariKerja = remaining;
+  }
+
+  private hideSisaHariKerja(): void {
+    this.sisaHariKerjaOptions = [];
+    this.sisaHariKerja = null; // template pakai (sisaHariKerja !== null) untuk visibilitas
+  }
+
+  private buildDescendingDayOptions(n: number): SisaHariOption[] {
+    const list: SisaHariOption[] = [];
+    for (let i = n; i >= 1; i--) {
+      list.push({ value: i, name: `${i} Hari` });
+    }
+    return list;
+  }
+
+  /** Normalisasi month string → number (1..12) */
+  private normalizeMonth(m?: string | number | null): number | null {
+    if (m == null) return null;
+    if (typeof m === 'number') return m >= 1 && m <= 12 ? m : null;
+    if (m === 'all-month') return null;
+    const n = parseInt(String(m), 10);
+    return n >= 1 && n <= 12 ? n : null;
+  }
+
+  /** True jika (month, year) sama dengan bulan & tahun dari 'now' */
+  private isSameMonthYear(
+    monthNum: number | null,
+    yearNum: number | null,
+    now: Date
+  ): boolean {
+    if (monthNum == null || yearNum == null) return false;
+    return (
+      yearNum === now.getFullYear() && monthNum === now.getMonth() + 1
+    );
+  }
+
+  /** Tentukan (year, month) dari filter baru (dukung custom date) */
+  private resolveFilterYearMonth(filter: UiFilter): {
+    yearNum: number | null;
+    monthNum: number | null;
+  } {
+    if (filter.useCustomDate && filter.selectedDate) {
+      const d = new Date(filter.selectedDate);
+      return { yearNum: d.getFullYear(), monthNum: d.getMonth() + 1 };
+    }
+    const yearNum =
+      filter.period != null ? parseInt(String(filter.period), 10) : null;
+    const monthNum = this.normalizeMonth(filter.month ?? null);
+    return { yearNum, monthNum };
+  }
+
+  /** Hitung sisa hari kerja (Mon–Fri). Jika totalHariKerja tersedia → gunakan sebagai plafon */
+  private estimateRemainingWorkdays(
+    year: number,
+    month: number, // 1..12
+    now: Date,
+    totalHariKerja?: number
+  ): number {
+    const firstOfMonth = new Date(year, month - 1, 1);
+    const lastOfMonth = new Date(year, month, 0);
+
+    // Jika sekarang sebelum bulan target → seluruh hari kerja bulan itu
+    if (now < firstOfMonth) {
+      const planned = this.countBusinessDaysInclusive(firstOfMonth, lastOfMonth);
+      return totalHariKerja ? Math.min(planned, totalHariKerja) : planned;
+    }
+
+    // Jika sudah lewat bulan target → 0
+    if (now > lastOfMonth) return 0;
+
+    // Hitung hari kerja yang sudah terpakai (Mon–Fri) dari awal bulan s/d hari ini
+    const used = this.countBusinessDaysInclusive(firstOfMonth, now);
+
+    if (totalHariKerja && totalHariKerja > 0) {
+      // Jika backend memberi total hari kerja bulan itu → sisa = total - used
+      return Math.max(0, Math.floor(totalHariKerja - used));
+    }
+
+    // Fallback: tanpa total → hitung hari kerja tersisa dari besok s/d akhir bulan
+    const startRemain = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    return this.countBusinessDaysInclusive(startRemain, lastOfMonth);
+  }
+
+  /** Hitung jumlah hari kerja (Mon–Fri) dari tanggal A s/d B (inklusif). Aman untuk selisih <= 31 hari. */
+  private countBusinessDaysInclusive(start: Date, end: Date): number {
+    if (end < start) return 0;
+    // clone
+    let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const e = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    let count = 0;
+    while (d <= e) {
+      const day = d.getDay(); // 0=Sun .. 6=Sat
+      if (day !== 0 && day !== 6) count++;
+      d.setDate(d.getDate() + 1);
+    }
+    return count;
   }
 }
