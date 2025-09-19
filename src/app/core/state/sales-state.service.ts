@@ -360,21 +360,13 @@ export class SalesStateService {
 
   /* =============== CACHE / AGE MANAGEMENT =============== */
 
-  isDataStale(maxAgeMinutes: number = 30): boolean {
-    const lastUpdated = this._state().lastUpdated;
-    if (!lastUpdated) return true;
-    const now = Date.now();
-    const diffMinutes = (now - lastUpdated) / (1000 * 60);
-    return diffMinutes > maxAgeMinutes;
-  }
 
   getLastUpdated(): Date | null {
     const ts = this._state().lastUpdated;
     return ts ? new Date(ts) : null;
   }
 
-  isCacheValid(filter: SalesFilter, maxAgeMinutes: number = 30): boolean {
-    if (this.isDataStale(maxAgeMinutes)) return false;
+  isCacheValid(filter: SalesFilter): boolean {
     const currentFilter = this.getFilter();
     if (!currentFilter) return false;
     return this.filtersMatch(filter, currentFilter);

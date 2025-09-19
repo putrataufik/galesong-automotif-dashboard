@@ -6,7 +6,11 @@ import { FilterSalesDashboardComponent } from '../../shared/components/filter-sa
 import { AppFilter } from '../../types/filter.model';
 import { formatCompactCurrency as fmtCurrency } from '../../shared/utils/number-format.utils';
 import { SalesStateService } from '../../core/state/sales-state.service';
-import { SalesApiService, UiKpis, UiSalesKpiResponse } from '../../core/services/sales-api.service';
+import {
+  SalesApiService,
+  UiKpis,
+  UiSalesKpiResponse,
+} from '../../core/services/sales-api.service';
 import { SalesFilter } from '../../core/models/sales.models';
 
 // ⬇️ NEW: import utils
@@ -64,7 +68,6 @@ export class SalesDashboardComponent implements OnInit {
 
   // ===== KPI untuk UI (UI-ready) =====
   salesKpi = signal<UiKpis | null>(this.state.getKpis() as UiKpis | null);
-  
 
   // ===== Lifecycle =====
   ngOnInit(): void {
@@ -84,22 +87,13 @@ export class SalesDashboardComponent implements OnInit {
       this.fetchAndUpdate(salesFilter);
     }
   }
-  
+
   // ===== Event: user klik "Cari" di filter =====
   onSearch(filter: AppFilter): void {
     const ui: AppFilter = { ...filter, category: 'sales' };
     this.currentFilter = ui;
 
     const salesFilter = this.toSalesFilter(ui);
-
-    // if (this.state.isCacheValid(salesFilter)) {
-    //   const kpis = this.state.getKpis() as UiKpis | null;
-    //   this.salesKpi.set(kpis);
-    //   const ok = !!kpis;
-    //   this.hasData.set(ok);
-    //   this.isDataEmpty.set(!ok || isUiKpisEmpty(kpis));
-    //   return;
-    // }
 
     this.fetchAndUpdate(salesFilter);
   }
@@ -213,7 +207,10 @@ export class SalesDashboardComponent implements OnInit {
       };
     }
 
-    const monthVal = ui.month && ui.month !== 'all-month' ? String(ui.month).padStart(2, '0') : null;
+    const monthVal =
+      ui.month && ui.month !== 'all-month'
+        ? String(ui.month).padStart(2, '0')
+        : null;
 
     return {
       companyId: ui.company,
@@ -231,7 +228,9 @@ export class SalesDashboardComponent implements OnInit {
       const today = new Date();
       const sd = f.selectedDate ?? '';
       const y = sd ? sd.slice(0, 4) : String(today.getFullYear());
-      const m = sd ? sd.slice(5, 7) : String(today.getMonth() + 1).padStart(2, '0');
+      const m = sd
+        ? sd.slice(5, 7)
+        : String(today.getMonth() + 1).padStart(2, '0');
 
       return {
         company: f.companyId,
@@ -250,7 +249,7 @@ export class SalesDashboardComponent implements OnInit {
       company: f.companyId,
       category: 'sales',
       year: f.year ?? String(new Date().getFullYear()),
-      month: (f.month ?? String(new Date().getMonth() + 1).padStart(2, '0')),
+      month: f.month ?? String(new Date().getMonth() + 1).padStart(2, '0'),
       branch: f.branchId ?? 'all-branch',
       compare: f.compare ?? true,
       useCustomDate: false,

@@ -2,6 +2,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
+
 import {
   SalesApiService,
   UiKpis,
@@ -12,20 +13,26 @@ import {
   MainStateService,
   SalesKpiSnapshot,
 } from '../../core/state/main-state.service';
+
 import { FilterMainDashboardComponent } from '../../shared/components/filter-main-dashboard/filter-main-dashboard.component';
 import { AppFilter } from '../../types/filter.model';
+
 import {
   getCompanyDisplayName as utilCompanyName,
   getCategoryDisplayName as utilCategoryName,
   getBranchDisplayName as utilBranchName,
   getPeriodDisplayName as utilPeriodName,
 } from './main-utils';
+
 import {
   AfterSalesApiService,
+  UiAfterSalesResponse,
   RawAfterSalesMetrics,
-  RawAfterSalesResponse,
   RawProporsiItem,
+  RawComparisonBlock,
 } from '../../core/services/after-sales-api.service';
+
+import { AfterSalesDashboardStateService } from '../../core/state/after-sales-state.service'
 
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -38,48 +45,46 @@ import { catchError } from 'rxjs/operators';
   styleUrl: './main-dashboard.component.css',
 })
 export class MainDashboardComponent implements OnInit {
-  private readonly api = inject(SalesApiService);
+  // Services
+  private readonly salesApi = inject(SalesApiService);
   private readonly afterSalesApi = inject(AfterSalesApiService);
-  private readonly state = inject(MainStateService);
+  private readonly salesState = inject(MainStateService);                     // Sales state (existing)
+  private readonly asState = inject(AfterSalesDashboardStateService);         // After Sales minimal state
 
+  // UI signals
   loadingMessage = signal('Data Sedang di Siapkan...');
-
-  // ===== signals =====
   loading = signal(false);
   error = signal<string | null>(null);
-  kpis = signal<UiKpis | null>(null);
 
   readonly MIN_SPINNER_MS = 1200;
 
-  // After Sales RAW
-  private _afterSalesRaw = signal<RawAfterSalesResponse | null>(null);
-  hasData = signal(false); // gabungan (Sales/AfterSales)
-
-  // Default filter: gunakan 'all-branch'
-  currentFilter: AppFilter = {
-    company: 'sinar-galesong-mobilindo',
-    category: 'all-category',
-    year: String(new Date().getFullYear()),
-    month: String(new Date().getMonth() + 1).padStart(2, '0'),
-    branch: 'all-branch',
-    compare: true,
-  };
+  // Filter UI (hydrate dari Sales state)
+  currentFilter: AppFilter = this.toAppFilter(this.salesState.getCurrentFilter());
 
   ngOnInit(): void {
-    const sf = this.state.getCurrentFilter();
-    this.currentFilter = this.toAppFilter(sf);
+  // Hydrate filter dari state Sales (dipakai juga untuk fetch jika perlu)
+  const sf = this.salesState.getCurrentFilter();
+  this.currentFilter = this.toAppFilter(sf);
 
-    if (this.state.isCacheValid(sf)) {
-      // Sales KPI dari cache
-      this.kpis.set(this.state.getKpis());
-      // After Sales: refresh ringan agar tidak stale (opsional, bisa juga di-cache terpisah)
-      this.fetchBothAndUpdate(sf);
-    } else {
-      this.fetchBothAndUpdate(sf);
-    }
+  // Cek apakah sudah ada data di state
+  const hasSales   = !!this.salesState.getKpis();
+  const hasAfter   = !!this.asState.selected();
+
+  if (hasSales && hasAfter) {
+    // Sudah ada data di state → langsung pakai, tanpa fetch
+    this.error.set(null);
+    this.loading.set(false);
+    return;
   }
 
-  // AppFilter -> SalesFilter (tidak ada 'all-month' lagi)
+  // Jika salah satu belum ada → fetch dan simpan ke state
+  this.fetchBothAndUpdate(sf);
+}
+
+
+  /* ========================= Converters ========================= */
+
+  // AppFilter -> SalesFilter (Main dashboard pakai year+month)
   private toSalesFilter(ui: AppFilter): SalesFilter {
     const monthVal = String(ui.month).padStart(2, '0');
     return {
@@ -105,15 +110,18 @@ export class MainDashboardComponent implements OnInit {
     };
   }
 
-  /** Fetch Sales KPI + After Sales RAW secara paralel, dengan error parsial aman */
+  /* ==================== Fetch + Save to State ==================== */
+
+  /** Fetch Sales KPI + After Sales (UI-ready) paralel → simpan ke state */
   private fetchBothAndUpdate(filter: SalesFilter): void {
     this.loading.set(true);
     this.error.set(null);
     const start = performance.now();
 
-    this.state.saveFilter(filter);
+    // Simpan filter ke Sales state (untuk konsistensi & breadcrumb)
+    this.salesState.saveFilter(filter);
 
-    const sales$ = this.api.getSalesKpiView(filter).pipe(
+    const sales$ = this.salesApi.getSalesKpiView(filter).pipe(
       catchError((err) => of({ __error: err } as any))
     );
 
@@ -122,12 +130,16 @@ export class MainDashboardComponent implements OnInit {
     );
 
     forkJoin({ sales: sales$, after: after$ }).subscribe(({ sales, after }) => {
-      // ---- Sales handling ----
+      // ---- Sales → STATE ----
       if ((sales as any)?.__error) {
-        const e = (sales as any).__error;
-        const msg = e?.message || 'Gagal memuat data Sales';
-        // Hanya set error jika AfterSales juga gagal di bawah
-        this.kpis.set(null);
+        const snap: SalesKpiSnapshot = {
+          request: {},
+          // jika MainStateService punya clearer khusus, bisa dipakai;
+          // di sini set null untuk menandai kosong.
+          kpis: null as unknown as UiKpis,
+          timestamp: Date.now(),
+        };
+        this.salesState.saveKpiData(snap);
       } else {
         const resp = sales as UiSalesKpiResponse;
         const snap: SalesKpiSnapshot = {
@@ -135,28 +147,22 @@ export class MainDashboardComponent implements OnInit {
           kpis: resp.data.kpis,
           timestamp: Date.now(),
         };
-        this.state.saveKpiData(snap);
-        this.kpis.set(resp.data.kpis);
+        this.salesState.saveKpiData(snap);
       }
 
-      // ---- After Sales handling ----
+      // ---- After Sales → STATE ----
       if ((after as any)?.__error) {
-        const e = (after as any).__error;
-        const msg = e?.message || 'Gagal memuat data After Sales';
-        this._afterSalesRaw.set(null);
+        this.asState.clearSnapshot();
       } else {
-        const aResp = after as RawAfterSalesResponse;
-        this._afterSalesRaw.set(aResp);
+        const aResp = after as UiAfterSalesResponse;
+        this.asState.saveFromView(aResp);
       }
 
-      // ---- Error message (agregasi) ----
+      // ---- Error aggregate (untuk banner) ----
       const bothFailed = !!(sales as any)?.__error && !!(after as any)?.__error;
       this.error.set(bothFailed ? 'Gagal memuat data (Sales & After Sales).' : null);
 
-      // ---- hasData & spinner ----
-      const anyData = !!this.kpis() || !!this._afterSalesRaw();
-      this.hasData.set(anyData);
-
+      // ---- Spinner smooth ----
       const elapsed = performance.now() - start;
       const remain = Math.max(0, this.MIN_SPINNER_MS - elapsed);
       setTimeout(() => this.loading.set(false), remain);
@@ -166,41 +172,38 @@ export class MainDashboardComponent implements OnInit {
   onSearch(filter: AppFilter) {
     this.currentFilter = filter;
     const sf = this.toSalesFilter(filter);
-    this.fetchBothAndUpdate(sf);
+    this.fetchBothAndUpdate(sf); // fetch → simpan ke state → UI baca dari state
   }
 
-  // ====== After Sales: expose ke template ======
-  kpiDataRaw() {
-    return this._afterSalesRaw()?.data?.kpi_data ?? null;
+  /* ========================= Selectors (STATE → UI) ========================= */
+  // Penting: template lama mungkin memanggil kpis() (dulunya signal).
+  // Method ini menjaga kompatibilitas sambil sumbernya tetap dari STATE.
+  kpis(): UiKpis | null {
+    return this.salesState.getKpis();
   }
 
-  /** Akses metrics terpilih (RAW selected metrics) */
+  // After Sales minimal (untuk kartu/section after sales ringkas di main)
   selectedMetrics(): RawAfterSalesMetrics | null {
-    return this.kpiDataRaw()?.selected ?? null;
+    return this.asState.selected();
   }
-
-  /** Akses comparisons (prevDate/prevMonth/prevYear) bila ada */
-  prevDateBlock() {
-    return this.kpiDataRaw()?.comparisons?.prevDate ?? null;
+  prevDateBlock(): RawComparisonBlock | null {
+    return this.asState.prevDate();
   }
-  prevMonthBlock() {
-    return this.kpiDataRaw()?.comparisons?.prevMonth ?? null;
+  prevMonthBlock(): RawComparisonBlock | null {
+    return this.asState.prevMonth();
   }
-  prevYearBlock() {
-    return this.kpiDataRaw()?.comparisons?.prevYear ?? null;
+  prevYearBlock(): RawComparisonBlock | null {
+    return this.asState.prevYear();
   }
-
-  /** Proporsi (RAW) */
   proporsiItems(): RawProporsiItem[] {
-    return this._afterSalesRaw()?.data?.proporsi_after_sales?.data?.items ?? [];
+    return this.asState.proporsi();
   }
-
-  /** Total Unit Entry (untuk kartu yang butuh denominator) */
   getTotalUnitEntry(): number {
-    return Number(this.selectedMetrics()?.unit_entry_realisasi ?? 0);
+    return this.asState.getTotalUnitEntry();
   }
 
-  // ====== Sales helpers / UI text ======
+  /* ========================= UI helpers / text ========================= */
+
   get compare(): boolean {
     return !!this.currentFilter.compare;
   }

@@ -22,6 +22,7 @@ let __kpiCardAsUid = 0;
 export class KpiCardAsComponent {
   // ===== Main (selected period) =====
   @Input() title: string = '';
+  @Input() headerProgress: string ='';
   @Input() headerColor: string =
     'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
   @Input() realisasi: number = 0;

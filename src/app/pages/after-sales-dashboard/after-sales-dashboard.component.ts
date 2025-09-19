@@ -20,13 +20,17 @@ import { KpiCardAsComponent } from '../../shared/components/kpi-card-as/kpi-card
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
 import { KpiLegendButtonComponent } from '../../shared/components/kpi-legend-button/kpi-legend-button.component';
 
-// API (RAW)
+// API (UI-ready wrapper dari service)
 import {
   AfterSalesApiService,
-  RawAfterSalesResponse,
+  UiAfterSalesResponse,
   RawAfterSalesMetrics,
   RawProporsiItem,
+  RawComparisonBlock,
 } from '../../core/services/after-sales-api.service';
+
+// STATE minimal khusus dashboard
+import { AfterSalesDashboardStateService } from '../../core/state/after-sales-state.service';
 
 // util format (tetap dipakai)
 import { formatCompactCurrency as fmtCurrency } from '../../shared/utils/number-format.utils';
@@ -49,27 +53,17 @@ type SisaHariOption = { value: number; name: string };
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AfterSalesDashboardComponent implements OnInit {
-  // Service
+  // Services
   private readonly api = inject(AfterSalesApiService);
+  private readonly state = inject(AfterSalesDashboardStateService);
 
-  // ===== Signals yang dipakai di HTML =====
+  // ===== Signals untuk UI =====
   loading = signal(false);
   error = signal<string | null>(null);
   hasData = signal(false);
 
-  // RAW payload dari API
-  private _raw = signal<RawAfterSalesResponse | null>(null);
-
-  // Filter UI (default)
-  currentFilter: UiFilter = {
-    company: 'sinar-galesong-mobilindo',
-    cabang: 'all-branch',
-    period: String(new Date().getFullYear()),
-    month: String(new Date().getMonth() + 1).padStart(2, '0'),
-    compare: true,
-    useCustomDate: true,
-    selectedDate: new Date().toISOString().slice(0, 10),
-  };
+  // Filter UI (default dari state, kalau belum ada pakai default internal state)
+  currentFilter: UiFilter = this.state.getFilter();
 
   // Ekspor formatter agar sama dengan template
   formatCompactNumber = fmtCurrency;
@@ -84,15 +78,13 @@ export class AfterSalesDashboardComponent implements OnInit {
     this.legendOpen = !this.legendOpen;
   }
 
-  // ========== Sisa Hari Kerja (fitur dari kode lama, di-port ke sini) ==========
+  // ========== Sisa Hari Kerja ==========
   /** Nilai terpilih di dropdown; null = disembunyikan */
   sisaHariKerja: number | null = null;
   /** Opsi dropdown (dibangun dinamis N..1) */
   sisaHariKerjaOptions: SisaHariOption[] = [];
 
   onSisaHariKerjaChange(): void {
-    // cukup re-render; binding kartu menggunakan getSisaHariKerja()
-    // if needed: trigger signal set to force change detection on push
     this.sisaHariKerja = Number(this.sisaHariKerja);
   }
   getSisaHariKerja(): number {
@@ -112,51 +104,51 @@ export class AfterSalesDashboardComponent implements OnInit {
     return !(f.cabang === 'all-branch' && (!f.month || f.month === 'all-month'));
   });
 
-  // ====== Getter RAW yang dipakai di template ======
-  /** Akses cepat ke block kpi_data (RAW) */
-  kpiDataRaw() {
-    return this._raw()?.data?.kpi_data ?? null;
-  }
-
-  /** Akses metrics terpilih (RAW selected metrics) */
+  // ======== Getter yang dipakai template (semua dari STATE) ========
   selectedMetrics(): RawAfterSalesMetrics | null {
-    return this.kpiDataRaw()?.selected ?? null;
+    return this.state.selected();
   }
-
-  /** Akses comparisons (prevDate/prevMonth/prevYear) bila ada */
-  prevDateBlock() {
-    return this.kpiDataRaw()?.comparisons?.prevDate ?? null;
+  prevDateBlock(): RawComparisonBlock | null {
+    return this.state.prevDate();
   }
-  prevMonthBlock() {
-    return this.kpiDataRaw()?.comparisons?.prevMonth ?? null;
+  prevMonthBlock(): RawComparisonBlock | null {
+    return this.state.prevMonth();
   }
-  prevYearBlock() {
-    return this.kpiDataRaw()?.comparisons?.prevYear ?? null;
+  prevYearBlock(): RawComparisonBlock | null {
+    return this.state.prevYear();
   }
-
-  /** Proporsi (RAW) */
   proporsiItems(): RawProporsiItem[] {
-    return this._raw()?.data?.proporsi_after_sales?.data?.items ?? [];
+    return this.state.proporsi();
   }
-
-  /** Total Unit Entry (untuk kartu yang butuh denominator) */
   getTotalUnitEntry(): number {
-    return Number(this.selectedMetrics()?.unit_entry_realisasi ?? 0);
+    return this.state.getTotalUnitEntry();
   }
 
   // ===== Lifecycle =====
   ngOnInit(): void {
-    // fetch default
-    this.fetchAndUpdate(this.toApiQuery(this.currentFilter));
+    // Ambil dari cache state jika masih valid → set hasData
+    if (this.state.hasData()) {
+      this.hasData.set(true);
+      this.error.set(null);
+      // rebuild opsi sisa hari kerja dari cache snapshot
+      const fakeView: UiAfterSalesResponse | null = this.buildViewFromStateSnapshot();
+      if (fakeView) this.updateSisaHariKerjaOptions(this.currentFilter, fakeView);
+      return;
+    }
+    // Otherwise fetch default dari filter di state
+    this.fetchAndUpdate(this.toApiQuery(this.currentFilter), true);
   }
 
   /* ===================== Events ===================== */
   onSearch(filter: UiFilter): void {
+    // Simpan filter ke state terlebih dahulu (biar konsisten di cache)
+    this.state.saveFilter(filter);
     this.currentFilter = filter;
-    this.fetchAndUpdate(this.toApiQuery(filter));
+    // Fetch → simpan hasilnya ke state
+    this.fetchAndUpdate(this.toApiQuery(filter), false);
   }
 
-  /* ===================== Fetch (RAW) ===================== */
+  /* ===================== Fetch (UI-ready) ===================== */
   private fetchAndUpdate(params: {
     companyId: string;
     branchId: string;
@@ -165,7 +157,7 @@ export class AfterSalesDashboardComponent implements OnInit {
     selectedDate: string | null;
     year: string | null;
     month: string | null;
-  }) {
+  }, initialLoad: boolean) {
     this.loading.set(true);
     this.error.set(null);
 
@@ -173,11 +165,12 @@ export class AfterSalesDashboardComponent implements OnInit {
     const MIN_SPINNER_MS = 900;
 
     this.api.getAfterSalesView(params).subscribe({
-      next: (resp) => {
-        this._raw.set(resp);
+      next: (resp: UiAfterSalesResponse) => {
+        // Simpan ke STATE minimal
+        this.state.saveFromView(resp);
         this.hasData.set(true);
 
-        // 🔽 bangun opsi sisa hari kerja sesuai periode & data terkini
+        // Opsi sisa hari kerja
         this.updateSisaHariKerjaOptions(this.currentFilter, resp);
 
         const elapsed = performance.now() - start;
@@ -185,10 +178,11 @@ export class AfterSalesDashboardComponent implements OnInit {
         setTimeout(() => this.loading.set(false), remain);
       },
       error: (err) => {
+        // Error → clear snapshot?
+        if (initialLoad) {
+          this.hasData.set(false);
+        }
         this.error.set(err?.message || 'Gagal memuat data after sales.');
-        this._raw.set(null);
-        this.hasData.set(false);
-
         // reset dropdown sisa hari kerja
         this.hideSisaHariKerja();
 
@@ -237,7 +231,7 @@ export class AfterSalesDashboardComponent implements OnInit {
     return this.currentFilter?.compare ?? false;
   }
 
-  /* ===================== Converter UI -> API (RAW) ===================== */
+  /* ===================== Converter UI -> API ===================== */
   private toApiQuery(ui: UiFilter): {
     companyId: string;
     branchId: string;
@@ -281,7 +275,7 @@ export class AfterSalesDashboardComponent implements OnInit {
   /** Hitung opsi + set visibilitas dropdown, mengikuti perilaku kode lama */
   private updateSisaHariKerjaOptions(
     filter: UiFilter,
-    resp: RawAfterSalesResponse
+    resp: UiAfterSalesResponse
   ): void {
     const today = new Date();
 
@@ -318,7 +312,7 @@ export class AfterSalesDashboardComponent implements OnInit {
       return;
     }
 
-    // Build opsi N..1 (tanpa "Off" agar seragam dg kode lama)
+    // Build opsi N..1
     this.sisaHariKerjaOptions = this.buildDescendingDayOptions(remaining);
     // Default pilih nilai maksimum = sisa hari
     this.sisaHariKerja = remaining;
@@ -326,7 +320,7 @@ export class AfterSalesDashboardComponent implements OnInit {
 
   private hideSisaHariKerja(): void {
     this.sisaHariKerjaOptions = [];
-    this.sisaHariKerja = null; // template pakai (sisaHariKerja !== null) untuk visibilitas
+    this.sisaHariKerja = null;
   }
 
   private buildDescendingDayOptions(n: number): SisaHariOption[] {
@@ -383,32 +377,26 @@ export class AfterSalesDashboardComponent implements OnInit {
     const firstOfMonth = new Date(year, month - 1, 1);
     const lastOfMonth = new Date(year, month, 0);
 
-    // Jika sekarang sebelum bulan target → seluruh hari kerja bulan itu
     if (now < firstOfMonth) {
       const planned = this.countBusinessDaysInclusive(firstOfMonth, lastOfMonth);
       return totalHariKerja ? Math.min(planned, totalHariKerja) : planned;
     }
 
-    // Jika sudah lewat bulan target → 0
     if (now > lastOfMonth) return 0;
 
-    // Hitung hari kerja yang sudah terpakai (Mon–Fri) dari awal bulan s/d hari ini
     const used = this.countBusinessDaysInclusive(firstOfMonth, now);
 
     if (totalHariKerja && totalHariKerja > 0) {
-      // Jika backend memberi total hari kerja bulan itu → sisa = total - used
       return Math.max(0, Math.floor(totalHariKerja - used));
     }
 
-    // Fallback: tanpa total → hitung hari kerja tersisa dari besok s/d akhir bulan
     const startRemain = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
     return this.countBusinessDaysInclusive(startRemain, lastOfMonth);
   }
 
-  /** Hitung jumlah hari kerja (Mon–Fri) dari tanggal A s/d B (inklusif). Aman untuk selisih <= 31 hari. */
+  /** Hitung jumlah hari kerja (Mon–Fri) dari tanggal A s/d B (inklusif). */
   private countBusinessDaysInclusive(start: Date, end: Date): number {
     if (end < start) return 0;
-    // clone
     let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
     const e = new Date(end.getFullYear(), end.getMonth(), end.getDate());
     let count = 0;
@@ -418,5 +406,40 @@ export class AfterSalesDashboardComponent implements OnInit {
       d.setDate(d.getDate() + 1);
     }
     return count;
+  }
+
+  /* ===================== UTIL: build view from cached snapshot ===================== */
+  /** Dipakai saat init jika cache valid, untuk rebuild opsi sisa hari kerja tanpa refetch */
+  private buildViewFromStateSnapshot(): UiAfterSalesResponse | null {
+    const snap = this.state.getFullState().snapshot;
+    if (!snap) return null;
+    return {
+      status: 'ok',
+      message: '',
+      data: {
+        request: this.state.getFullState().snapshot?.request ?? {},
+        kpi_data: {
+          selected: snap.selected ?? ({} as RawAfterSalesMetrics),
+          comparisons: {
+            prevDate: snap.prevDate ?? undefined,
+            prevMonth: snap.prevMonth ?? undefined,
+            prevYear: snap.prevYear ?? undefined,
+          },
+        },
+        proporsi_after_sales: snap.proporsiItems.length
+          ? {
+              data: {
+                items: snap.proporsiItems.map((item: any) => ({
+                  ...item,
+                  selected: {
+                    ...item.selected,
+                    value: Number(item.selected?.value ?? 0),
+                  },
+                })),
+              },
+            }
+          : undefined,
+      },
+    };
   }
 }

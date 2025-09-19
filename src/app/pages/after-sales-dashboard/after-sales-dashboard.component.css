@@ -189,3 +189,7 @@ canvas {
     margin-bottom: 0.25rem;
   }
 }
+
+.no-pt {
+  padding-top: 0 !important;
+}

@@ -1,13 +1,5 @@
 <!-- src/app/pages/after-sales-dashboard/after-sales-dashboard.component.html -->
-<div class="container-fluid p-4">
-  <!-- ===================== HEADER ===================== -->
-  <div class="row mb-2">
-    <div class="col-12 text-center">
-      <h5 class="fw-bold text-dark mb-3">
-        Dashboard <span class="text-success">After Sales</span>
-      </h5>
-    </div>
-  </div>
+<div class="container-fluid p-4 no-pt">
 
   <!-- ===================== FILTER ===================== -->
   <div class="row mb-2">
@@ -305,6 +297,7 @@
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
             title="AFTER SALES"
+            headerProgress="Realisasi vs Target"
             headerColor="#0070D2"
             [realisasi]="
               selectedMetrics()?.after_sales_plus_part_tunai_realisasi ?? 0
@@ -352,7 +345,8 @@
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
             title="SERVICE CABANG"
-            headerColor="#0070D2"
+            headerProgress="Realisasi vs Target"
+            headerColor="#3B00A0"
             [realisasi]="selectedMetrics()?.service_cabang_realisasi ?? 0"
             [target]="selectedMetrics()?.service_cabang_target ?? 0"
             [unitEntry]="getTotalUnitEntry()"
@@ -389,11 +383,11 @@
           >
           </app-kpi-card-as>
         </div>
-
         <!-- JASA SERVICE -->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
             title="JASA SERVICE"
+            headerProgress="Realisasi vs Target"
             headerColor="#3B00A0"
             [realisasi]="selectedMetrics()?.jasa_service_realisasi ?? 0"
             [target]="selectedMetrics()?.jasa_service_target ?? 0"
@@ -429,12 +423,12 @@
           >
           </app-kpi-card-as>
         </div>
-
         <!-- Unit Entry -->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
             title="Unit Entry"
-            headerColor="#0070D2"
+            headerProgress="Realisasi vs Target"
+            headerColor="#588000"
             [realisasi]="selectedMetrics()?.unit_entry_realisasi ?? 0"
             [target]="selectedMetrics()?.unit_entry_target ?? 0"
             [unitEntry]="getTotalUnitEntry()"
@@ -469,11 +463,11 @@
           >
           </app-kpi-card-as>
         </div>
-
         <!-- PART TUNAI -->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
             title="SPAREPART TUNAI"
+            headerProgress="Realisasi vs Target"
             headerColor="#004B66"
             [realisasi]="selectedMetrics()?.part_tunai_realisasi ?? 0"
             [target]="selectedMetrics()?.part_tunai_target ?? 0"
@@ -509,11 +503,11 @@
           >
           </app-kpi-card-as>
         </div>
-
         <!-- PART BENGKEL -->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
             title="SPAREPART BENGKEL"
+            headerProgress="Realisasi vs Target"
             headerColor="#890000"
             [realisasi]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
             [target]="selectedMetrics()?.part_bengkel_target ?? 0"
@@ -549,12 +543,12 @@
           >
           </app-kpi-card-as>
         </div>
-
         <!-- OLI -->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
             title="SPAREPART OLI"
-            headerColor="#890000"
+            headerProgress="Realisasi vs Target"
+            headerColor="#944700"
             [realisasi]="selectedMetrics()?.ganti_oli_realisasi ?? 0"
             [target]="selectedMetrics()?.ganti_oli_target ?? 0"
             [unitEntry]="getTotalUnitEntry()"
@@ -606,50 +600,1298 @@
           <h6 class="mb-0 fw-bold text-dark">PENCAPAIAN SRO</h6>
         </div>
       </div>
+      <!-- ========================================================== -->
+      <!-- SECTION 4.a: CPUS & NON CPUS UNIT -->
+      <!-- ========================================================== -->
 
       <div class="d-flex align-items-center">
         <i class="bi bi-speedometer2 text-success me-2 fs-5"></i>
         <h6 class="mb-0 text-dark">CPUS Unit</h6>
       </div>
+      <div class="row g-2">
+        <!--  Ganti Oli Unit-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="GANTI OLI UNIT"
+            headerProgress="Realisasi vs Total"
+            headerColor="#588000"
+            [realisasi]="selectedMetrics()?.unit_entry_oli_realisasi ?? 0"
+            [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.unit_entry_oli_realisasi ?? 0
+            "
+            [prevMTarget]="prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0"
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.unit_entry_oli_realisasi ??
+              prevDateBlock()?.metrics?.unit_entry_oli_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.unit_entry_realisasi ??
+                prevDateBlock()?.metrics?.unit_entry_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.unit_entry_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  EXPRESS UNIT-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="EXPRESS UNIT"
+            headerProgress="Realisasi vs Total"
+            headerColor="#588000"
+            [realisasi]="selectedMetrics()?.unit_entry_express_realisasi ?? 0"
+            [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.unit_entry_express_realisasi ?? 0
+            "
+            [prevMTarget]="prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0"
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.unit_entry_express_realisasi ??
+              prevDateBlock()?.metrics?.unit_entry_express_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.unit_entry_realisasi ??
+                prevDateBlock()?.metrics?.unit_entry_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.unit_entry_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  RUTIN UNIT-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="RUTIN UNIT"
+            headerProgress="Realisasi vs Total"
+            headerColor="#588000"
+            [realisasi]="selectedMetrics()?.unit_entry_rutin_realisasi ?? 0"
+            [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.unit_entry_rutin_realisasi ?? 0
+            "
+            [prevMTarget]="prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0"
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.unit_entry_rutin_realisasi ??
+              prevDateBlock()?.metrics?.unit_entry_rutin_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.unit_entry_realisasi ??
+                prevDateBlock()?.metrics?.unit_entry_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.unit_entry_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  SEDANG UNIT-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="SEDANG UNIT"
+            headerProgress="Realisasi vs Total"
+            headerColor="#588000"
+            [realisasi]="selectedMetrics()?.unit_entry_sedang_realisasi ?? 0"
+            [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.unit_entry_sedang_realisasi ?? 0
+            "
+            [prevMTarget]="prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0"
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.unit_entry_sedang_realisasi ??
+              prevDateBlock()?.metrics?.unit_entry_sedang_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.unit_entry_realisasi ??
+                prevDateBlock()?.metrics?.unit_entry_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.unit_entry_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  BERAT UNIT-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="BERAT UNIT"
+            headerProgress="Realisasi vs Total"
+            headerColor="#588000"
+            [realisasi]="selectedMetrics()?.unit_entry_berat_realisasi ?? 0"
+            [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.unit_entry_berat_realisasi ?? 0
+            "
+            [prevMTarget]="prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0"
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.unit_entry_berat_realisasi ??
+              prevDateBlock()?.metrics?.unit_entry_berat_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.unit_entry_realisasi ??
+                prevDateBlock()?.metrics?.unit_entry_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.unit_entry_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  OVERHOUL UNIT-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="OVERHOUL UNIT"
+            headerProgress="Realisasi vs Total"
+            headerColor="#588000"
+            [realisasi]="selectedMetrics()?.unit_entry_overhoul_realisasi ?? 0"
+            [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.unit_entry_overhoul_realisasi ?? 0
+            "
+            [prevMTarget]="prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0"
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.unit_entry_overhoul_realisasi ??
+              prevDateBlock()?.metrics?.unit_entry_overhoul_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.unit_entry_realisasi ??
+                prevDateBlock()?.metrics?.unit_entry_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.unit_entry_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  KELISTRIKAN UNIT-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="KELISTRIKAN UNIT"
+            headerProgress="Realisasi vs Total"
+            headerColor="#588000"
+            [realisasi]="
+              selectedMetrics()?.unit_entry_kelistrikan_realisasi ?? 0
+            "
+            [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.unit_entry_kelistrikan_realisasi ?? 0
+            "
+            [prevMTarget]="prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0"
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.unit_entry_kelistrikan_realisasi ??
+              prevDateBlock()?.metrics?.unit_entry_kelistrikan_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.unit_entry_realisasi ??
+                prevDateBlock()?.metrics?.unit_entry_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.unit_entry_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <div class="d-flex align-items-center">
+          <i class="bi bi-speedometer2 text-success me-2 fs-5"></i>
+          <h6 class="mb-0 text-dark">NON CPUS Unit</h6>
+        </div>
+        <!--  CLAIM UNIT-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="CLAIM UNIT"
+            headerProgress="Realisasi vs Total"
+            headerColor="#588000"
+            [realisasi]="selectedMetrics()?.unit_entry_claim_realisasi ?? 0"
+            [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.unit_entry_claim_realisasi ?? 0
+            "
+            [prevMTarget]="prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0"
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.unit_entry_claim_realisasi ??
+              prevDateBlock()?.metrics?.unit_entry_claim_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.unit_entry_realisasi ??
+                prevDateBlock()?.metrics?.unit_entry_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.unit_entry_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  KUPON UNIT-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="KUPON UNIT"
+            headerProgress="Realisasi vs Total"
+            headerColor="#588000"
+            [realisasi]="selectedMetrics()?.unit_entry_kupon_realisasi ?? 0"
+            [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.unit_entry_kupon_realisasi ?? 0
+            "
+            [prevMTarget]="prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0"
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.unit_entry_kupon_realisasi ??
+              prevDateBlock()?.metrics?.unit_entry_kupon_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.unit_entry_realisasi ??
+                prevDateBlock()?.metrics?.unit_entry_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.unit_entry_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  PDC UNIT-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="PDC UNIT"
+            headerProgress="Realisasi vs Total"
+            headerColor="#588000"
+            [realisasi]="selectedMetrics()?.unit_entry_pdc_realisasi ?? 0"
+            [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.unit_entry_pdc_realisasi ?? 0
+            "
+            [prevMTarget]="prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0"
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.unit_entry_pdc_realisasi ??
+              prevDateBlock()?.metrics?.unit_entry_pdc_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.unit_entry_realisasi ??
+                prevDateBlock()?.metrics?.unit_entry_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.unit_entry_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+      </div>
 
-      <!--  Ganti Oli Unit-->
-      <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-        <app-kpi-card-as
-          title="SPAREPART OLI"
-          headerColor="#890000"
-          [realisasi]="selectedMetrics()?.unit_entry_oli_realisasi ?? 0"
-          [target]="selectedMetrics()?.unit_entry_oli_realisasi ?? 0"
-          [unitEntry]="getTotalUnitEntry()"
-          [sisaHariKerja]="getSisaHariKerja()"
-          [loading]="loading()"
-          [isUnit]="false"
-          [isHarapanTarget]="true"
-          [compare]="currentFilter.compare || false"
-          [prevMPeriod]="prevMonthBlock()?.period ?? ''"
-          [prevYPeriod]="
-            (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
-          "
-          [prevMRealisasi]="
-            prevMonthBlock()?.metrics?.unit_entry_oli_realisasi ?? 0
-          "
-          [prevMTarget]="prevMonthBlock()?.metrics?.unit_entry_oli_realisasi ?? 0"
-          [prevMDenomForAvg]="
-            prevMonthBlock()?.metrics?.unit_entry_realisasi ?? 0
-          "
-          [prevYRealisasi]="
-            prevYearBlock()?.metrics?.unit_entry_oli_realisasi ??
-            prevDateBlock()?.metrics?.unit_entry_oli_realisasi ??
-            0
-          "
-          [prevYTarget]="
-            (prevYearBlock()?.metrics?.unit_entry_oli_realisasi ??
-              prevDateBlock()?.metrics?.unit_entry_oli_realisasi) || 0
-          "
-          [prevYDenomForAvg]="
-            prevYearBlock()?.metrics?.unit_entry_realisasi || 0
-          "
-        >
-        </app-kpi-card-as>
+      <!-- ========================================================== -->
+      <!-- SECTION 4.b: CPUS & NON CPUS JASA SERVICE -->
+      <!-- ========================================================== -->
+      <div class="d-flex align-items-center">
+        <i class="bi bi-speedometer2 text-success me-2 fs-5"></i>
+        <h6 class="mb-0 text-dark">CPUS Jasa Service</h6>
+      </div>
+      <!-- CPUS JASA SERVICE -->
+      <div class="row g-2">
+        <!--  Ganti Oli JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="GANTI OLI JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#3B00A0"
+            [realisasi]="selectedMetrics()?.jasa_service_oli_realisasi ?? 0"
+            [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.jasa_service_oli_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.jasa_service_oli_realisasi ??
+              prevDateBlock()?.metrics?.jasa_service_oli_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.jasa_service_realisasi ??
+                prevDateBlock()?.metrics?.jasa_service_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.jasa_service_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  EXPRESS JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="EXPRESS JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#3B00A0"
+            [realisasi]="selectedMetrics()?.jasa_service_express_realisasi ?? 0"
+            [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.jasa_service_express_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.jasa_service_express_realisasi ??
+              prevDateBlock()?.metrics?.jasa_service_express_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.jasa_service_realisasi ??
+                prevDateBlock()?.metrics?.jasa_service_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.jasa_service_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  RUTIN JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="RUTIN JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#3B00A0"
+            [realisasi]="selectedMetrics()?.jasa_service_rutin_realisasi ?? 0"
+            [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.jasa_service_rutin_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.jasa_service_rutin_realisasi ??
+              prevDateBlock()?.metrics?.jasa_service_rutin_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.jasa_service_realisasi ??
+                prevDateBlock()?.metrics?.jasa_service_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.jasa_service_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  SEDANG JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="SEDANG JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#3B00A0"
+            [realisasi]="selectedMetrics()?.jasa_service_sedang_realisasi ?? 0"
+            [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.jasa_service_sedang_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.jasa_service_sedang_realisasi ??
+              prevDateBlock()?.metrics?.jasa_service_sedang_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.jasa_service_realisasi ??
+                prevDateBlock()?.metrics?.jasa_service_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.jasa_service_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  BERAT JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="BERAT JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#3B00A0"
+            [realisasi]="selectedMetrics()?.jasa_service_berat_realisasi ?? 0"
+            [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.jasa_service_berat_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.jasa_service_berat_realisasi ??
+              prevDateBlock()?.metrics?.jasa_service_berat_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.jasa_service_realisasi ??
+                prevDateBlock()?.metrics?.jasa_service_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.jasa_service_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  OVERHOUL JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="OVERHOUL JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#3B00A0"
+            [realisasi]="
+              selectedMetrics()?.jasa_service_overhoul_realisasi ?? 0
+            "
+            [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.jasa_service_overhoul_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.jasa_service_overhoul_realisasi ??
+              prevDateBlock()?.metrics?.jasa_service_overhoul_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.jasa_service_realisasi ??
+                prevDateBlock()?.metrics?.jasa_service_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.jasa_service_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  KELISTRIKAN JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="KELISTRIKAN JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#3B00A0"
+            [realisasi]="
+              selectedMetrics()?.jasa_service_kelistrikan_realisasi ?? 0
+            "
+            [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.jasa_service_kelistrikan_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.jasa_service_kelistrikan_realisasi ??
+              prevDateBlock()?.metrics?.jasa_service_kelistrikan_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.jasa_service_realisasi ??
+                prevDateBlock()?.metrics?.jasa_service_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.jasa_service_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <div class="d-flex align-items-center">
+          <i class="bi bi-speedometer2 text-success me-2 fs-5"></i>
+          <h6 class="mb-0 text-dark">NON CPUS Jasa Service</h6>
+        </div>
+        <!--  CLAIM JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="CLAIM JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#3B00A0"
+            [realisasi]="selectedMetrics()?.jasa_service_claim_realisasi ?? 0"
+            [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.jasa_service_claim_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.jasa_service_claim_realisasi ??
+              prevDateBlock()?.metrics?.jasa_service_claim_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.jasa_service_realisasi ??
+                prevDateBlock()?.metrics?.jasa_service_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.jasa_service_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  KUPON JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="KUPON JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#3B00A0"
+            [realisasi]="selectedMetrics()?.jasa_service_kupon_realisasi ?? 0"
+            [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.jasa_service_kupon_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.jasa_service_kupon_realisasi ??
+              prevDateBlock()?.metrics?.jasa_service_kupon_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.jasa_service_realisasi ??
+                prevDateBlock()?.metrics?.jasa_service_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.jasa_service_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  PDC JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="PDC JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#3B00A0"
+            [realisasi]="selectedMetrics()?.jasa_service_pdc_realisasi ?? 0"
+            [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.jasa_service_pdc_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.jasa_service_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.jasa_service_pdc_realisasi ??
+              prevDateBlock()?.metrics?.jasa_service_pdc_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.jasa_service_realisasi ??
+                prevDateBlock()?.metrics?.jasa_service_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.jasa_service_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+      </div>
+      <!-- ========================================================== -->
+      <!-- SECTION 4.c CPUS & NON CPUS SPAREPART BENGKEL -->
+      <!-- ========================================================== -->
+       <div class="d-flex align-items-center">
+        <i class="bi bi-speedometer2 text-success me-2 fs-5"></i>
+        <h6 class="mb-0 text-dark">CPUS Sparepart Bengkel</h6>
+      </div>
+      <!-- CPUS SPAREPART BENGKEL -->
+      <div class="row g-2">
+        <!--  Ganti Oli SPAREPART BENGKEL-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="GANTI OLI SPAREPART BENGKEL"
+            headerProgress="Realisasi vs Total"
+            headerColor="#890000"
+            [realisasi]="selectedMetrics()?.part_bengkel_oli_realisasi ?? 0"
+            [target]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.part_bengkel_oli_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.part_bengkel_oli_realisasi ??
+              prevDateBlock()?.metrics?.part_bengkel_oli_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.part_bengkel_realisasi ??
+                prevDateBlock()?.metrics?.part_bengkel_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.part_bengkel_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  EXPRESS JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="EXPRESS JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#890000"
+            [realisasi]="selectedMetrics()?.part_bengkel_express_realisasi ?? 0"
+            [target]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.part_bengkel_express_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.part_bengkel_express_realisasi ??
+              prevDateBlock()?.metrics?.part_bengkel_express_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.part_bengkel_realisasi ??
+                prevDateBlock()?.metrics?.part_bengkel_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.part_bengkel_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  RUTIN JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="RUTIN JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#890000"
+            [realisasi]="selectedMetrics()?.part_bengkel_rutin_realisasi ?? 0"
+            [target]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.part_bengkel_rutin_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.part_bengkel_rutin_realisasi ??
+              prevDateBlock()?.metrics?.part_bengkel_rutin_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.part_bengkel_realisasi ??
+                prevDateBlock()?.metrics?.part_bengkel_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.part_bengkel_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  SEDANG JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="SEDANG JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#890000"
+            [realisasi]="selectedMetrics()?.part_bengkel_sedang_realisasi ?? 0"
+            [target]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.part_bengkel_sedang_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.part_bengkel_sedang_realisasi ??
+              prevDateBlock()?.metrics?.part_bengkel_sedang_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.part_bengkel_realisasi ??
+                prevDateBlock()?.metrics?.part_bengkel_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.part_bengkel_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  BERAT JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="BERAT JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#890000"
+            [realisasi]="selectedMetrics()?.part_bengkel_berat_realisasi ?? 0"
+            [target]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.part_bengkel_berat_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.part_bengkel_berat_realisasi ??
+              prevDateBlock()?.metrics?.part_bengkel_berat_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.part_bengkel_realisasi ??
+                prevDateBlock()?.metrics?.part_bengkel_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.part_bengkel_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <!--  OVERHOUL JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="OVERHOUL JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#890000"
+            [realisasi]="
+              selectedMetrics()?.part_bengkel_overhoul_realisasi ?? 0
+            "
+            [target]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.part_bengkel_overhoul_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.part_bengkel_overhoul_realisasi ??
+              prevDateBlock()?.metrics?.part_bengkel_overhoul_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.part_bengkel_realisasi ??
+                prevDateBlock()?.metrics?.part_bengkel_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.part_bengkel_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+         <!-- KELISTRIKAN JASA SERVICE
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <app-kpi-card-as
+            title="KELISTRIKAN JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#890000"
+            [realisasi]="
+              selectedMetrics()?.part_bengkel_kelistrikan_realisasi ?? 0
+            "
+            [target]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.part_bengkel_kelistrikan_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.part_bengkel_kelistrikan_realisasi ??
+              prevDateBlock()?.metrics?.part_bengkel_kelistrikan_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.part_bengkel_realisasi ??
+                prevDateBlock()?.metrics?.part_bengkel_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.part_bengkel_realisasi || 0
+            "
+          >
+          </app-kpi-card-as>
+        </div>
+        <div class="d-flex align-items-center">
+          <i class="bi bi-speedometer2 text-success me-2 fs-5"></i>
+          <h6 class="mb-0 text-dark">NON CPUS Jasa Service</h6>
+        </div>
+        CLAIM JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <!-- <app-kpi-card-as
+            title="CLAIM JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#890000"
+            [realisasi]="selectedMetrics()?.part_bengkel_claim_realisasi ?? 0"
+            [target]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.part_bengkel_claim_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.part_bengkel_claim_realisasi ??
+              prevDateBlock()?.metrics?.part_bengkel_claim_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.part_bengkel_realisasi ??
+                prevDateBlock()?.metrics?.part_bengkel_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.part_bengkel_realisasi || 0
+            "
+          >
+          </app-kpi-card-as> -->
+        </div>
+        <!--  KUPON JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <!-- <app-kpi-card-as
+            title="KUPON JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#890000"
+            [realisasi]="selectedMetrics()?.part_bengkel_kupon_realisasi ?? 0"
+            [target]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.part_bengkel_kupon_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.part_bengkel_kupon_realisasi ??
+              prevDateBlock()?.metrics?.part_bengkel_kupon_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.part_bengkel_realisasi ??
+                prevDateBlock()?.metrics?.part_bengkel_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.part_bengkel_realisasi || 0
+            "
+          >
+          </app-kpi-card-as> -->
+        </div>
+        <!--  PDC JASA SERVICE-->
+        <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <!-- <app-kpi-card-as
+            title="PDC JASA SERVICE"
+            headerProgress="Realisasi vs Total"
+            headerColor="#890000"
+            [realisasi]="selectedMetrics()?.part_bengkel_pdc_realisasi ?? 0"
+            [target]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
+            [unitEntry]="getTotalUnitEntry()"
+            [sisaHariKerja]="getSisaHariKerja()"
+            [loading]="loading()"
+            [isUnit]="false"
+            [isHarapanTarget]="true"
+            [compare]="currentFilter.compare || false"
+            [prevMPeriod]="prevMonthBlock()?.period ?? ''"
+            [prevYPeriod]="
+              (prevYearBlock()?.period ?? prevDateBlock()?.period) || ''
+            "
+            [prevMRealisasi]="
+              prevMonthBlock()?.metrics?.part_bengkel_pdc_realisasi ?? 0
+            "
+            [prevMTarget]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevMDenomForAvg]="
+              prevMonthBlock()?.metrics?.part_bengkel_realisasi ?? 0
+            "
+            [prevYRealisasi]="
+              prevYearBlock()?.metrics?.part_bengkel_pdc_realisasi ??
+              prevDateBlock()?.metrics?.part_bengkel_pdc_realisasi ??
+              0
+            "
+            [prevYTarget]="
+              (prevYearBlock()?.metrics?.part_bengkel_realisasi ??
+                prevDateBlock()?.metrics?.part_bengkel_realisasi) || 0
+            "
+            [prevYDenomForAvg]="
+              prevYearBlock()?.metrics?.part_bengkel_realisasi || 0
+            "
+          >
+          </app-kpi-card-as> -->
+        </div>
       </div>
     </div>
   </div>
