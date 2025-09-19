@@ -113,6 +113,22 @@ export interface UiAfterSalesResponse {
     proporsi_after_sales?: { data: { items: UiProporsiItem[] } };
   };
 }
+// Tambahkan di atas (dekat konstanta lain):
+const BRANCHID_TO_TARGET: Record<string, string> = {
+  // after-sales -> sales
+  '0001': '0050', // PETTARANI
+  '0002': '0053', // GORONTALO
+  '0003': '0051', // PALU
+  '0004': '0052', // KENDARI
+  '0005': '0054', // PALOPO
+  '0006': '0055', // SUNGGUMINASA
+  'all-branch': 'all-branch',
+};
+
+function resolveBranchIdTarget(branchId?: string): string | undefined {
+  if (!branchId) return undefined;
+  return BRANCHID_TO_TARGET[branchId] ?? branchId; // fallback: kalau tidak dikenali, pakai as-is
+}
 
 // ==============================
 // Service
@@ -191,29 +207,42 @@ export class AfterSalesApiService extends BaseApiService {
       finalize(() => this.groupEnd(label))
     );
   }
-
+  
   // ===== Helpers (params/validation/errors) =====
   private buildParamsFromFilter(filter: SalesFilter): Record<string, string | number> {
-    const params: Record<string, string | number> = {
-      useCustomDate: String(!!filter.useCustomDate),
-      compare: String(!!filter.compare),
-    };
-    if (filter.branchId && filter.branchId !== 'all-branch') params['branchId'] = filter.branchId;
+  const params: Record<string, string | number> = {
+    useCustomDate: String(!!filter.useCustomDate),
+    compare: String(!!filter.compare),
+  };
 
-    if (filter.useCustomDate) {
-      if (!filter.selectedDate) throw new Error('selectedDate is required when useCustomDate is true');
-      params['selectedDate'] = filter.selectedDate;
-      params['year'] = 'null';
-      params['month'] = 'null';
-      return params;
-    }
+  // === branchId & branchIdTarget ===
+  const bid = filter.branchId;
+  const bidTarget = resolveBranchIdTarget(bid);
 
-    if (!filter.year) throw new Error('year is required when useCustomDate is false');
-    params['year'] = filter.year;
-    params['selectedDate'] = 'null';
-    params['month'] = filter.month == null ? 'null' : String(filter.month).padStart(2, '0');
+  // kirim branchId kalau bukan all-branch (sesuai logika lama)
+  if (bid && bid !== 'all-branch') {
+    params['branchId'] = bid;
+  }
+  // SELALU kirim branchIdTarget (all-branch atau hasil konversi)
+  if (bidTarget) {
+    params['branchIdTarget'] = bidTarget;
+  }
+
+  if (filter.useCustomDate) {
+    if (!filter.selectedDate) throw new Error('selectedDate is required when useCustomDate is true');
+    params['selectedDate'] = filter.selectedDate;
+    params['year'] = 'null';
+    params['month'] = 'null';
     return params;
   }
+
+  if (!filter.year) throw new Error('year is required when useCustomDate is false');
+  params['year'] = filter.year;
+  params['selectedDate'] = 'null';
+  params['month'] = filter.month == null ? 'null' : String(filter.month).padStart(2, '0');
+  return params;
+}
+
 
   private validateDateFormat(date: string): boolean {
     const rx = /^\d{4}-\d{2}-\d{2}$/;

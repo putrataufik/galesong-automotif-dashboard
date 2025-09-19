@@ -21,6 +21,7 @@ const BRANCH_CODE_MAP: Record<string, string> = {
   '0055': 'SUNGGUMINASA',
 };
 
+
 const MON3_UPPER = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
 const MON3_LOWER = ['jan','feb','mar','apr','mei','jun','jul','agu','sep','okt','nov','des'];
 

@@ -1,4 +1,4 @@
-// app.component.ts
+// src/app/app.component.ts
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
@@ -6,24 +6,29 @@ import { SidebarComponent } from './shared/components/sidebar/sidebar.component'
 import { SplashScreenComponent } from './pages/splash-screen/splash-screen.component';
 import { filter } from 'rxjs';
 
-// Services untuk preload data dashboard
+// Services preload
 import { SalesApiService } from './core/services/sales-api.service';
-import { MainStateService } from './core/state/main-state.service';
+import { AfterSalesApiService } from './core/services/after-sales-api.service';
+
+// === STATE: Main (khusus halaman Main) ===
+import {
+  MainDashboardStateService,
+  MainSalesSnapshot,
+  MainAfterSalesSnapshot,
+} from './core/state/main-state.service';
+
+// STATE: Sales (halaman Sales terpisah tetap dibiarkan, jika kamu mau preload juga)
 import { SalesStateService } from './core/state/sales-state.service';
+
 import { SalesFilter } from './core/models/sales.models';
 
-// Auth service (login via token & ambil user)
+// Auth
 import { AuthService } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    SidebarComponent,
-    SplashScreenComponent,
-  ],
+  imports: [CommonModule, RouterOutlet, SidebarComponent, SplashScreenComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
@@ -44,7 +49,8 @@ export class AppComponent implements OnInit {
   // ===== Inject services =====
   private readonly router = inject(Router);
   private readonly salesApi = inject(SalesApiService);
-  private readonly mainState = inject(MainStateService);
+  private readonly afterSalesApi = inject(AfterSalesApiService);
+  private readonly mainState = inject(MainDashboardStateService);
   private readonly salesState = inject(SalesStateService);
   private readonly auth = inject(AuthService);
 
@@ -83,26 +89,11 @@ export class AppComponent implements OnInit {
     return m ? m[1] : null;
   }
 
-  /**
-   * DEV behavior:
-   * - Jika TIDAK ADA token → hanya console.warn dan return 'redirect' untuk menghentikan init.
-   *   // TODO[PROD-REDIRECT]: ganti console.warn(...) jadi window.location.replace('https://sinargalesong.net/login')
-   *
-   * - Jika ADA token:
-   *   - POST app_cookies_login
-   *     - status '0' → console.warn dan return 'redirect'
-   *       // TODO[PROD-REDIRECT]: ganti console.warn(...) jadi window.location.replace('https://sinargalesong.net')
-   *     - status '1' → POST user(id), console user, simpan sessionStorage, bersihkan token dari URL
-   *   - Error → console.error dan return 'redirect'
-   *       // TODO[PROD-REDIRECT]: ganti console.warn(...) jadi window.location.replace('https://sinargalesong.net')
-   */
   private async autoLoginIfToken(): Promise<'ok' | 'redirect' | 'skip'> {
     const t = this.getTokenFromUrl();
-    // Tidak ada if(!t); kalau t falsy → langsung 'skip'
     return t ? await this.performTokenLogin(t) : 'skip';
   }
 
-  // Jalankan flow login bila token ada
   private async performTokenLogin(t: string): Promise<'ok' | 'redirect'> {
     this._splashMessage.set('Memverifikasi sesi...');
     this._splashProgress.set(10);
@@ -113,28 +104,19 @@ export class AppComponent implements OnInit {
       console.log('[AUTO-LOGIN] Raw login response:', loginResp);
 
       if (!row) {
-        console.warn(
-          '[AUTO-LOGIN] Response tidak berisi data[0]. (DEV: tidak redirect)'
-        );
-        // TODO[PROD-REDIRECT]: window.location.replace('https://sinargalesong.net');
+        console.warn('[AUTO-LOGIN] Response tidak berisi data[0]. (DEV: tidak redirect)');
         return 'redirect';
       }
 
-      const status = String(row.status); // normalisasi ke string
+      const status = String(row.status);
 
-      // === Sukses → status '1' ===
       if (status === '1') {
         if (!row.user_id) {
-          console.warn(
-            '[AUTO-LOGIN] status=1 tapi user_id kosong. (DEV: tidak redirect)'
-          );
-          // TODO[PROD-REDIRECT]: window.location.replace('https://sinargalesong.net');
+          console.warn('[AUTO-LOGIN] status=1 tapi user_id kosong. (DEV: tidak redirect)');
           return 'redirect';
         }
 
-        const userResp: any = await this.auth
-          .fetchUser(String(row.user_id))
-          .toPromise();
+        const userResp: any = await this.auth.fetchUser(String(row.user_id)).toPromise();
 
         console.group('[AUTO-LOGIN] User Data');
         console.log('Raw user response:', userResp);
@@ -148,40 +130,22 @@ export class AppComponent implements OnInit {
         }
         console.groupEnd();
 
-        // simpan untuk role/guard nanti
         sessionStorage.setItem('auth.user', JSON.stringify(userResp));
 
-        // bersihkan token dari URL
-        history.replaceState(
-          {},
-          '',
-          window.location.origin + window.location.pathname
-        );
-
+        history.replaceState({}, '', window.location.origin + window.location.pathname);
         return 'ok';
       }
 
-      // === Token invalid → status '0' ===
       if (status === '0') {
-        console.warn(
-          '[AUTO-LOGIN] Status 0 / token invalid. (DEV: tidak redirect)'
-        );
-        // TODO[PROD-REDIRECT]: window.location.replace('https://sinargalesong.net');
+        console.warn('[AUTO-LOGIN] Status 0 / token invalid. (DEV: tidak redirect)');
         return 'redirect';
       }
 
-      // === Status tak dikenal ===
-      console.warn(
-        `[AUTO-LOGIN] Status tidak dikenal: ${status}. (DEV: tidak redirect)`
-      );
-      // TODO[PROD-REDIRECT]: window.location.replace('https://sinargalesong.net');
+      console.warn(`[AUTO-LOGIN] Status tidak dikenal: ${status}. (DEV: tidak redirect)`);
       return 'redirect';
     } catch (err) {
       console.error('[AUTO-LOGIN] error:', err);
-      console.warn(
-        '[AUTO-LOGIN] Gagal verifikasi token. (DEV: tidak redirect)'
-      );
-      // TODO[PROD-REDIRECT]: window.location.replace('https://sinargalesong.net');
+      console.warn('[AUTO-LOGIN] Gagal verifikasi token. (DEV: tidak redirect)');
       return 'redirect';
     }
   }
@@ -189,28 +153,24 @@ export class AppComponent implements OnInit {
   // ===== Init App (splash + preload data) =====
   private async initializeApp(): Promise<void> {
     try {
-      // beri waktu splash render dulu
       await this.delay(100);
 
-      // Jalankan auto-login sebelum preload data
+      // Jika ingin aktifkan auto-login, buka komentar ini:
       // const loginResult = await this.autoLoginIfToken();
-      // if (loginResult === 'redirect') {
-      //   return;
-      // }
+      // if (loginResult === 'redirect') return;
 
-      // Preload data dashboard
       this._splashMessage.set('Memuat semua data...');
       this._splashProgress.set(30);
       console.log('Starting data preload...');
 
+      // Jalankan preload: Main (isi state khusus Main) + Sales (isi state halaman Sales)
       await Promise.all([
-        this.preloadMainDashboardData(),
-        this.preloadSalesDashboardData(),
+        this.preloadMainDashboardData(),   // → state Main
+        this.preloadSalesDashboardData(),  // → state Sales (terpisah)
       ]);
 
       console.log('Data preload completed');
 
-      // Selesai
       this._splashMessage.set('Selesai!');
       this._splashProgress.set(100);
       await this.delay(300);
@@ -220,15 +180,13 @@ export class AppComponent implements OnInit {
     } catch (error) {
       console.error('App initialization failed:', error);
       this._hasError.set(true);
-      this._splashMessage.set(
-        'Gagal memuat data. Aplikasi akan tetap berjalan...'
-      );
+      this._splashMessage.set('Gagal memuat data. Aplikasi akan tetap berjalan...');
       await this.delay(500);
       this._isAppReady.set(true);
     }
   }
 
-  // ===== Preload main dashboard =====
+  // ===== Preload main dashboard (ISI STATE MAIN: Sales + After Sales) =====
   private async preloadMainDashboardData(): Promise<void> {
     const currentYear = new Date().getFullYear();
     const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
@@ -243,28 +201,65 @@ export class AppComponent implements OnInit {
       selectedDate: null,
     };
 
-    return new Promise((resolve, reject) => {
-      this.salesApi.getSalesKpiView(mainFilter).subscribe({
-        next: (response) => {
-          const snapshot = {
-            request: response.data.request,
-            kpis: response.data.kpis,
+    // Kita buat selalu resolve agar splash tidak nyangkut meski salah satu gagal.
+    return new Promise((resolve) => {
+      const sales$ = this.salesApi.getSalesKpiView(mainFilter);
+      const after$ = this.afterSalesApi.getAfterSalesView(mainFilter);
+
+      let doneSales = false;
+      let doneAfter = false;
+
+      const tryFinish = () => {
+        if (doneSales && doneAfter) resolve();
+      };
+
+      sales$.subscribe({
+        next: (salesResp) => {
+          const salesSnap: MainSalesSnapshot = {
+            request: salesResp.data.request,
+            kpis: salesResp.data.kpis,
             timestamp: Date.now(),
           };
-          this.mainState.saveFilter(mainFilter);
-          this.mainState.saveKpiData(snapshot);
-          console.log('Main dashboard data preloaded successfully');
-          resolve();
+          this.mainState.saveFilter(mainFilter);       // simpan filter utk Main
+          this.mainState.saveSalesSnapshot(salesSnap); // simpan Sales utk Main
+          console.log('[Preload Main] Sales OK');
+          doneSales = true;
+          tryFinish();
         },
         error: (err) => {
-          console.error('Failed to preload main dashboard data:', err);
-          reject(err);
+          console.error('[Preload Main] Sales FAIL:', err);
+          // tetap tandai selesai agar tidak blok init
+          doneSales = true;
+          tryFinish();
+        },
+      });
+
+      after$.subscribe({
+        next: (asResp) => {
+          const afterSnap: MainAfterSalesSnapshot = {
+            request: asResp.data.request,
+            selected: asResp.data.kpi_data.selected,
+            prevDate: asResp.data.kpi_data.comparisons?.prevDate,
+            prevMonth: asResp.data.kpi_data.comparisons?.prevMonth,
+            prevYear: asResp.data.kpi_data.comparisons?.prevYear,
+            proporsi: asResp.data.proporsi_after_sales?.data.items ?? [],
+            timestamp: Date.now(),
+          };
+          this.mainState.saveAfterSnapshot(afterSnap); // simpan After Sales utk Main
+          console.log('[Preload Main] After Sales OK');
+          doneAfter = true;
+          tryFinish();
+        },
+        error: (err) => {
+          console.error('[Preload Main] After Sales FAIL:', err);
+          doneAfter = true;
+          tryFinish();
         },
       });
     });
   }
 
-  // ===== Preload sales dashboard =====
+  // ===== Preload sales dashboard (ISI STATE SALES: halaman Sales terpisah) =====
   private async preloadSalesDashboardData(): Promise<void> {
     const today = new Date().toISOString().slice(0, 10);
 
@@ -293,7 +288,8 @@ export class AppComponent implements OnInit {
         },
         error: (err) => {
           console.error('Failed to preload sales dashboard data:', err);
-          reject(err);
+          // Agar init tidak gagal total, kita resolve juga (atau kamu bisa reject sesuai kebutuhan)
+          resolve();
         },
       });
     });
@@ -302,11 +298,7 @@ export class AppComponent implements OnInit {
   // ===== Router events (title + cleanup tooltip) =====
   private setupRouterEvents(): void {
     this.router.events
-      .pipe(
-        filter(
-          (event): event is NavigationEnd => event instanceof NavigationEnd
-        )
-      )
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.updatePageTitle(event.url);
         setTimeout(() => this.disableTooltips(), 100);
@@ -322,9 +314,7 @@ export class AppComponent implements OnInit {
     const elementsWithTitle = document.querySelectorAll('[title]');
     elementsWithTitle.forEach((el) => el.removeAttribute('title'));
 
-    const tooltipTriggerList = document.querySelectorAll(
-      '[data-bs-toggle="tooltip"]'
-    );
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     tooltipTriggerList.forEach((el) => el.removeAttribute('data-bs-toggle'));
   }
 
