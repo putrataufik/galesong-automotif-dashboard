@@ -68,10 +68,18 @@
         [value]="sales.totalSPK?.selected?.value ?? 0"
         [compareMode]="compare"
         unitLabel="unit"
-        [prevYearValue]="cmpLeftValue(sales.totalSPK)"
-        [prevYearSubtitle]="cmpLeftSubtitle(sales.totalSPK)"
-        [prevMonthValue]="cmpRightValue(sales.totalSPK)"
-        [prevMonthSubtitle]="cmpRightSubtitle(sales.totalSPK)"
+        [prevYearValue]="
+          sales.totalSPK?.prevYear?.value ??
+          sales.totalSPK?.prevDate?.value ??
+          0
+        "
+        [prevYearSubtitle]="
+          sales.totalSPK?.prevYear?.period ??
+          sales.totalSPK?.prevDate?.period ??
+          undefined
+        "
+        [prevMonthValue]="sales.totalSPK?.prevMonth?.value ?? 0"
+        [prevMonthSubtitle]="sales.totalSPK?.prevMonth?.period ?? undefined"
       />
     </div>
     <!-- Total DO -->
@@ -85,10 +93,16 @@
         [value]="sales.totalDO?.selected?.value ?? 0"
         [compareMode]="compare"
         unitLabel="unit"
-        [prevYearValue]="cmpLeftValue(sales.totalDO)"
-        [prevYearSubtitle]="cmpLeftSubtitle(sales.totalDO)"
-        [prevMonthValue]="cmpRightValue(sales.totalDO)"
-        [prevMonthSubtitle]="cmpRightSubtitle(sales.totalDO)"
+        [prevYearValue]="
+          sales.totalDO?.prevYear?.value ?? sales.totalDO?.prevDate?.value ?? 0
+        "
+        [prevYearSubtitle]="
+          sales.totalDO?.prevYear?.period ??
+          sales.totalDO?.prevDate?.period ??
+          undefined
+        "
+        [prevMonthValue]="sales.totalDO?.prevMonth?.value ?? 0"
+        [prevMonthSubtitle]="sales.totalDO?.prevMonth?.period ?? undefined"
       />
     </div>
     <!-- Prospek -->
@@ -102,10 +116,20 @@
         [value]="sales.totalProspect?.selected?.value ?? 0"
         [compareMode]="compare"
         unitLabel="unit"
-        [prevYearValue]="cmpLeftValue(sales.totalProspect)"
-        [prevYearSubtitle]="cmpLeftSubtitle(sales.totalProspect)"
-        [prevMonthValue]="cmpRightValue(sales.totalProspect)"
-        [prevMonthSubtitle]="cmpRightSubtitle(sales.totalProspect)"
+        [prevYearValue]="
+          sales.totalProspect?.prevYear?.value ??
+          sales.totalProspect?.prevDate?.value ??
+          0
+        "
+        [prevYearSubtitle]="
+          sales.totalProspect?.prevYear?.period ??
+          sales.totalProspect?.prevDate?.period ??
+          undefined
+        "
+        [prevMonthValue]="sales.totalProspect?.prevMonth?.value ?? 0"
+        [prevMonthSubtitle]="
+          sales.totalProspect?.prevMonth?.period ?? undefined
+        "
       />
     </div>
     <!--Hot Prospek -->
@@ -119,10 +143,20 @@
         [value]="sales.totalHotProspect?.selected?.value ?? 0"
         [compareMode]="compare"
         unitLabel="unit"
-        [prevYearValue]="cmpLeftValue(sales.totalHotProspect)"
-        [prevYearSubtitle]="cmpLeftSubtitle(sales.totalHotProspect)"
-        [prevMonthValue]="cmpRightValue(sales.totalHotProspect)"
-        [prevMonthSubtitle]="cmpRightSubtitle(sales.totalProspect)"
+        [prevYearValue]="
+          sales.totalHotProspect?.prevYear?.value ??
+          sales.totalHotProspect?.prevDate?.value ??
+          0
+        "
+        [prevYearSubtitle]="
+          sales.totalHotProspect?.prevYear?.period ??
+          sales.totalHotProspect?.prevDate?.period ??
+          undefined
+        "
+        [prevMonthValue]="sales.totalHotProspect?.prevMonth?.value ?? 0"
+        [prevMonthSubtitle]="
+          sales.totalHotProspect?.prevMonth?.period ?? undefined
+        "
       />
     </div>
 
@@ -137,10 +171,20 @@
         [value]="sales.totalUnitSales?.selected?.value ?? 0"
         [compareMode]="compare"
         unitLabel="unit"
-        [prevYearValue]="cmpLeftValue(sales.totalUnitSales)"
-        [prevYearSubtitle]="cmpLeftSubtitle(sales.totalUnitSales)"
-        [prevMonthValue]="cmpRightValue(sales.totalUnitSales)"
-        [prevMonthSubtitle]="cmpRightSubtitle(sales.totalUnitSales)"
+        [prevYearValue]="
+          sales.totalUnitSales?.prevYear?.value ??
+          sales.totalUnitSales?.prevDate?.value ??
+          0
+        "
+        [prevYearSubtitle]="
+          sales.totalUnitSales?.prevYear?.period ??
+          sales.totalUnitSales?.prevDate?.period ??
+          undefined
+        "
+        [prevMonthValue]="sales.totalUnitSales?.prevMonth?.value ?? 0"
+        [prevMonthSubtitle]="
+          sales.totalUnitSales?.prevMonth?.period ?? undefined
+        "
       />
     </div>
     <!-- Model Favorit -->

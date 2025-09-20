@@ -24,12 +24,5 @@ export const routes: Routes = [
         (m) => m.SalesDashboardComponent
       ),
   },
-  {
-    path: 'finance-dashboard',
-    loadComponent: () =>
-      import('./pages/finance-dashboard/finance-dashboard.component').then(
-        (m) => m.FinanceDashboardComponent
-      ),
-  },
   { path: '**', redirectTo: 'dashboard' },
 ];

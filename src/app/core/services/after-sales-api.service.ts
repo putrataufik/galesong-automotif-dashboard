@@ -4,6 +4,14 @@ import { Observable, throwError, catchError, tap, finalize, map } from 'rxjs';
 import { BaseApiService } from './base-api.service';
 import { SalesFilter } from '../models/sales.models';
 
+import {
+  formatPeriodByMode,
+  validateDateFormatYYYYMMDD,
+  isDateInFutureLocal,
+  toNumberSafe,
+  createTimerLogger
+} from './service-utils';
+
 // ===== RAW response contracts (sesuaikan jika backend berubah) =====
 type Num = number | null | undefined;
 
@@ -113,7 +121,8 @@ export interface UiAfterSalesResponse {
     proporsi_after_sales?: { data: { items: UiProporsiItem[] } };
   };
 }
-// Tambahkan di atas (dekat konstanta lain):
+
+// Mapping branchId AfterSales → Sales (untuk param branchIdTarget)
 const BRANCHID_TO_TARGET: Record<string, string> = {
   // after-sales -> sales
   '0001': '0050', // PETTARANI
@@ -127,7 +136,7 @@ const BRANCHID_TO_TARGET: Record<string, string> = {
 
 function resolveBranchIdTarget(branchId?: string): string | undefined {
   if (!branchId) return undefined;
-  return BRANCHID_TO_TARGET[branchId] ?? branchId; // fallback: kalau tidak dikenali, pakai as-is
+  return BRANCHID_TO_TARGET[branchId] ?? branchId;
 }
 
 // ==============================
@@ -137,22 +146,14 @@ function resolveBranchIdTarget(branchId?: string): string | undefined {
 export class AfterSalesApiService extends BaseApiService {
   private readonly DEBUG = true;
   private readonly ENDPOINT = 'getAfterSalesReportByDate';
+  private readonly L = createTimerLogger('AfterSalesApiService', this.DEBUG);
 
-  // ===== Logging helpers =====
-  private log(...a: any[]) { if (this.DEBUG) console.log('[AfterSalesApiService]', ...a); }
-  private warn(...a: any[]) { if (this.DEBUG) console.warn('[AfterSalesApiService]', ...a); }
-  private error(...a: any[]) { if (this.DEBUG) console.error('[AfterSalesApiService]', ...a); }
-  private groupStart(label: string, data?: unknown) {
-    if (!this.DEBUG) return;
-    console.groupCollapsed(`[AfterSalesApiService] ${label}`);
-    if (data !== undefined) console.log('→', data);
-    console.time(`[TIMER] ${label}`);
-  }
-  private groupEnd(label: string) {
-    if (!this.DEBUG) return;
-    console.timeEnd(`[TIMER] ${label}`);
-    console.groupEnd();
-  }
+  // ===== Logging helpers (dibungkus di L) =====
+  private log(...a: any[])   { this.L.log(...a); }
+  private warn(...a: any[])  { this.L.warn(...a); }
+  private error(...a: any[]) { this.L.error(...a); }
+  private groupStart(label: string, data?: unknown) { this.L.groupStart(label, data); }
+  private groupEnd(label: string) { this.L.groupEnd(label); }
 
   /* ===========================
      PUBLIC: RAW (plus computed)
@@ -195,7 +196,7 @@ export class AfterSalesApiService extends BaseApiService {
   }
 
   /* =========================================
-     NEW: UI-ready (period diformat, +computed)
+     UI-ready (period diformat, +computed)
   ========================================= */
   getAfterSalesView(filter: SalesFilter): Observable<UiAfterSalesResponse> {
     const label = `getAfterSalesView ${filter.companyId}`;
@@ -207,55 +208,46 @@ export class AfterSalesApiService extends BaseApiService {
       finalize(() => this.groupEnd(label))
     );
   }
-  
+
   // ===== Helpers (params/validation/errors) =====
   private buildParamsFromFilter(filter: SalesFilter): Record<string, string | number> {
-  const params: Record<string, string | number> = {
-    useCustomDate: String(!!filter.useCustomDate),
-    compare: String(!!filter.compare),
-  };
+    const params: Record<string, string | number> = {
+      useCustomDate: String(!!filter.useCustomDate),
+      compare: String(!!filter.compare),
+    };
 
-  // === branchId & branchIdTarget ===
-  const bid = filter.branchId;
-  const bidTarget = resolveBranchIdTarget(bid);
+    // === branchId & branchIdTarget ===
+    const bid = filter.branchId;
+    const bidTarget = resolveBranchIdTarget(bid);
 
-  // kirim branchId kalau bukan all-branch (sesuai logika lama)
-  if (bid && bid !== 'all-branch') {
-    params['branchId'] = bid;
-  }
-  // SELALU kirim branchIdTarget (all-branch atau hasil konversi)
-  if (bidTarget) {
-    params['branchIdTarget'] = bidTarget;
-  }
+    if (bid && bid !== 'all-branch') {
+      params['branchId'] = bid;
+    }
+    if (bidTarget) {
+      params['branchIdTarget'] = bidTarget;
+    }
 
-  if (filter.useCustomDate) {
-    if (!filter.selectedDate) throw new Error('selectedDate is required when useCustomDate is true');
-    params['selectedDate'] = filter.selectedDate;
-    params['year'] = 'null';
-    params['month'] = 'null';
+    if (filter.useCustomDate) {
+      if (!filter.selectedDate) throw new Error('selectedDate is required when useCustomDate is true');
+      params['selectedDate'] = filter.selectedDate;
+      params['year'] = 'null';
+      params['month'] = 'null';
+      return params;
+    }
+
+    if (!filter.year) throw new Error('year is required when useCustomDate is false');
+    params['year'] = filter.year;
+    params['selectedDate'] = 'null';
+    params['month'] = filter.month == null ? 'null' : String(filter.month).padStart(2, '0');
     return params;
   }
 
-  if (!filter.year) throw new Error('year is required when useCustomDate is false');
-  params['year'] = filter.year;
-  params['selectedDate'] = 'null';
-  params['month'] = filter.month == null ? 'null' : String(filter.month).padStart(2, '0');
-  return params;
-}
-
-
   private validateDateFormat(date: string): boolean {
-    const rx = /^\d{4}-\d{2}-\d{2}$/;
-    return rx.test(date) && !isNaN(new Date(date).getTime());
+    return validateDateFormatYYYYMMDD(date);
   }
 
   private isDateInFuture(date: string): boolean {
-    const m = date?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!m) return false;
-    const dt = new Date(+m[1], +m[2] - 1, +m[3]);
-    dt.setHours(0,0,0,0);
-    const today = new Date(); today.setHours(0,0,0,0);
-    return dt.getTime() > today.getTime();
+    return isDateInFutureLocal(date);
   }
 
   private validateFilter(filter: SalesFilter): string | null {
@@ -290,30 +282,15 @@ export class AfterSalesApiService extends BaseApiService {
 
   // ------------------ Rumus & Enrichment ------------------
   private num(v: Num): number {
-    return typeof v === 'number' && isFinite(v) ? v : 0;
+    return toNumberSafe(v);
   }
 
   /**
    * CATATAN:
-   * - Service Cabang: JANGAN diubah (pakai rumus asli).
-   *   service_cabang_realisasi = jasa_service_realisasi
-   *     + (after_sales_realisasi - (jasa_service_realisasi + part_bengkel_realisasi))
-   *     + part_bengkel_realisasi
-   *   (Target sama, pakai *_target)
-   *
-   * - Revisi: after sales + part tunai:
-   *   after_sales_plus_part_tunai_realisasi = after_sales_realisasi + part_tunai_realisasi
-   *   after_sales_plus_part_tunai_target   = after_sales_target   + part_tunai_target
-   *
-   * - ProfitRealisasi:
-   *   profit_realisasi =
-   *     jasa_service_realisasi
-   *     + 0.2 * (after_sales_realisasi - (jasa_service_realisasi + part_bengkel_realisasi))
-   *     + 0.17 * part_bengkel_realisasi
-   *     + 0.17 * part_tunai_realisasi
-   *     - biaya_usaha
-   *
-   * - Ganti Oli = jasa_service_oli_realisasi (ubah jika definisinya lain)
+   * - Service Cabang: bentuk rumus tetap menghasilkan = after_sales_realisasi (aljabar).
+   * - Revisi: after sales + part tunai.
+   * - ProfitRealisasi: formula sesuai spesifikasi kamu.
+   * - Ganti Oli = bagian residual dari service cabang (asumsi).
    */
   private computeDerived(m: RawAfterSalesMetrics) {
     const js  = this.num(m.jasa_service_realisasi);
@@ -324,8 +301,9 @@ export class AfterSalesApiService extends BaseApiService {
 
     const asPlusPt = as + pt;
 
-    const middle = as - (js + pb);
-    const serviceCabangRealisasi = as; // aljabar = as; tetap sesuai bentuk rumus
+    // middle tidak dipakai eksplisit, tetap dokumentasi
+    // const middle = as - (js + pb);
+    const serviceCabangRealisasi = as; // sesuai bentuk rumus
 
     const jsT = this.num(m.jasa_service_target);
     const asT = this.num(m.after_sales_target);
@@ -334,8 +312,7 @@ export class AfterSalesApiService extends BaseApiService {
 
     const asPlusPtT = asT + ptT;
 
-    const middleT = asT - (jsT + pbT);
-    const serviceCabangTarget = jsT + middleT + pbT; // = asT
+    const serviceCabangTarget = asT;
 
     const profitRealisasi =
       js +
@@ -344,8 +321,8 @@ export class AfterSalesApiService extends BaseApiService {
       0.17 * pt -
       bu;
 
-    const gantiOliRealisasi = serviceCabangRealisasi-js-pb;
-    const gantiOliTarget    = serviceCabangTarget-jsT-pbT;
+    const gantiOliRealisasi = serviceCabangRealisasi - js - pb;
+    const gantiOliTarget    = serviceCabangTarget    - jsT - pbT;
 
     return {
       afterSalesPlusPartTunaiRealisasi: asPlusPt,
@@ -369,7 +346,7 @@ export class AfterSalesApiService extends BaseApiService {
       service_cabang_target:                 d.serviceCabangTarget,
       profit_realisasi:                      d.profitRealisasi,
       ganti_oli_realisasi:                   d.gantiOliRealisasi,
-      ganti_oli_target:                      d.gantiOliTarget, // target ganti oli = realisasi (asumsi)
+      ganti_oli_target:                      d.gantiOliTarget,
     };
   }
 
@@ -404,35 +381,8 @@ export class AfterSalesApiService extends BaseApiService {
   /* ===========================
      Period formatting (UI)
   =========================== */
-  private readonly MON3_UPPER = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
-  private readonly MON3_LOWER = ['jan','feb','mar','apr','mei','jun','jul','agu','sep','okt','nov','des'];
-
-  // "2025-09" -> "2025 SEP"
-  private formatPeriodMonthYear(period: string): string {
-    if (!period || period.length < 7) return period ?? '';
-    const y = period.slice(0, 4);
-    const m = Number(period.slice(5, 7));
-    const mon = (m >= 1 && m <= 12) ? this.MON3_UPPER[m - 1] : period.slice(5, 7);
-    return `${y} ${mon}`;
-  }
-
-  // "2025-09-17" -> "17 sep 2025"
-  private formatPeriodCustomDate(period: string): string {
-    if (!period || period.length < 10) return period ?? '';
-    const y = period.slice(0, 4);
-    const m = Number(period.slice(5, 7));
-    const d = Number(period.slice(8, 10));
-    const mon = (m >= 1 && m <= 12) ? this.MON3_LOWER[m - 1] : period.slice(5, 7);
-    return `${d} ${mon} ${y}`;
-  }
-
-  private formatPeriodByMode(period: string | null | undefined, useCustomDate: boolean): string | null {
-    if (!period) return period ?? null;
-    return useCustomDate ? this.formatPeriodCustomDate(period) : this.formatPeriodMonthYear(period);
-  }
-
   private toUiAfterSalesResponse(raw: RawAfterSalesResponse, useCustomDate: boolean): UiAfterSalesResponse {
-    const fmt = (p: string | null | undefined) => this.formatPeriodByMode(p, useCustomDate);
+    const fmt = (p: string | null | undefined) => formatPeriodByMode(p ?? null, useCustomDate);
 
     const comps = raw?.data?.kpi_data?.comparisons;
     const uiComps = comps ? {

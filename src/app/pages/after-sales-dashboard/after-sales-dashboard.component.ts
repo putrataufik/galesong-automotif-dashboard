@@ -32,10 +32,17 @@ import {
 // STATE minimal khusus dashboard
 import { AfterSalesDashboardStateService } from '../../core/state/after-sales-state.service';
 
-// util format (tetap dipakai)
-import { formatCompactCurrency as fmtCurrency } from '../../shared/utils/number-format.utils';
+// === Utils dipisah ===
+import {
+  SisaHariOption,
+  resolveFilterYearMonth,
+  isSameMonthYear,
+  estimateRemainingWorkdays,
+  buildDescendingDayOptions,
+  getBranchDisplayName as utilBranchName,
+} from './after-sales.utils';
+import { getPeriodDisplayName as utilPeriodName} from '../pages.utils';
 
-type SisaHariOption = { value: number; name: string };
 
 @Component({
   selector: 'app-after-sales-dashboard',
@@ -64,9 +71,6 @@ export class AfterSalesDashboardComponent implements OnInit {
 
   // Filter UI (default dari state, kalau belum ada pakai default internal state)
   currentFilter: UiFilter = this.state.getFilter();
-
-  // Ekspor formatter agar sama dengan template
-  formatCompactNumber = fmtCurrency;
 
   // Legend
   legendOpen = false;
@@ -101,7 +105,10 @@ export class AfterSalesDashboardComponent implements OnInit {
   showJumlahHariKerja = computed(() => {
     const f = this.currentFilter;
     if (!f) return false;
-    return !(f.cabang === 'all-branch' && (!f.month || f.month === 'all-month'));
+    return !(
+      f.cabang === 'all-branch' &&
+      (!f.month || f.month === 'all-month')
+    );
   });
 
   // ======== Getter yang dipakai template (semua dari STATE) ========
@@ -131,8 +138,10 @@ export class AfterSalesDashboardComponent implements OnInit {
       this.hasData.set(true);
       this.error.set(null);
       // rebuild opsi sisa hari kerja dari cache snapshot
-      const fakeView: UiAfterSalesResponse | null = this.buildViewFromStateSnapshot();
-      if (fakeView) this.updateSisaHariKerjaOptions(this.currentFilter, fakeView);
+      const fakeView: UiAfterSalesResponse | null =
+        this.buildViewFromStateSnapshot();
+      if (fakeView)
+        this.updateSisaHariKerjaOptions(this.currentFilter, fakeView);
       return;
     }
     // Otherwise fetch default dari filter di state
@@ -149,15 +158,18 @@ export class AfterSalesDashboardComponent implements OnInit {
   }
 
   /* ===================== Fetch (UI-ready) ===================== */
-  private fetchAndUpdate(params: {
-    companyId: string;
-    branchId: string;
-    useCustomDate: boolean;
-    compare: boolean;
-    selectedDate: string | null;
-    year: string | null;
-    month: string | null;
-  }, initialLoad: boolean) {
+  private fetchAndUpdate(
+    params: {
+      companyId: string;
+      branchId: string;
+      useCustomDate: boolean;
+      compare: boolean;
+      selectedDate: string | null;
+      year: string | null;
+      month: string | null;
+    },
+    initialLoad: boolean
+  ) {
     this.loading.set(true);
     this.error.set(null);
 
@@ -203,29 +215,16 @@ export class AfterSalesDashboardComponent implements OnInit {
     return map[company] ?? company;
   }
 
-  getBranchDisplayName(branch: string): string {
-    if (!branch || branch === 'all-branch') return 'Semua Cabang';
-    return branch.toUpperCase();
-  }
+  
 
   getPeriodDisplayName(): string {
-    const year = this.currentFilter?.period;
-    const month = this.currentFilter?.month;
-
-    const monthMap: Record<string, string> = {
-      'all-month': 'Semua Bulan',
-      '01': 'Januari', '02': 'Februari', '03': 'Maret',
-      '04': 'April',   '05': 'Mei',      '06': 'Juni',
-      '07': 'Juli',    '08': 'Agustus',  '09': 'September',
-      '10': 'Oktober', '11': 'November', '12': 'Desember',
-    };
-
-    const y = year || 'Semua Tahun';
-    const m = monthMap[month || 'all-month'] || month;
-
-    if (!month || month === 'all-month') return y;
-    return `${m} ${y}`;
-  }
+      return utilPeriodName({
+        useCustomDate: this.currentFilter.useCustomDate,
+        selectedDate: this.currentFilter.selectedDate,
+        year: this.currentFilter.period ?? null,
+        month: this.currentFilter.month,
+      });
+    }
 
   get compare(): boolean {
     return this.currentFilter?.compare ?? false;
@@ -280,13 +279,18 @@ export class AfterSalesDashboardComponent implements OnInit {
     const today = new Date();
 
     // Tentukan target year & month dari filter (dukung custom-date dan bulan)
-    const { yearNum, monthNum } = this.resolveFilterYearMonth(filter);
+    const { yearNum, monthNum } = resolveFilterYearMonth({
+      useCustomDate: filter.useCustomDate ?? false,
+      selectedDate: filter.selectedDate ?? null,
+      period: filter.period ?? null,
+      month: filter.month ?? null,
+    });
 
     // Munculkan hanya bila periode sama dengan bulan & tahun berjalan
     if (
       yearNum === null ||
       monthNum === null ||
-      !this.isSameMonthYear(monthNum, yearNum, today)
+      !isSameMonthYear(monthNum, yearNum, today)
     ) {
       this.hideSisaHariKerja();
       return;
@@ -300,7 +304,7 @@ export class AfterSalesDashboardComponent implements OnInit {
         : undefined;
 
     // Estimasi sisa hari kerja
-    const remaining = this.estimateRemainingWorkdays(
+    const remaining = estimateRemainingWorkdays(
       yearNum,
       monthNum,
       today,
@@ -313,7 +317,7 @@ export class AfterSalesDashboardComponent implements OnInit {
     }
 
     // Build opsi N..1
-    this.sisaHariKerjaOptions = this.buildDescendingDayOptions(remaining);
+    this.sisaHariKerjaOptions = buildDescendingDayOptions(remaining);
     // Default pilih nilai maksimum = sisa hari
     this.sisaHariKerja = remaining;
   }
@@ -323,89 +327,8 @@ export class AfterSalesDashboardComponent implements OnInit {
     this.sisaHariKerja = null;
   }
 
-  private buildDescendingDayOptions(n: number): SisaHariOption[] {
-    const list: SisaHariOption[] = [];
-    for (let i = n; i >= 1; i--) {
-      list.push({ value: i, name: `${i} Hari` });
-    }
-    return list;
-  }
-
-  /** Normalisasi month string → number (1..12) */
-  private normalizeMonth(m?: string | number | null): number | null {
-    if (m == null) return null;
-    if (typeof m === 'number') return m >= 1 && m <= 12 ? m : null;
-    if (m === 'all-month') return null;
-    const n = parseInt(String(m), 10);
-    return n >= 1 && n <= 12 ? n : null;
-  }
-
-  /** True jika (month, year) sama dengan bulan & tahun dari 'now' */
-  private isSameMonthYear(
-    monthNum: number | null,
-    yearNum: number | null,
-    now: Date
-  ): boolean {
-    if (monthNum == null || yearNum == null) return false;
-    return (
-      yearNum === now.getFullYear() && monthNum === now.getMonth() + 1
-    );
-  }
-
-  /** Tentukan (year, month) dari filter baru (dukung custom date) */
-  private resolveFilterYearMonth(filter: UiFilter): {
-    yearNum: number | null;
-    monthNum: number | null;
-  } {
-    if (filter.useCustomDate && filter.selectedDate) {
-      const d = new Date(filter.selectedDate);
-      return { yearNum: d.getFullYear(), monthNum: d.getMonth() + 1 };
-    }
-    const yearNum =
-      filter.period != null ? parseInt(String(filter.period), 10) : null;
-    const monthNum = this.normalizeMonth(filter.month ?? null);
-    return { yearNum, monthNum };
-  }
-
-  /** Hitung sisa hari kerja (Mon–Fri). Jika totalHariKerja tersedia → gunakan sebagai plafon */
-  private estimateRemainingWorkdays(
-    year: number,
-    month: number, // 1..12
-    now: Date,
-    totalHariKerja?: number
-  ): number {
-    const firstOfMonth = new Date(year, month - 1, 1);
-    const lastOfMonth = new Date(year, month, 0);
-
-    if (now < firstOfMonth) {
-      const planned = this.countBusinessDaysInclusive(firstOfMonth, lastOfMonth);
-      return totalHariKerja ? Math.min(planned, totalHariKerja) : planned;
-    }
-
-    if (now > lastOfMonth) return 0;
-
-    const used = this.countBusinessDaysInclusive(firstOfMonth, now);
-
-    if (totalHariKerja && totalHariKerja > 0) {
-      return Math.max(0, Math.floor(totalHariKerja - used));
-    }
-
-    const startRemain = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-    return this.countBusinessDaysInclusive(startRemain, lastOfMonth);
-  }
-
-  /** Hitung jumlah hari kerja (Mon–Fri) dari tanggal A s/d B (inklusif). */
-  private countBusinessDaysInclusive(start: Date, end: Date): number {
-    if (end < start) return 0;
-    let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-    const e = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-    let count = 0;
-    while (d <= e) {
-      const day = d.getDay(); // 0=Sun .. 6=Sat
-      if (day !== 0 && day !== 6) count++;
-      d.setDate(d.getDate() + 1);
-    }
-    return count;
+  getBranchDisplayName(branch: string): string {
+    return utilBranchName(branch);
   }
 
   /* ===================== UTIL: build view from cached snapshot ===================== */

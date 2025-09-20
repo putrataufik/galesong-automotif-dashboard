@@ -8,7 +8,7 @@ import {
   OnChanges,
   HostListener,
 } from '@angular/core';
-import { formatCompactCurrency as fmtCurrency } from '../../utils/number-format.utils';
+import { formatCompactNumber as fmtCurrency } from '../../utils/formatCurrency';
 
 @Component({
   selector: 'app-kpi-card',
@@ -26,15 +26,13 @@ export class KpiCardComponent implements OnChanges {
 
   @Input() prevYearValue: string | number | null = null;
   @Input() prevYearSubtitle?: string;
-  @Input() prevYearLabel?: string; // fallback label bebas (opsional)
-  @Input() prevYearName?: string | number | null; // ✅ nama di samping nilai kiri
+  @Input() prevYearLabel?: string;
+  @Input() prevYearName?: string | number | null; 
 
   @Input() prevMonthValue: string | number | null = null;
   @Input() prevMonthSubtitle?: string;
-  @Input() prevMonthLabel?: string; // fallback label bebas (opsional)
-  @Input() prevMonthName?: string; // ✅ nama di samping nilai kanan
-
-  /** Tentukan tipe data utama: 'unit' / 'currency' → numerik; selain itu → teks */
+  @Input() prevMonthLabel?: string; 
+  @Input() prevMonthName?: string; 
   @Input() dataType: 'unit' | 'currency' | null = null;
   @Input() unitLabel: string | null = null;
 

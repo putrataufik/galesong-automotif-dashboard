@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 interface MenuItem {
   path: string;
   label: string;
-  icon: string; 
+  icon: string;
 }
 
 @Component({
@@ -13,7 +13,7 @@ interface MenuItem {
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css'
+  styleUrl: './sidebar.component.css',
 })
 export class SidebarComponent {
   // Angular 19 input/output (hanya untuk mobile)
@@ -24,25 +24,19 @@ export class SidebarComponent {
     {
       path: '/dashboard',
       label: 'Dashboard Utama',
-      icon: 'bi bi-clipboard-data'
+      icon: 'bi bi-clipboard-data',
     },
     {
       path: '/sales-dashboard',
       label: 'Sales Dashboard',
-      icon: 'bi bi-car-front-fill' // icon mobil
+      icon: 'bi bi-car-front-fill', // icon mobil
     },
     {
       path: '/after-sales-dashboard',
       label: 'After Sales Dashboard',
-      icon: 'bi bi-gear-wide-connected'
-    },
-    {
-      path: '/finance-dashboard',
-      label: 'Finance Dashboard',
-      icon: 'bi bi-bank'
+      icon: 'bi bi-gear-wide-connected',
     },
   ];
-
 
   onMenuClick(): void {
     // Close sidebar on mobile after menu click

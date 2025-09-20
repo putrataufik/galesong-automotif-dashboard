@@ -8,8 +8,16 @@ import {
   SalesFilter
 } from '../models/sales.models';
 
+import {
+  formatPeriodByMode,
+  validateDateFormatYYYYMMDD,
+  isDateInFutureLocal,
+  branchNameFromMap,
+  createTimerLogger,
+} from './service-utils';
+
 // ==============================
-// Branch code map & format utils
+// Branch code map
 // ==============================
 
 const BRANCH_CODE_MAP: Record<string, string> = {
@@ -21,32 +29,8 @@ const BRANCH_CODE_MAP: Record<string, string> = {
   '0055': 'SUNGGUMINASA',
 };
 
-
-const MON3_UPPER = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
-const MON3_LOWER = ['jan','feb','mar','apr','mei','jun','jul','agu','sep','okt','nov','des'];
-
-// "2025-09" -> "2025 SEP"
-function formatPeriodMonthYear(period: string): string {
-  if (!period || period.length < 7) return period ?? '';
-  const y = period.slice(0, 4);
-  const m = Number(period.slice(5, 7));
-  const mon = (m >= 1 && m <= 12) ? MON3_UPPER[m - 1] : period.slice(5, 7);
-  return `${y} ${mon}`;
-}
-
-// "2025-09-08" -> "8 sep 2025"
-function formatPeriodCustomDate(period: string): string {
-  if (!period || period.length < 10) return period ?? '';
-  const y = period.slice(0, 4);
-  const m = Number(period.slice(5, 7));
-  const d = Number(period.slice(8, 10));
-  const mon = (m >= 1 && m <= 12) ? MON3_LOWER[m - 1] : period.slice(5, 7);
-  return `${d} ${mon} ${y}`;
-}
-
 function branchNameFromCode(code?: string): string {
-  if (!code) return '';
-  return BRANCH_CODE_MAP[code] ?? code;
+  return branchNameFromMap(BRANCH_CODE_MAP, code);
 }
 
 // ==============================
@@ -65,7 +49,6 @@ export interface UiKpis {
   totalHotProspect?:{ selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
   topBranch?:       { selected?: UiKpiBranchPoint; prevMonth?: UiKpiBranchPoint; prevYear?: UiKpiBranchPoint; prevDate?: UiKpiBranchPoint };
   topModel?:        { selected?: UiKpiModelPoint;  prevMonth?: UiKpiModelPoint;  prevYear?: UiKpiModelPoint;  prevDate?: UiKpiModelPoint  };
-
 }
 
 export interface UiSalesKpiResponse {
@@ -84,32 +67,8 @@ export interface UiSalesKpiResponse {
 @Injectable({ providedIn: 'root' })
 export class SalesApiService extends BaseApiService {
 
-  // Toggle semua console.* debug
   private readonly DEBUG = true;
-
-  private logGroupStart(label: string, data?: unknown) {
-    if (!this.DEBUG) return;
-    console.groupCollapsed(`[SalesApiService] ${label}`);
-    if (data !== undefined) console.log('→', data);
-    console.time(`[TIMER] ${label}`);
-  }
-  private log(...args: any[]) {
-    if (!this.DEBUG) return;
-    console.log('[SalesApiService]', ...args);
-  }
-  private logWarn(...args: any[]) {
-    if (!this.DEBUG) return;
-    console.warn('[SalesApiService]', ...args);
-  }
-  private logError(...args: any[]) {
-    if (!this.DEBUG) return;
-    console.error('[SalesApiService]', ...args);
-  }
-  private logGroupEnd(label: string) {
-    if (!this.DEBUG) return;
-    console.timeEnd(`[TIMER] ${label}`);
-    console.groupEnd();
-  }
+  private readonly L = createTimerLogger('SalesApiService', this.DEBUG);
 
   // ==============================
   // Public API (RAW)
@@ -120,7 +79,7 @@ export class SalesApiService extends BaseApiService {
    */
   getSalesKpiData(filter: SalesFilter): Observable<SalesKpiResponse> {
     const label = `getSalesKpiData ${filter.companyId}`;
-    this.logGroupStart(label, { filter });
+    this.L.groupStart(label, { filter });
 
     const company = filter.companyId;
     const endpoint = 'getSalesReportByDate';
@@ -128,26 +87,26 @@ export class SalesApiService extends BaseApiService {
     // Validasi (versi longgar: year-only boleh)
     const validationError = this.validateFilter(filter);
     if (validationError) {
-      this.logWarn('validateFilter: FAIL →', validationError);
-      this.logGroupEnd(label);
+      this.L.warn('validateFilter: FAIL →', validationError);
+      this.L.groupEnd(label);
       return throwError(() => new Error(validationError));
     } else {
-      this.log('validateFilter: OK');
+      this.L.log('validateFilter: OK');
     }
 
     // Build params
     let params: Record<string, string | number>;
     try {
       params = this.buildSalesKpiParams(filter);
-      this.log('buildSalesKpiParams →', params);
+      this.L.log('buildSalesKpiParams →', params);
     } catch (e) {
-      this.logError('buildSalesKpiParams threw:', e);
-      this.logGroupEnd(label);
+      this.L.error('buildSalesKpiParams threw:', e);
+      this.L.groupEnd(label);
       return throwError(() => e instanceof Error ? e : new Error(String(e)));
     }
 
     const url = `${this.baseUrlOf(company)}/${endpoint}`;
-    this.log('HTTP GET →', { url });
+    this.L.log('HTTP GET →', { url });
 
     return this.http.get<SalesKpiResponse>(
       url,
@@ -157,14 +116,14 @@ export class SalesApiService extends BaseApiService {
       }
     ).pipe(
       tap((res) => {
-        this.log('HTTP OK, response sample →', res);
+        this.L.log('HTTP OK, response sample →', res);
       }),
       catchError((err) => {
-        this.logError('HTTP ERROR captured → forwarding to handleError');
+        this.L.error('HTTP ERROR captured → forwarding to handleError');
         return this.handleError(err);
       }),
       finalize(() => {
-        this.logGroupEnd(label);
+        this.L.groupEnd(label);
       })
     );
   }
@@ -174,13 +133,13 @@ export class SalesApiService extends BaseApiService {
    */
   getSalesKpiView(filter: SalesFilter): Observable<UiSalesKpiResponse> {
     const label = `getSalesKpiView ${filter.companyId}`;
-    this.logGroupStart(label, { filter });
+    this.L.groupStart(label, { filter });
 
     return this.getSalesKpiData(filter).pipe(
-      tap(res => this.log('RAW response →', res)),
+      tap(res => this.L.log('RAW response →', res)),
       map(res => this.toUiResponse(res, !!filter.useCustomDate)),
-      tap(ui => this.log('UI-ready response →', ui)),
-      finalize(() => this.logGroupEnd(label))
+      tap(ui => this.L.log('UI-ready response →', ui)),
+      finalize(() => this.L.groupEnd(label))
     );
   }
 
@@ -193,7 +152,7 @@ export class SalesApiService extends BaseApiService {
     selectedDate: string,
     compare: boolean = true
   ): Observable<SalesKpiResponse> {
-    this.log('getSalesKpiByDate called →', { companyId, selectedDate, compare });
+    this.L.log('getSalesKpiByDate called →', { companyId, selectedDate, compare });
 
     const filter: SalesFilter = {
       companyId,
@@ -214,7 +173,7 @@ export class SalesApiService extends BaseApiService {
     month: string | null,
     compare: boolean = true
   ): Observable<SalesKpiResponse> {
-    this.log('getSalesKpiByMonth called →', { companyId, year, month, compare });
+    this.L.log('getSalesKpiByMonth called →', { companyId, year, month, compare });
 
     const filter: SalesFilter = {
       companyId,
@@ -237,16 +196,16 @@ export class SalesApiService extends BaseApiService {
     const year = now.getFullYear().toString();
     const month = (now.getMonth() + 1).toString();
 
-    this.log('getCurrentMonthSalesKpi → now:', { year, month });
+    this.L.log('getCurrentMonthSalesKpi → now:', { year, month });
 
     return this.getSalesKpiByMonth(companyId, year, month, compare);
   }
 
   getSalesKpiByBranch(filter: SalesFilter): Observable<SalesKpiResponse> {
-    this.log('getSalesKpiByBranch called →', filter);
+    this.L.log('getSalesKpiByBranch called →', filter);
     if (filter.branchId === 'all-branch') {
       const err = 'Branch ID is required for branch-specific data';
-      this.logWarn(err);
+      this.L.warn(err);
       return throwError(() => new Error(err));
     }
     return this.getSalesKpiData(filter);
@@ -256,15 +215,11 @@ export class SalesApiService extends BaseApiService {
   // Adapter: RAW -> UI
   // ==============================
 
-  private formatPeriodByMode(period: string, useCustomDate: boolean): string {
-    return useCustomDate ? formatPeriodCustomDate(period) : formatPeriodMonthYear(period);
-  }
-
   private mapPoint(point: any, useCustomDate: boolean): UiKpiPoint | undefined {
     if (!point) return undefined;
     return {
       value: Number(point.value ?? 0),
-      period: this.formatPeriodByMode(String(point.period ?? ''), useCustomDate),
+      period: formatPeriodByMode(String(point.period ?? ''), useCustomDate)!,
     };
   }
 
@@ -273,7 +228,7 @@ export class SalesApiService extends BaseApiService {
     const code = String(point.code ?? '');
     return {
       value: Number(point.value ?? 0),
-      period: this.formatPeriodByMode(String(point.period ?? ''), useCustomDate),
+      period: formatPeriodByMode(String(point.period ?? ''), useCustomDate)!,
       code,
       branchName: branchNameFromCode(code),
     };
@@ -283,7 +238,7 @@ export class SalesApiService extends BaseApiService {
     if (!point) return undefined;
     return {
       value: Number(point.value ?? 0),
-      period: this.formatPeriodByMode(String(point.period ?? ''), useCustomDate),
+      period: formatPeriodByMode(String(point.period ?? ''), useCustomDate)!,
       name: String(point.name ?? ''),
     };
   }
@@ -345,8 +300,8 @@ export class SalesApiService extends BaseApiService {
       status: String(raw?.status ?? ''),
       message: String(raw?.message ?? ''),
       data: {
-      kpis: ui,
-      request: raw?.data?.request ?? raw?.request ?? null,
+        kpis: ui,
+        request: raw?.data?.request ?? raw?.request ?? null,
       },
     };
   }
@@ -356,7 +311,7 @@ export class SalesApiService extends BaseApiService {
   // ==============================
 
   private buildSalesKpiParams(filter: SalesFilter): Record<string, string | number> {
-    this.log('buildSalesKpiParams(input) →', filter);
+    this.L.log('buildSalesKpiParams(input) →', filter);
 
     const params: Record<string, string | number> = {
       useCustomDate: String(filter.useCustomDate),
@@ -408,44 +363,25 @@ export class SalesApiService extends BaseApiService {
       }
     }
 
-    this.logError('Sales API Error →', errorMessage, { raw: error });
+    this.L.error('Sales API Error →', errorMessage, { raw: error });
     return throwError(() => new Error(errorMessage));
   }
 
   validateDateFormat(date: string): boolean {
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    const ok = dateRegex.test(date) && !isNaN(new Date(date).getTime());
-    this.log('validateDateFormat →', { date, ok });
+    const ok = validateDateFormatYYYYMMDD(date);
+    this.L.log('validateDateFormat →', { date, ok });
     return ok;
   }
 
   isDateInFuture(date: string): boolean {
-  // parse manual biar local midnight, bukan UTC
-  const m = date?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) {
-    this.log('isDateInFuture → invalid format', { date });
-    return false; // atau lempar error sesuai kebutuhanmu
+    const isFuture = isDateInFutureLocal(date);
+    this.L.log('isDateInFuture →', { date, isFuture });
+    return isFuture;
   }
-
-  const y = Number(m[1]);
-  const mo = Number(m[2]) - 1; // 0-based
-  const d = Number(m[3]);
-
-  const inputDate = new Date(y, mo, d); // local midnight
-  inputDate.setHours(0, 0, 0, 0);
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const isFuture = inputDate.getTime() > today.getTime();
-  this.log('isDateInFuture →', { date, inputDate, today, isFuture });
-  return isFuture;
-}
-
 
   // Versi B (longgar): mengizinkan year-only saat useCustomDate=false
   validateFilter(filter: SalesFilter): string | null {
-    this.log('validateFilter(input) →', filter);
+    this.L.log('validateFilter(input) →', filter);
 
     if (!filter.companyId) return 'Company ID is required';
 
@@ -471,7 +407,7 @@ export class SalesApiService extends BaseApiService {
     const key = filter.useCustomDate
       ? `sales_kpi_${filter.companyId}_${filter.branchId}_${filter.selectedDate}_${filter.compare}`
       : `sales_kpi_${filter.companyId}_${filter.branchId}_${filter.year}_${filter.month}_${filter.compare}`;
-    this.log('buildCacheKey →', key);
+    this.L.log('buildCacheKey →', key);
     return key;
   }
 }

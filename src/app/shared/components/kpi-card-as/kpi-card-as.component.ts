@@ -7,7 +7,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { formatCompactNumber } from '../../utils/dashboard-aftersales-kpi.utils';
+import { formatCompactNumber } from '../../utils/formatCurrency';
 
 let __kpiCardAsUid = 0;
 

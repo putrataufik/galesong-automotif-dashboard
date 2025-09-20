@@ -1,97 +1,111 @@
-// src/app/pages/sales-dashboard/sales.utils.ts
-import { UiKpis } from '../../core/services/sales-api.service';
-import { AppFilter } from '../../types/filter.model';
+// src/app/pages/after-sales-dashboard/after-sales.utils.ts
 
-// ====== Bulan Indonesia ======
-export const ID_MONTHS = [
-  'Januari','Februari','Maret','April','Mei','Juni',
-  'Juli','Agustus','September','Oktober','November','Desember'
-] as const;
 
-// ====== Cek KPI kosong (untuk empty state) ======
-export function isUiKpisEmpty(k: UiKpis | null | undefined): boolean {
-  if (!k) return true;
-  const pick = (p?: { selected?: { value?: number } }) => (p?.selected?.value ?? 0);
-  const sum =
-    pick(k.totalUnitSales) +
-    pick(k.totalSPK) +
-    pick(k.totalDO) +
-    (k.topBranch?.selected ? 1 : 0) +
-    (k.topModel?.selected ? 1 : 0);
-  return sum === 0;
+// Tipe opsi dropdown untuk Sisa Hari Kerja
+export type SisaHariOption = { value: number; name: string };
+
+/** Normalisasi month string → number (1..12) */
+export function normalizeMonth(m?: string | number | null): number | null {
+  if (m == null) return null;
+  if (typeof m === 'number') return m >= 1 && m <= 12 ? m : null;
+  if (m === 'all-month') return null;
+  const n = parseInt(String(m), 10);
+  return n >= 1 && n <= 12 ? n : null;
 }
 
-// ====== Formatter tanggal "YYYY-MM-DD" → "D <Bulan> YYYY" ======
-export function formatIndoDate(isoDate: string): string {
-  if (!isoDate) return '';
-  const [yy, mm, dd] = isoDate.split('-').map(Number);
-  if (!yy || !mm || !dd || mm < 1 || mm > 12) return isoDate;
-  return `${dd} ${ID_MONTHS[mm - 1]} ${yy}`;
+/** True jika (month, year) sama dengan bulan & tahun dari 'now' */
+export function isSameMonthYear(
+  monthNum: number | null,
+  yearNum: number | null,
+  now: Date
+): boolean {
+  if (monthNum == null || yearNum == null) return false;
+  return yearNum === now.getFullYear() && monthNum === now.getMonth() + 1;
 }
 
-// ====== Display name helpers ======
-export function getCompanyDisplayName(company: string): string {
-  const companyMap: Record<string, string> = {
-    'sinar-galesong-mobilindo': 'Sinar Galesong Mobilindo',
-    'pt-galesong-otomotif': 'PT Galesong Otomotif',
-    'all-company': 'Semua Perusahaan',
-  };
-  return companyMap[company] || company;
+/** Tentukan (year, month) dari filter (dukung custom date) */
+export function resolveFilterYearMonth(filter: {
+  useCustomDate: boolean;
+  selectedDate?: string | null;
+  period?: string | number | null;
+  month?: string | number | null;
+}): { yearNum: number | null; monthNum: number | null } {
+  if (filter.useCustomDate && filter.selectedDate) {
+    const d = new Date(filter.selectedDate);
+    return { yearNum: d.getFullYear(), monthNum: d.getMonth() + 1 };
+  }
+  const yearNum =
+    filter.period != null ? parseInt(String(filter.period), 10) : null;
+  const monthNum = normalizeMonth(filter.month ?? null);
+  return { yearNum, monthNum };
 }
 
-export function getCategoryDisplayName(category: string): string {
-  const categoryMap: Record<string, string> = {
-    'all-category': 'Semua Kategori',
-    sales: 'Sales',
-  };
-  return categoryMap[category] || category;
+/** Hitung sisa hari kerja (Mon–Fri). Jika totalHariKerja tersedia → gunakan sebagai plafon */
+export function estimateRemainingWorkdays(
+  year: number,
+  month: number, // 1..12
+  now: Date,
+  totalHariKerja?: number
+): number {
+  const firstOfMonth = new Date(year, month - 1, 1);
+  const lastOfMonth = new Date(year, month, 0);
+
+  // Jika periode di masa depan penuh
+  if (now < firstOfMonth) {
+    const planned = countBusinessDaysInclusive(firstOfMonth, lastOfMonth);
+    return totalHariKerja ? Math.min(planned, totalHariKerja) : planned;
+  }
+
+  // Jika sudah lewat
+  if (now > lastOfMonth) return 0;
+
+  // Hari kerja yang sudah terpakai (1..today)
+  const used = countBusinessDaysInclusive(firstOfMonth, now);
+
+  // Jika ada plafon total hari kerja dari backend
+  if (totalHariKerja && totalHariKerja > 0) {
+    return Math.max(0, Math.floor(totalHariKerja - used));
+  }
+
+  // Tanpa plafon → hitung sisa dari besok s/d akhir bulan
+  const startRemain = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1
+  );
+  return countBusinessDaysInclusive(startRemain, lastOfMonth);
+}
+
+/** Hitung jumlah hari kerja (Mon–Fri) dari tanggal A s/d B (inklusif). */
+export function countBusinessDaysInclusive(start: Date, end: Date): number {
+  if (end < start) return 0;
+  let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const e = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  let count = 0;
+  while (d <= e) {
+    const day = d.getDay(); // 0=Sun .. 6=Sat
+    if (day !== 0 && day !== 6) count++;
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
+}
+
+/** Build opsi dropdown N..1 (mis. 7→[7,6,5,4,3,2,1]) */
+export function buildDescendingDayOptions(n: number): SisaHariOption[] {
+  const list: SisaHariOption[] = [];
+  for (let i = n; i >= 1; i--) list.push({ value: i, name: `${i} Hari` });
+  return list;
 }
 
 export function getBranchDisplayName(branch: string): string {
   const branchMap: Record<string, string> = {
     'all-branch': 'Semua Cabang',
-    '0050': 'Pettarani',
-    '0053': 'Gorontalo',
-    '0052': 'Kendari',
-    '0051': 'Palu',
-    '0054': 'Palopo',
+    '0001': 'Pettarani',
+    '0002': 'Gorontalo',
+    '0003': 'Kendari',
+    '0004': 'Palu',
+    '0005': 'Palopo',
+    '0006': 'Sungguminasa',
   };
   return branchMap[branch] || branch;
-}
-
-// ====== Period display name dari AppFilter ======
-export function getPeriodDisplayName(filter: Pick<AppFilter, 'useCustomDate' | 'selectedDate' | 'year' | 'month'>): string {
-  if (filter.useCustomDate && filter.selectedDate) {
-    return formatIndoDate(filter.selectedDate);
-  }
-
-  const year = filter.year;
-  const month = filter.month;
-  const monthMap: Record<string, string> = {
-    'all-month': 'Semua Bulan',
-    '01': 'Januari', '02': 'Februari', '03': 'Maret', '04': 'April',
-    '05': 'Mei', '06': 'Juni', '07': 'Juli', '08': 'Agustus',
-    '09': 'September', '10': 'Oktober', '11': 'November', '12': 'Desember',
-  };
-
-  const yearDisplay = year || 'Semua Tahun';
-  const monthDisplay = monthMap[month || 'all-month'] || month || 'Semua Bulan';
-
-  return month === 'all-month' || !month ? yearDisplay : `${monthDisplay} ${yearDisplay}`;
-}
-
-// ====== Compare (kiri/kanan) helper sederhana (opsional) ======
-export function cmpLeftValue(metric: any, isCustom: boolean): number | string | null {
-  return isCustom ? (metric?.prevDate?.value ?? null)
-                  : (metric?.prevYear?.value ?? null);
-}
-export function cmpLeftSubtitle(metric: any, isCustom: boolean): string | undefined {
-  return isCustom ? (metric?.prevDate?.period ?? undefined)
-                  : (metric?.prevYear?.period ?? undefined);
-}
-export function cmpRightValue(metric: any): number | string | null {
-  return metric?.prevMonth?.value ?? null;
-}
-export function cmpRightSubtitle(metric: any): string | undefined {
-  return metric?.prevMonth?.period ?? undefined;
 }

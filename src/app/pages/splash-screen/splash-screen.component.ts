@@ -24,24 +24,12 @@ export class SplashScreenComponent implements OnInit {
     // Initialize with default values
     this.currentProgress = this.progress || 10;
     this.currentMessage = this.message || 'Memulai aplikasi...';
-
-    console.log('Splash screen initialized:', {
-      progress: this.currentProgress,
-      message: this.currentMessage,
-      hasError: this.hasError,
-    });
   }
 
   ngOnChanges(): void {
     // Update current values when inputs change
     this.currentProgress = this.progress || 10;
     this.currentMessage = this.message || 'Memulai aplikasi...';
-
-    console.log('Splash screen updated:', {
-      progress: this.currentProgress,
-      message: this.currentMessage,
-      hasError: this.hasError,
-    });
   }
 
   onRetry(): void {

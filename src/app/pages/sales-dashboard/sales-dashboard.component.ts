@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
 import { FilterSalesDashboardComponent } from '../../shared/components/filter-sales-dashboard/filter-sales-dashboard.component';
 import { AppFilter } from '../../types/filter.model';
-import { formatCompactCurrency as fmtCurrency } from '../../shared/utils/number-format.utils';
 import { SalesStateService } from '../../core/state/sales-state.service';
 import {
   SalesApiService,
@@ -19,12 +18,8 @@ import {
   getCompanyDisplayName as utilCompanyName,
   getCategoryDisplayName as utilCategoryName,
   getBranchDisplayName as utilBranchName,
-  getPeriodDisplayName as utilPeriodName,
-  cmpLeftValue as utilCmpLeftValue,
-  cmpLeftSubtitle as utilCmpLeftSubtitle,
-  cmpRightValue as utilCmpRightValue,
-  cmpRightSubtitle as utilCmpRightSubtitle,
 } from './sales.utils';
+import { getPeriodDisplayName as utilPeriodName} from '../pages.utils';
 
 type SalesKpiSnapshot<TKpis = UiKpis> = {
   request: any;
@@ -51,8 +46,6 @@ export class SalesDashboardComponent implements OnInit {
   error = signal<string | null>(null);
   hasData = signal(false);
   isDataEmpty = signal(true);
-
-  readonly formatCompactCurrency = fmtCurrency;
 
   // ===== Filter saat ini (UI) =====
   currentFilter: AppFilter = {
@@ -121,12 +114,6 @@ export class SalesDashboardComponent implements OnInit {
         this.hasData.set(true);
         this.isDataEmpty.set(isUiKpisEmpty(resp.data.kpis));
 
-        console.groupCollapsed('[Sales Dashboard] KPI (UI-ready)');
-        console.table(f);
-        console.log('UI Response:', resp);
-        console.log('Snapshot:', snap);
-        console.groupEnd();
-
         const elapsed = performance.now() - start;
         const remain = Math.max(0, this.MIN_SPINNER_MS - elapsed);
         setTimeout(() => this.loading.set(false), remain);
@@ -153,22 +140,6 @@ export class SalesDashboardComponent implements OnInit {
 
   get isCustom(): boolean {
     return !!this.currentFilter.useCustomDate;
-  }
-
-  cmpLeftValue(metric: any): number | string | null {
-    return utilCmpLeftValue(metric, this.isCustom);
-  }
-
-  cmpLeftSubtitle(metric: any): string | undefined {
-    return utilCmpLeftSubtitle(metric, this.isCustom);
-  }
-
-  cmpRightValue(metric: any): number | string | null {
-    return utilCmpRightValue(metric);
-  }
-
-  cmpRightSubtitle(metric: any): string | undefined {
-    return utilCmpRightSubtitle(metric);
   }
 
   // ===== Display helpers (delegasi ke utils; signature tetap agar template tidak berubah) =====
