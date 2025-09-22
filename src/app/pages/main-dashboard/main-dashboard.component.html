@@ -42,6 +42,8 @@
   <!-- ============ KPI Section ============ -->
   @if (!loading()) { @if (kpis(); as data) {
   <div class="row g-2 mb-2">
+    @if(currentFilter.category ==='sales' || currentFilter.category
+    ==='all-category') {
     <div class="col-12">
       <div
         class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
@@ -52,6 +54,7 @@
         </div>
       </div>
     </div>
+
     <!-- Total SPK -->
     <div class="col-6 col-sm-4 col-md-3 col-lg-2">
       <app-kpi-card
@@ -171,15 +174,123 @@
         [prevMonthName]="data.topBranch?.prevMonth?.value + ' unit'"
       />
     </div>
+    <div class="row g-3 align-items-stretch">
+      <!-- Trend Unit Terjual -->
+      <section class="col-12 col-md-6 col-xl-4">
+        @let series = trendLineSeries(); @if (trendLoading()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Memuat tren...
+        </div>
+        } @else if (trendError()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          {{ trendError() }}
+        </div>
+        } @else if (series.length) {
+        <app-line-chart-card
+          class="h-100"
+          [title]="'Trend Unit Terjual per Bulan'"
+          [labels]="MONTH_LABELS"
+          [datasets]="series"
+          [showLegend]="true"
+          [height]="251"
+          xtitle="Bulan"
+          ytitle="Unit"
+        ></app-line-chart-card>
+        } @else {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Tidak ada data tren.
+        </div>
+        }
+      </section>
+
+      <!-- DO vs SPK -->
+      <section class="col-12 col-md-6 col-xl-4">
+        @let series2 = doSpkLineSeries(); @if (doSpkLoading()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Memuat DO vs SPK...
+        </div>
+        } @else if (doSpkError()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          {{ doSpkError() }}
+        </div>
+        } @else if (series2.length) {
+        <app-line-chart-card
+          class="h-100"
+          [title]="'DO vs SPK per Bulan'"
+          [labels]="MONTH_LABELS"
+          [datasets]="series2"
+          [showLegend]="true"
+          [height]="251"
+          xtitle="Bulan"
+          ytitle="Jumlah"
+        ></app-line-chart-card>
+        } @else {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Tidak ada data DO vs SPK.
+        </div>
+        }
+      </section>
+
+      <!-- Model Distribution YoY/MoM -->
+      <section class="col-12 col-xl-4">
+        @let rows = modelDistRows(); @if (modelDistLoading()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Memuat distribusi model...
+        </div>
+        } @else if (modelDistError()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          {{ modelDistError() }}
+        </div>
+        } @else if (rows.length) {
+        <app-yoy-progress-list
+          [title]="'Proporsi Penjualan per Model'"
+          [unit]="'Unit'"
+          [items]="modelDistRows()"
+          [maxRows]="100"
+          [compare]="compare"
+          [labelCurr]="modelLabelCurr()"
+          [labelPrevY]="modelLabelPrevY()"
+          [labelPrevM]="modelLabelPrevM()"
+        ></app-yoy-progress-list>
+
+        } @else {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Tidak ada data distribusi model.
+        </div>
+        }
+      </section>
+    </div>
+    }
   </div>
+  @if(currentFilter.category ==='after-sales' || currentFilter.category
+  ==='all-category') {
+
   <div class="row g-2 mb-2">
     <div class="col-12">
       <div
         class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
       >
         <div class="d-flex align-items-center">
-          <i class="bi bi-speedometer2 text-info me-2 fs-5"></i>
-          <h6 class="mb-0 fw-bold text-dark">Sales Performance</h6>
+          <i class="bi bi-wrench text-info me-2 fs-5"></i>
+          <h6 class="mb-0 fw-bold text-dark">After Sales Performance</h6>
         </div>
       </div>
     </div>
@@ -322,7 +433,7 @@
       />`
     </div>
   </div>
-  } @else {
+  } } @else {
   <!-- Empty State (no data) -->
   <div class="row">
     <div class="col-12">

@@ -62,11 +62,11 @@
       <app-kpi-card
         [title]="'Total SPK'"
         dataType="unit"
-        [subtitle]="compare ? '' : 'Surat Pemesanan Kendaraan'"
+        [subtitle]="currentFilter.compare ? '' : 'Surat Pemesanan Kendaraan'"
         info="Jumlah surat pemesanan kendaraan (SPK) pada periode terpilih."
         [period]="sales.totalSPK?.selected?.period ?? undefined"
         [value]="sales.totalSPK?.selected?.value ?? 0"
-        [compareMode]="compare"
+        [compareMode]="currentFilter.compare"
         unitLabel="unit"
         [prevYearValue]="
           sales.totalSPK?.prevYear?.value ??
@@ -87,11 +87,11 @@
       <app-kpi-card
         [title]="'Total DO'"
         dataType="unit"
-        [subtitle]="compare ? '' : 'Delivery Order'"
+        [subtitle]="currentFilter.compare ? '' : 'Delivery Order'"
         info="Jumlah unit yang telah dibuatkan Delivery Order pada periode terpilih."
         [period]="sales.totalDO?.selected?.period ?? undefined"
         [value]="sales.totalDO?.selected?.value ?? 0"
-        [compareMode]="compare"
+        [compareMode]="currentFilter.compare"
         unitLabel="unit"
         [prevYearValue]="
           sales.totalDO?.prevYear?.value ?? sales.totalDO?.prevDate?.value ?? 0
@@ -110,11 +110,11 @@
       <app-kpi-card
         [title]="'Total Prospek'"
         dataType="unit"
-        [subtitle]="compare ? '' : 'Prospek Penjualan'"
+        [subtitle]="currentFilter.compare ? '' : 'Prospek Penjualan'"
         info="Jumlah unit yang telah dibuatkan Prospek Penjualan pada periode terpilih."
         [period]="sales.totalProspect?.selected?.period ?? undefined"
         [value]="sales.totalProspect?.selected?.value ?? 0"
-        [compareMode]="compare"
+        [compareMode]="currentFilter.compare"
         unitLabel="unit"
         [prevYearValue]="
           sales.totalProspect?.prevYear?.value ??
@@ -137,11 +137,11 @@
       <app-kpi-card
         [title]="'Total Hot Prospek'"
         dataType="unit"
-        [subtitle]="compare ? '' : 'Prospek Penjualan'"
+        [subtitle]="currentFilter.compare ? '' : 'Prospek Penjualan'"
         info="Jumlah hot prospek pada periode terpilih."
         [period]="sales.totalHotProspect?.selected?.period ?? undefined"
         [value]="sales.totalHotProspect?.selected?.value ?? 0"
-        [compareMode]="compare"
+        [compareMode]="currentFilter.compare"
         unitLabel="unit"
         [prevYearValue]="
           sales.totalHotProspect?.prevYear?.value ??
@@ -165,11 +165,11 @@
       <app-kpi-card
         [title]="'Total Unit Sales'"
         dataType="unit"
-        [subtitle]="compare ? '' : 'Total unit terjual'"
+        [subtitle]="currentFilter.compare ? '' : 'Total unit terjual'"
         info="Total unit yang terjual pada periode terpilih."
         [period]="sales.totalUnitSales?.selected?.period ?? undefined"
         [value]="sales.totalUnitSales?.selected?.value ?? 0"
-        [compareMode]="compare"
+        [compareMode]="currentFilter.compare"
         unitLabel="unit"
         [prevYearValue]="
           sales.totalUnitSales?.prevYear?.value ??
@@ -196,7 +196,7 @@
         dataType="unit"
         info="Model dengan penjualan tertinggi pada periode terpilih."
         [period]="sales.topModel?.selected?.period ?? undefined"
-        [compareMode]="compare"
+        [compareMode]="currentFilter.compare"
         unitLabel="unit"
         [prevYearValue]="sales.topModel?.prevYear?.name ?? null"
         [prevYearSubtitle]="sales.topModel?.prevYear?.period ?? undefined"
@@ -215,7 +215,7 @@
         [period]="sales.topBranch?.selected?.period ?? undefined"
         [value]="sales.topBranch?.selected?.branchName ?? 0"
         [subtitle]="sales.topBranch?.selected?.value + ' unit'"
-        [compareMode]="compare"
+        [compareMode]="currentFilter.compare"
         unitLabel="unit"
         [prevYearValue]="sales.topBranch?.prevYear?.branchName ?? null"
         [prevYearSubtitle]="sales.topBranch?.prevYear?.period ?? undefined"
@@ -227,6 +227,71 @@
     </div>
   </div>
   }
+
+   <div class="row g-3 align-items-stretch">
+    <!-- Trend Unit Terjual -->
+    <section class="col-12 col-sm-6 col-lg-4">
+      @let series = trendLineSeries();
+      @if (series.length) {
+      <app-line-chart-card
+        class="h-100"
+        [title]="'Trend Unit Terjual per Bulan'"
+        [labels]="MONTH_LABELS"  
+        [datasets]="series"
+        [showLegend]="true"
+        [height]="251"
+        xtitle="Bulan"
+        ytitle="Unit"
+      ></app-line-chart-card>
+      } @else {
+      <div class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center">
+        Tidak ada data tren untuk periode ini.
+      </div>
+      }
+    </section>
+
+    <!-- DO vs SPK -->
+    <section class="col-12 col-sm-6 col-lg-4">
+      @let series2 = doSpkLineSeries();
+      @if (series2.length) {
+      <app-line-chart-card
+        class="h-100"
+        [title]="'DO vs SPK per Bulan'"
+        [labels]="MONTH_LABELS"   
+        [datasets]="series2"
+        [showLegend]="true"
+        [height]="251"
+        xtitle="Bulan"
+        ytitle="Jumlah"
+      ></app-line-chart-card>
+      } @else {
+      <div class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center">
+        Tidak ada data DO vs SPK untuk periode ini.
+      </div>
+      }
+    </section>
+
+    <!-- Model Distribution -->
+    <section class="col-12 col-sm-12 col-lg-4">
+      @let items = modelDistItems();
+      @if (items.length) {
+      <app-yoy-progress-list
+        [title]="'Proporsi Penjualan per Model'"
+        [unit]="'Unit'"
+        [items]="items"
+        [maxRows]="100"
+        [compare]="currentFilter.compare ?? false" 
+        [labelCurr]="modelLabelCurr()"
+        [labelPrevY]="modelLabelPrevY()"
+        [labelPrevM]="modelLabelPrevM()"
+      ></app-yoy-progress-list>
+      } @else {
+      <div class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center">
+        Tidak ada data distribusi model untuk periode ini.
+      </div>
+      }
+    </section>
+  </div>
 
   <!-- =============== Sales Charts Section (opsional; render jika ada data) =============== -->
   } }

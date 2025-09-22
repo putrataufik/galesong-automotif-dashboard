@@ -33,7 +33,7 @@ export function getCompanyDisplayName(company: string): string {
 export function getCategoryDisplayName(category: string): string {
   const categoryMap: Record<string, string> = {
     'all-category': 'Semua Kategori',
-    sales: 'Sales',
+    sales: 'Sales', 'after-sales': 'After Sales',
   };
   return categoryMap[category] || category;
 }

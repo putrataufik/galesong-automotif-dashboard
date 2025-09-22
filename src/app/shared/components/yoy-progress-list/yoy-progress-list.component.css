@@ -1,30 +1,53 @@
 /* Badge kecil untuk header kolom */
 .badge-pill {
   display: inline-block;
-  padding: .15rem .4rem;
+  padding: 0.15rem 0.4rem;
   border-radius: 999px;
-  font-size: .65rem;
+  font-size: 0.65rem;
   font-weight: 600;
 }
-.badge-pill.curr  { background: #e9f7ef; color: #166534; }
-.badge-pill.prevY { background: #f1f3f5; color: #334155; }
-.badge-pill.prevM { background: #eef4ff; color: #1e40af; }
+.badge-pill.curr {
+  background: #e9f7ef;
+  color: #166534;
+}
+.badge-pill.prevY {
+  background: #f1f3f5;
+  color: #334155;
+}
+.badge-pill.prevM {
+  background: #eef4ff;
+  color: #1e40af;
+}
 
 /* Bar wrapper - lebih tipis */
 .bar {
   position: relative;
-  height: 12px;   /* sebelumnya 24px → compact */
+  height: 12px; /* sebelumnya 24px → compact */
   border-radius: 999px;
   overflow: hidden;
   background-color: #c4c4c4;
 }
 
 /* Fill warna */
-.fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; }
-.fill.curr.up   { background: #22c55e; }
-.fill.curr.down { background: #ef4444; }
-.fill.prev      { background: #6b7280; }
-.fill.prevM     { background: #3b82f6; }
+.fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+}
+.fill.curr.up {
+  background: #22c55e;
+}
+.fill.curr.down {
+  background: #ef4444;
+}
+.fill.prev {
+  background: #6b7280;
+}
+.fill.prevM {
+  background: #3b82f6;
+}
 
 /* Nilai di tengah – kecil */
 .val {
@@ -33,15 +56,52 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: .65rem;     /* lebih kecil */
+  font-size: 0.65rem; /* lebih kecil */
   font-weight: 600;
   color: #000000;
 }
-.val-center { text-align: center; }
+.val-center {
+  text-align: center;
+}
 
 /* Row list lebih rapat */
 .list .row {
-  padding-top: .15rem;
-  padding-bottom: .15rem;
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
 }
-.list .row + .row { border-top: 1px dashed #e5e7eb; }
+.list .row + .row {
+  border-top: 1px dashed #e5e7eb;
+}
+
+/* Card lebih tinggi, isi tetap */
+.kpi-card-tall {
+  --card-fixed-height: 250px;   /* ubah sesuai selera: 400–520px */
+  height: var(--card-fixed-height);
+  min-height: var(--card-fixed-height);
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* Semua anak card mempertahankan tinggi intrinsik (tidak melar) */
+.kpi-card-tall > * {
+  flex: 0 0 auto;
+}
+
+/* Spacer fleksibel untuk mengisi ruang kosong di bawah, tidak mempengaruhi konten */
+.kpi-card-tall::after {
+  content: "";
+  flex: 1 1 auto;
+}
+
+/* Pastikan tidak ada scaling tak sengaja dari bar/list */
+.kpi-card-tall .list,
+.kpi-card-tall .kpi-row,
+.kpi-card-tall .bar {
+  flex: 0 0 auto;         /* tidak ikut mengisi tinggi card */
+}
+
+/* Opsional: variant mobile sedikit lebih pendek, tetap tanpa memperbesar isi */
+@media (max-width: 576px) {
+  .kpi-card-tall { --card-fixed-height: 380px; }
+}

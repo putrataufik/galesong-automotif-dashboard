@@ -1,6 +1,6 @@
 <!-- src/app/shared/components/kpi-card/kpi-card.component.html -->
 <div
-  class="kpi-card-compact bg-white rounded-3 pt-4 px-3 pb-3 h-100 shadow-sm border-0 position-relative overflow-visible d-flex flex-column justify-content-center"
+  class="kpi-card-compact bg-white rounded-3 pt-4 pb-3 h-100 shadow-sm border-0 position-relative overflow-visible d-flex flex-column justify-content-center"
 >
   <!-- Info button -->
   <button
@@ -20,14 +20,17 @@
         {{ info }}
       </ng-container>
       <ng-template #defaultInfo>
-        {{ title }} — nilai saat ini dibandingkan YoY &amp; MoM mengikuti periode terpilih.
+        {{ title }} — nilai saat ini dibandingkan YoY &amp; MoM mengikuti
+        periode terpilih.z
       </ng-template>
     </div>
   </div>
 
   <!-- ========== Compare ON ========== -->
   <ng-container *ngIf="compare(); else normalBlock">
-    <div class="content-compact d-flex flex-column align-items-center justify-content-center gap-2 w-100">
+    <div
+      class="content-compact d-flex flex-column align-items-center justify-content-center gap-2 w-100"
+    >
       <!-- Title -->
       <div class="kpi-title-compact text-muted text-center text-uppercase">
         {{ title }}
@@ -48,12 +51,16 @@
           <div class="row g-2 text-center align-items-center">
             <!-- KIRI: Prev Year / Prev Date -->
             <div class="col-6">
-              <div class="kpi-title-compact text-muted text-center text-uppercase">
-                {{ prevYearSubtitle || 'Prev' }}
+              <div
+                class="kpi-title-compact text-muted text-center text-uppercase"
+              >
+                {{ prevYearSubtitle || "Prev" }}
               </div>
 
               <!-- ⬇️ value di atas, name/label di baris bawah -->
-              <div class="d-flex flex-column align-items-center justify-content-center">
+              <div
+                class="d-flex flex-column align-items-center justify-content-center"
+              >
                 <span
                   class="comparison-main-value"
                   [class.kpi-down]="yoy.dir === 'up'"
@@ -62,23 +69,32 @@
                   {{ formatValueWithUnit(prevYearValue) }}
                 </span>
 
-                <small class="text-muted-name" *ngIf="prevYearName; else prevYearLabelTpl">
+                <small
+                  class="text-muted-name"
+                  *ngIf="prevYearName; else prevYearLabelTpl"
+                >
                   {{ prevYearName }}
                 </small>
                 <ng-template #prevYearLabelTpl>
-                  <small class="text-muted-name" *ngIf="prevYearLabel">{{ prevYearLabel }}</small>
+                  <small class="text-muted-name" *ngIf="prevYearLabel">{{
+                    prevYearLabel
+                  }}</small>
                 </ng-template>
               </div>
             </div>
 
             <!-- KANAN: Prev Month -->
             <div class="col-6 border-start">
-              <div class="kpi-title-compact text-muted text-center text-uppercase">
-                {{ prevMonthSubtitle || 'Prev Month' }}
+              <div
+                class="kpi-title-compact text-muted text-center text-uppercase"
+              >
+                {{ prevMonthSubtitle || "Prev Month" }}
               </div>
 
               <!-- ⬇️ value di atas, name/label di baris bawah -->
-              <div class="d-flex flex-column align-items-center justify-content-center">
+              <div
+                class="d-flex flex-column align-items-center justify-content-center"
+              >
                 <span
                   class="comparison-main-value"
                   [class.kpi-down]="mom.dir === 'up'"
@@ -87,11 +103,16 @@
                   {{ formatValueWithUnit(prevMonthValue) }}
                 </span>
 
-                <small class="text-muted-name" *ngIf="prevMonthName; else prevMonthLabelTpl">
+                <small
+                  class="text-muted-name"
+                  *ngIf="prevMonthName; else prevMonthLabelTpl"
+                >
                   {{ prevMonthName }}
                 </small>
                 <ng-template #prevMonthLabelTpl>
-                  <small class="text-muted-name" *ngIf="prevMonthLabel">{{ prevMonthLabel }}</small>
+                  <small class="text-muted-name" *ngIf="prevMonthLabel">{{
+                    prevMonthLabel
+                  }}</small>
                 </ng-template>
               </div>
             </div>
@@ -102,11 +123,13 @@
         <ng-container *ngIf="yoy && !mom">
           <div class="d-flex flex-column align-items-center text-center">
             <div class="kpi-title-compact text-muted text-uppercase">
-              {{ prevYearSubtitle || 'Prev Year' }}
+              {{ prevYearSubtitle || "Prev Year" }}
             </div>
 
             <!-- ⬇️ value di atas, name/label di baris bawah -->
-            <div class="d-flex flex-column align-items-center justify-content-center">
+            <div
+              class="d-flex flex-column align-items-center justify-content-center"
+            >
               <span
                 class="comparison-main-value"
                 [class.kpi-down]="yoy.dir === 'up'"
@@ -115,11 +138,16 @@
                 {{ formatValueWithUnit(prevYearValue) }}
               </span>
 
-              <small class="text-muted-name" *ngIf="prevYearName; else onlyPrevYearLabelTpl">
+              <small
+                class="text-muted-name"
+                *ngIf="prevYearName; else onlyPrevYearLabelTpl"
+              >
                 {{ prevYearName }}
               </small>
               <ng-template #onlyPrevYearLabelTpl>
-                <small class="text-muted-name" *ngIf="prevYearLabel">{{ prevYearLabel }}</small>
+                <small class="text-muted-name" *ngIf="prevYearLabel">{{
+                  prevYearLabel
+                }}</small>
               </ng-template>
             </div>
           </div>
@@ -135,7 +163,9 @@
 
   <!-- ========== Compare OFF ========== -->
   <ng-template #normalBlock>
-    <div class="content-compact d-flex flex-column align-items-center justify-content-center gap-2 w-100 text-center">
+    <div
+      class="content-compact d-flex flex-column align-items-center justify-content-center gap-2 w-100 text-center"
+    >
       <div class="kpi-title-compact text-muted text-uppercase">{{ title }}</div>
       <div class="text-center">
         <div class="d-flex justify-content-center align-items-center gap-1">
@@ -152,7 +182,11 @@
     class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
     style="backdrop-filter: blur(1px)"
   >
-    <div class="spinner-border spinner-border-sm text-primary" role="status" aria-label="Loading">
+    <div
+      class="spinner-border spinner-border-sm text-primary"
+      role="status"
+      aria-label="Loading"
+    >
       <span class="visually-hidden">Loading...</span>
     </div>
   </div>

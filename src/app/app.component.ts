@@ -24,11 +24,17 @@ import { SalesFilter } from './core/models/sales.models';
 
 // Auth
 import { AuthService } from './core/services/auth.service';
+import { AfterSalesDashboardStateService } from './core/state/after-sales-state.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SidebarComponent, SplashScreenComponent],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    SidebarComponent,
+    SplashScreenComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
@@ -50,6 +56,7 @@ export class AppComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly salesApi = inject(SalesApiService);
   private readonly afterSalesApi = inject(AfterSalesApiService);
+  private readonly asState = inject(AfterSalesDashboardStateService);
   private readonly mainState = inject(MainDashboardStateService);
   private readonly salesState = inject(SalesStateService);
   private readonly auth = inject(AuthService);
@@ -104,7 +111,9 @@ export class AppComponent implements OnInit {
       console.log('[AUTO-LOGIN] Raw login response:', loginResp);
 
       if (!row) {
-        console.warn('[AUTO-LOGIN] Response tidak berisi data[0]. (DEV: tidak redirect)');
+        console.warn(
+          '[AUTO-LOGIN] Response tidak berisi data[0]. (DEV: tidak redirect)'
+        );
         return 'redirect';
       }
 
@@ -112,11 +121,15 @@ export class AppComponent implements OnInit {
 
       if (status === '1') {
         if (!row.user_id) {
-          console.warn('[AUTO-LOGIN] status=1 tapi user_id kosong. (DEV: tidak redirect)');
+          console.warn(
+            '[AUTO-LOGIN] status=1 tapi user_id kosong. (DEV: tidak redirect)'
+          );
           return 'redirect';
         }
 
-        const userResp: any = await this.auth.fetchUser(String(row.user_id)).toPromise();
+        const userResp: any = await this.auth
+          .fetchUser(String(row.user_id))
+          .toPromise();
 
         console.group('[AUTO-LOGIN] User Data');
         console.log('Raw user response:', userResp);
@@ -132,20 +145,30 @@ export class AppComponent implements OnInit {
 
         sessionStorage.setItem('auth.user', JSON.stringify(userResp));
 
-        history.replaceState({}, '', window.location.origin + window.location.pathname);
+        history.replaceState(
+          {},
+          '',
+          window.location.origin + window.location.pathname
+        );
         return 'ok';
       }
 
       if (status === '0') {
-        console.warn('[AUTO-LOGIN] Status 0 / token invalid. (DEV: tidak redirect)');
+        console.warn(
+          '[AUTO-LOGIN] Status 0 / token invalid. (DEV: tidak redirect)'
+        );
         return 'redirect';
       }
 
-      console.warn(`[AUTO-LOGIN] Status tidak dikenal: ${status}. (DEV: tidak redirect)`);
+      console.warn(
+        `[AUTO-LOGIN] Status tidak dikenal: ${status}. (DEV: tidak redirect)`
+      );
       return 'redirect';
     } catch (err) {
       console.error('[AUTO-LOGIN] error:', err);
-      console.warn('[AUTO-LOGIN] Gagal verifikasi token. (DEV: tidak redirect)');
+      console.warn(
+        '[AUTO-LOGIN] Gagal verifikasi token. (DEV: tidak redirect)'
+      );
       return 'redirect';
     }
   }
@@ -165,8 +188,9 @@ export class AppComponent implements OnInit {
 
       // Jalankan preload: Main (isi state khusus Main) + Sales (isi state halaman Sales)
       await Promise.all([
-        this.preloadMainDashboardData(),   // → state Main
-        this.preloadSalesDashboardData(),  // → state Sales (terpisah)
+        this.preloadMainDashboardData(), // → state Main
+        this.preloadSalesDashboardData(), // → state Sales (terpisah)
+        this.preloadAfterSalesDashboardData(),
       ]);
 
       console.log('Data preload completed');
@@ -180,7 +204,9 @@ export class AppComponent implements OnInit {
     } catch (error) {
       console.error('App initialization failed:', error);
       this._hasError.set(true);
-      this._splashMessage.set('Gagal memuat data. Aplikasi akan tetap berjalan...');
+      this._splashMessage.set(
+        'Gagal memuat data. Aplikasi akan tetap berjalan...'
+      );
       await this.delay(500);
       this._isAppReady.set(true);
     }
@@ -188,117 +214,366 @@ export class AppComponent implements OnInit {
 
   // ===== Preload main dashboard (ISI STATE MAIN: Sales + After Sales) =====
   private async preloadMainDashboardData(): Promise<void> {
-    const currentYear = new Date().getFullYear();
-    const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+  const currentYear = new Date().getFullYear();
+  const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
 
-    const mainFilter: SalesFilter = {
-      companyId: 'sinar-galesong-mobilindo',
-      branchId: 'all-branch',
-      useCustomDate: false,
-      compare: true,
-      year: String(currentYear),
-      month: currentMonth,
-      selectedDate: null,
+  const mainFilter: SalesFilter = {
+    companyId: 'sinar-galesong-mobilindo',
+    branchId: 'all-branch',
+    useCustomDate: false,
+    compare: true,
+    year: String(currentYear),
+    month: currentMonth,
+    selectedDate: null,
+  };
+
+  // Selalu resolve agar splash tidak nyangkut meski sebagian gagal.
+  return new Promise((resolve) => {
+    // Simpan filter utk Main sekali di awal
+    this.mainState.saveFilter(mainFilter);
+
+    // ====== Sumber data ======
+    const sales$ = this.salesApi.getSalesKpiView(mainFilter);
+    const after$ = this.afterSalesApi.getAfterSalesView(mainFilter);
+
+    const trend$ = this.salesApi.getSalesTrendMonthlyRaw(
+      mainFilter.companyId,
+      mainFilter.year!,               // "YYYY"
+      !!mainFilter.compare
+    );
+
+    const dovs$ = this.salesApi.getDoVsSpkMonthlyRaw(
+      mainFilter.companyId,
+      mainFilter.year!                // "YYYY"
+    );
+
+    const mdist$ = this.salesApi.getModelDistributionMonthlyRaw(
+      mainFilter.companyId,
+      mainFilter.year!,               // "YYYY"
+      mainFilter.month!,              // "MM"
+      !!mainFilter.compare
+    );
+
+    // ====== Flags selesai ======
+    let doneSales = false;
+    let doneAfter = false;
+    let doneTrend = false;
+    let doneDovs  = false;
+    let doneMdist = false;
+
+    const tryFinish = () => {
+      if (doneSales && doneAfter && doneTrend && doneDovs && doneMdist) {
+        resolve();
+      }
     };
 
-    // Kita buat selalu resolve agar splash tidak nyangkut meski salah satu gagal.
-    return new Promise((resolve) => {
-      const sales$ = this.salesApi.getSalesKpiView(mainFilter);
-      const after$ = this.afterSalesApi.getAfterSalesView(mainFilter);
-
-      let doneSales = false;
-      let doneAfter = false;
-
-      const tryFinish = () => {
-        if (doneSales && doneAfter) resolve();
-      };
-
-      sales$.subscribe({
-        next: (salesResp) => {
-          const salesSnap: MainSalesSnapshot = {
-            request: salesResp.data.request,
-            kpis: salesResp.data.kpis,
-            timestamp: Date.now(),
-          };
-          this.mainState.saveFilter(mainFilter);       // simpan filter utk Main
-          this.mainState.saveSalesSnapshot(salesSnap); // simpan Sales utk Main
-          console.log('[Preload Main] Sales OK');
-          doneSales = true;
-          tryFinish();
-        },
-        error: (err) => {
-          console.error('[Preload Main] Sales FAIL:', err);
-          // tetap tandai selesai agar tidak blok init
-          doneSales = true;
-          tryFinish();
-        },
-      });
-
-      after$.subscribe({
-        next: (asResp) => {
-          const afterSnap: MainAfterSalesSnapshot = {
-            request: asResp.data.request,
-            selected: asResp.data.kpi_data.selected,
-            prevDate: asResp.data.kpi_data.comparisons?.prevDate,
-            prevMonth: asResp.data.kpi_data.comparisons?.prevMonth,
-            prevYear: asResp.data.kpi_data.comparisons?.prevYear,
-            proporsi: asResp.data.proporsi_after_sales?.data.items ?? [],
-            timestamp: Date.now(),
-          };
-          this.mainState.saveAfterSnapshot(afterSnap); // simpan After Sales utk Main
-          console.log('[Preload Main] After Sales OK');
-          doneAfter = true;
-          tryFinish();
-        },
-        error: (err) => {
-          console.error('[Preload Main] After Sales FAIL:', err);
-          doneAfter = true;
-          tryFinish();
-        },
-      });
+    // ====== SALES KPI ======
+    sales$.subscribe({
+      next: (salesResp) => {
+        const salesSnap: MainSalesSnapshot = {
+          request: salesResp.data.request,
+          kpis: salesResp.data.kpis,
+          timestamp: Date.now(),
+        };
+        this.mainState.saveSalesSnapshot(salesSnap);
+        console.log('[Preload Main] Sales KPI OK');
+        doneSales = true;
+        tryFinish();
+      },
+      error: (err) => {
+        console.error('[Preload Main] Sales KPI FAIL:', err);
+        doneSales = true;
+        tryFinish();
+      },
     });
-  }
 
-  // ===== Preload sales dashboard (ISI STATE SALES: halaman Sales terpisah) =====
+    // ====== AFTER-SALES KPI ======
+    after$.subscribe({
+      next: (asResp) => {
+        const afterSnap: MainAfterSalesSnapshot = {
+          request: asResp.data.request,
+          selected: asResp.data.kpi_data.selected,
+          prevDate: asResp.data.kpi_data.comparisons?.prevDate,
+          prevMonth: asResp.data.kpi_data.comparisons?.prevMonth,
+          prevYear: asResp.data.kpi_data.comparisons?.prevYear,
+          proporsi: asResp.data.proporsi_after_sales?.data.items ?? [],
+          timestamp: Date.now(),
+        };
+        this.mainState.saveAfterSnapshot(afterSnap);
+        console.log('[Preload Main] After-Sales KPI OK');
+        doneAfter = true;
+        tryFinish();
+      },
+      error: (err) => {
+        console.error('[Preload Main] After-Sales KPI FAIL:', err);
+        doneAfter = true;
+        tryFinish();
+      },
+    });
+
+    // ====== GRAFIK: TREND (Unit Terjual bulanan) ======
+    trend$.subscribe({
+      next: (tResp) => {
+        const datasets = tResp?.data?.salesMontlyTrend?.datasets ?? [];
+        this.mainState.saveTrendSnapshot({
+          companyId: mainFilter.companyId,
+          year: mainFilter.year!,
+          compare: !!mainFilter.compare,
+          datasets,
+        });
+        console.log('[Preload Main] Trend Monthly OK');
+        doneTrend = true;
+        tryFinish();
+      },
+      error: (err) => {
+        console.error('[Preload Main] Trend Monthly FAIL:', err);
+        doneTrend = true;
+        tryFinish();
+      },
+    });
+
+    // ====== GRAFIK: DO vs SPK ======
+    dovs$.subscribe({
+      next: (dResp) => {
+        const datasets = dResp?.data?.DOvsSPKMontlyTrend?.datasets ?? [];
+        this.mainState.saveDoVsSpkSnapshot({
+          companyId: mainFilter.companyId,
+          year: mainFilter.year!,
+          datasets,
+        });
+        console.log('[Preload Main] DOvsSPK Monthly OK');
+        doneDovs = true;
+        tryFinish();
+      },
+      error: (err) => {
+        console.error('[Preload Main] DOvsSPK Monthly FAIL:', err);
+        doneDovs = true;
+        tryFinish();
+      },
+    });
+
+    // ====== GRAFIK: Distribusi Model (current / prevM / prevY) ======
+    mdist$.subscribe({
+      next: (mResp) => {
+        this.mainState.saveModelDistSnapshot({
+          companyId: mainFilter.companyId,
+          year: mainFilter.year!,
+          month: mainFilter.month!,
+          compare: !!mainFilter.compare,
+          current: mResp?.data?.current,
+          prevMonth: mResp?.data?.prevMonth,
+          prevYear: mResp?.data?.prevYear,
+        });
+        console.log('[Preload Main] Model Distribution Monthly OK');
+        doneMdist = true;
+        tryFinish();
+      },
+      error: (err) => {
+        console.error('[Preload Main] Model Distribution Monthly FAIL:', err);
+        doneMdist = true;
+        tryFinish();
+      },
+    });
+  });
+}
+
+
   private async preloadSalesDashboardData(): Promise<void> {
-    const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
 
-    const salesFilter: SalesFilter = {
-      companyId: 'sinar-galesong-mobilindo',
-      branchId: 'all-branch',
-      useCustomDate: true,
-      compare: true,
-      year: null,
-      month: null,
-      selectedDate: today,
+  const salesFilter: SalesFilter = {
+    companyId: 'sinar-galesong-mobilindo',
+    branchId: 'all-branch',
+    useCustomDate: true,
+    compare: true,
+    year: null,
+    month: null,
+    selectedDate: today,
+  };
+
+  // derive year & month dari selectedDate (karena useCustomDate = true)
+  const year = today.slice(0, 4);
+  const month = today.slice(5, 7);
+
+  return new Promise<void>((resolve) => {
+    // simpan filter ke state Sales sekali di awal
+    this.salesState.saveFilter(salesFilter);
+
+    // ===== sumber data =====
+    const kpi$   = this.salesApi.getSalesKpiView(salesFilter);
+    const trend$ = this.salesApi.getSalesTrendMonthlyRaw(
+      salesFilter.companyId,
+      year,
+      !!salesFilter.compare
+    );
+    const dovs$  = this.salesApi.getDoVsSpkMonthlyRaw(
+      salesFilter.companyId,
+      year
+    );
+    const mdist$ = this.salesApi.getModelDistributionMonthlyRaw(
+      salesFilter.companyId,
+      year,
+      month,
+      !!salesFilter.compare
+    );
+
+    // ===== flags selesai =====
+    let doneKpi = false;
+    let doneTrend = false;
+    let doneDovs = false;
+    let doneMdist = false;
+
+    const tryFinish = () => {
+      if (doneKpi && doneTrend && doneDovs && doneMdist) resolve();
     };
 
-    return new Promise((resolve, reject) => {
-      this.salesApi.getSalesKpiView(salesFilter).subscribe({
-        next: (response) => {
-          const snapshot = {
-            request: response.data.request,
-            kpis: response.data.kpis,
-            timestamp: Date.now(),
-          };
-          this.salesState.saveFilter(salesFilter);
-          this.salesState.saveKpiData(snapshot);
-          console.log('Sales dashboard data preloaded successfully');
-          resolve();
-        },
-        error: (err) => {
-          console.error('Failed to preload sales dashboard data:', err);
-          // Agar init tidak gagal total, kita resolve juga (atau kamu bisa reject sesuai kebutuhan)
-          resolve();
-        },
-      });
+    // ===== KPI (UI-ready) =====
+    kpi$.subscribe({
+      next: (response) => {
+        const snapshot = {
+          request: response.data.request,
+          kpis: response.data.kpis,
+          timestamp: Date.now(),
+        };
+        this.salesState.saveKpiData(snapshot);
+        console.log('[Preload Sales] KPI OK');
+        doneKpi = true;
+        tryFinish();
+      },
+      error: (err) => {
+        console.error('[Preload Sales] KPI FAIL:', err);
+        doneKpi = true;
+        tryFinish();
+      },
     });
-  }
+
+    // ===== Grafik: Trend Monthly =====
+    trend$.subscribe({
+      next: (tResp) => {
+        const datasets = tResp?.data?.salesMontlyTrend?.datasets ?? [];
+        this.salesState.saveTrendMonthly({
+          companyId: salesFilter.companyId,
+          year,
+          compare: !!salesFilter.compare,
+          datasets,
+        });
+        console.log('[Preload Sales] Trend Monthly OK');
+        doneTrend = true;
+        tryFinish();
+      },
+      error: (err) => {
+        console.error('[Preload Sales] Trend Monthly FAIL:', err);
+        doneTrend = true;
+        tryFinish();
+      },
+    });
+
+    // ===== Grafik: DO vs SPK Monthly =====
+    dovs$.subscribe({
+      next: (dResp) => {
+        const datasets = dResp?.data?.DOvsSPKMontlyTrend?.datasets ?? [];
+        this.salesState.saveDoVsSpkMonthly({
+          companyId: salesFilter.companyId,
+          year,
+          datasets,
+        });
+        console.log('[Preload Sales] DOvsSPK Monthly OK');
+        doneDovs = true;
+        tryFinish();
+      },
+      error: (err) => {
+        console.error('[Preload Sales] DOvsSPK Monthly FAIL:', err);
+        doneDovs = true;
+        tryFinish();
+      },
+    });
+
+    // ===== Grafik: Model Distribution Monthly =====
+    mdist$.subscribe({
+      next: (mResp) => {
+        this.salesState.saveModelDistributionMonthly({
+          companyId: salesFilter.companyId,
+          year,
+          month,                      // "MM"
+          compare: !!salesFilter.compare,
+          current:  mResp?.data?.current,
+          prevMonth: mResp?.data?.prevMonth,
+          prevYear:  mResp?.data?.prevYear,
+        });
+        console.log('[Preload Sales] Model Distribution Monthly OK');
+        doneMdist = true;
+        tryFinish();
+      },
+      error: (err) => {
+        console.error('[Preload Sales] Model Distribution Monthly FAIL:', err);
+        doneMdist = true;
+        tryFinish();
+      },
+    });
+  });
+}
+
+private async preloadAfterSalesDashboardData(): Promise<void> {
+  const today = new Date().toISOString().slice(0, 10);
+  const year  = today.slice(0, 4);
+  const month = today.slice(5, 7);
+
+  // Filter untuk API After-Sales (SalesFilter)
+  const apiFilter: SalesFilter = {
+    companyId: 'sinar-galesong-mobilindo',
+    branchId: 'all-branch',
+    useCustomDate: true,
+    compare: true,
+    year: null,
+    month: null,
+    selectedDate: today,
+  };
+
+  // Filter UI untuk state After-Sales dashboard (UiFilter)
+  const uiFilter = {
+    company: 'sinar-galesong-mobilindo',
+    cabang: 'all-branch',
+    period: year,          // tahun aktif (string)
+    month,                 // "MM"
+    compare: true,
+    useCustomDate: true,
+    selectedDate: today,
+  } as const;
+
+  return new Promise<void>((resolve) => {
+    // simpan filter UI lebih dulu agar konsisten saat snapshot masuk
+    this.asState.saveFilter(uiFilter);
+
+    this.afterSalesApi.getAfterSalesView(apiFilter).subscribe({
+      next: (res) => {
+        // langsung pakai util state agar format & field aman
+        this.asState.saveFromView(res);
+
+        // OPTIONAL: kalau mau clear snapshot saat kosong, bisa cek:
+        // if (!res?.data?.kpi_data?.selected) this.asState.clearSnapshot();
+
+        console.log('[Preload After-Sales] View OK');
+        resolve();
+      },
+      error: (err) => {
+        console.error('[Preload After-Sales] View FAIL:', err);
+        // jangan blokir init
+        resolve();
+      },
+    });
+  });
+}
+
+
 
   // ===== Router events (title + cleanup tooltip) =====
   private setupRouterEvents(): void {
     this.router.events
-      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .pipe(
+        filter(
+          (event): event is NavigationEnd => event instanceof NavigationEnd
+        )
+      )
       .subscribe((event: NavigationEnd) => {
         this.updatePageTitle(event.url);
         setTimeout(() => this.disableTooltips(), 100);
@@ -314,7 +589,9 @@ export class AppComponent implements OnInit {
     const elementsWithTitle = document.querySelectorAll('[title]');
     elementsWithTitle.forEach((el) => el.removeAttribute('title'));
 
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipTriggerList = document.querySelectorAll(
+      '[data-bs-toggle="tooltip"]'
+    );
     tooltipTriggerList.forEach((el) => el.removeAttribute('data-bs-toggle'));
   }
 

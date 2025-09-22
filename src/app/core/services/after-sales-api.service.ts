@@ -1,6 +1,6 @@
 // src/app/core/services/after-sales-api.service.ts
 import { Injectable } from '@angular/core';
-import { Observable, throwError, catchError, tap, finalize, map } from 'rxjs';
+import { Observable, throwError, catchError, map } from 'rxjs';
 import { BaseApiService } from './base-api.service';
 import { SalesFilter } from '../models/sales.models';
 
@@ -9,7 +9,6 @@ import {
   validateDateFormatYYYYMMDD,
   isDateInFutureLocal,
   toNumberSafe,
-  createTimerLogger
 } from './service-utils';
 
 // ===== RAW response contracts (sesuaikan jika backend berubah) =====
@@ -144,68 +143,44 @@ function resolveBranchIdTarget(branchId?: string): string | undefined {
 // ==============================
 @Injectable({ providedIn: 'root' })
 export class AfterSalesApiService extends BaseApiService {
-  private readonly DEBUG = true;
   private readonly ENDPOINT = 'getAfterSalesReportByDate';
-  private readonly L = createTimerLogger('AfterSalesApiService', this.DEBUG);
-
-  // ===== Logging helpers (dibungkus di L) =====
-  private log(...a: any[])   { this.L.log(...a); }
-  private warn(...a: any[])  { this.L.warn(...a); }
-  private error(...a: any[]) { this.L.error(...a); }
-  private groupStart(label: string, data?: unknown) { this.L.groupStart(label, data); }
-  private groupEnd(label: string) { this.L.groupEnd(label); }
 
   /* ===========================
      PUBLIC: RAW (plus computed)
   ============================ */
   getAfterSalesRaw(filter: SalesFilter): Observable<RawAfterSalesResponse> {
-    const label = `getAfterSalesRaw ${filter.companyId}`;
-    this.groupStart(label, { filter });
-
     const err = this.validateFilter(filter);
     if (err) {
-      this.warn('validateFilter: FAIL →', err);
-      this.groupEnd(label);
       return throwError(() => new Error(err));
     }
 
     let params: Record<string, string | number>;
     try {
       params = this.buildParamsFromFilter(filter);
-      this.log('params →', params);
     } catch (e) {
-      this.error('buildParamsFromFilter threw:', e);
-      this.groupEnd(label);
-      return throwError(() => e instanceof Error ? e : new Error(String(e)));
+      return throwError(() => (e instanceof Error ? e : new Error(String(e))));
     }
 
     const url = `${this.baseUrlOf(filter.companyId)}/${this.ENDPOINT}`;
-    this.log('HTTP GET →', { url });
 
-    return this.http.get<RawAfterSalesResponse>(
-      url,
-      { headers: this.authHeaders, params: this.buildParams(params) }
-    ).pipe(
-      tap(res => this.log('HTTP OK (RAW) sample →', res)),
-      // Enrich: metrik turunan
-      map((res) => this.enrichResponseWithComputed(res)),
-      tap(res => this.log('HTTP OK (ENRICHED) sample →', res)),
-      catchError(err2 => this.handleError(err2)),
-      finalize(() => this.groupEnd(label))
-    );
+    return this.http
+      .get<RawAfterSalesResponse>(url, {
+        headers: this.authHeaders,
+        params: this.buildParams(params),
+      })
+      .pipe(
+        // Enrich: metrik turunan
+        map((res) => this.enrichResponseWithComputed(res)),
+        catchError((err2) => this.handleError(err2))
+      );
   }
 
   /* =========================================
      UI-ready (period diformat, +computed)
   ========================================= */
   getAfterSalesView(filter: SalesFilter): Observable<UiAfterSalesResponse> {
-    const label = `getAfterSalesView ${filter.companyId}`;
-    this.groupStart(label, { filter });
-
     return this.getAfterSalesRaw(filter).pipe(
-      map(raw => this.toUiAfterSalesResponse(raw, !!filter.useCustomDate)),
-      tap(ui => this.log('UI-ready response →', ui)),
-      finalize(() => this.groupEnd(label))
+      map((raw) => this.toUiAfterSalesResponse(raw, !!filter.useCustomDate))
     );
   }
 
@@ -228,7 +203,9 @@ export class AfterSalesApiService extends BaseApiService {
     }
 
     if (filter.useCustomDate) {
-      if (!filter.selectedDate) throw new Error('selectedDate is required when useCustomDate is true');
+      if (!filter.selectedDate) {
+        throw new Error('selectedDate is required when useCustomDate is true');
+      }
       params['selectedDate'] = filter.selectedDate;
       params['year'] = 'null';
       params['month'] = 'null';
@@ -276,7 +253,6 @@ export class AfterSalesApiService extends BaseApiService {
     } else if (error) {
       msg = error?.error?.message ?? `Error Code: ${error.status}\nMessage: ${error.message}`;
     }
-    this.error('After Sales API Error →', msg, { raw: error });
     return throwError(() => new Error(msg));
   }
 
@@ -301,8 +277,7 @@ export class AfterSalesApiService extends BaseApiService {
 
     const asPlusPt = as + pt;
 
-    // middle tidak dipakai eksplisit, tetap dokumentasi
-    // const middle = as - (js + pb);
+    // const middle = as - (js + pb); // dokumentasi
     const serviceCabangRealisasi = as; // sesuai bentuk rumus
 
     const jsT = this.num(m.jasa_service_target);
@@ -311,7 +286,6 @@ export class AfterSalesApiService extends BaseApiService {
     const ptT = this.num(m.part_tunai_target);
 
     const asPlusPtT = asT + ptT;
-
     const serviceCabangTarget = asT;
 
     const profitRealisasi =
@@ -401,11 +375,16 @@ export class AfterSalesApiService extends BaseApiService {
     } : undefined;
 
     const itemsRaw = raw?.data?.proporsi_after_sales?.data?.items ?? [];
-    const uiItems: UiProporsiItem[] = itemsRaw.map(it => ({
-      name: it.name,
-      selected: { period: fmt(it.selected?.period ?? null), value: Number(it.selected?.value ?? 0) },
-      prevDate: it.prevDate ? { period: fmt(it.prevDate.period), value: Number(it.prevDate.value ?? 0) } : undefined,
-      prevMonth: it.prevMonth ? { period: fmt(it.prevMonth.period), value: Number(it.prevMonth.value ?? 0) } : undefined,
+    const uiItems: UiProporsiItem[] = itemsRaw.map(it => ([
+      it.name,
+      { period: fmt(it.selected?.period ?? null), value: Number(it.selected?.value ?? 0) },
+      it.prevDate ? { period: fmt(it.prevDate.period), value: Number(it.prevDate.value ?? 0) } : undefined,
+      it.prevMonth ? { period: fmt(it.prevMonth.period), value: Number(it.prevMonth.value ?? 0) } : undefined,
+    ])).map(([name, selected, prevDate, prevMonth]) => ({
+      name: name as string,
+      selected: selected as UiProporsiPoint,
+      prevDate: prevDate as UiProporsiPoint | undefined,
+      prevMonth: prevMonth as UiProporsiPoint | undefined,
     }));
 
     return {
