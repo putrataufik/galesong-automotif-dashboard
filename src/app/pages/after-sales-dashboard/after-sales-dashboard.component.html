@@ -92,6 +92,7 @@
       <app-kpi-card
         [title]="'Jumlah Mekanik'"
         [value]="selectedMetrics()?.mekanik ?? 0"
+        info="Jumlah Mekanik yang aktif pada bulan terpilih"
         [unitLabel]="'orang'"
         [subtitle]="'Total mekanik aktif'"
         [compareMode]="currentFilter.compare || false"
@@ -115,8 +116,9 @@
       <app-kpi-card
         [title]="'Jumlah Hari Kerja'"
         [value]="selectedMetrics()?.hari_kerja ?? 0"
+        info="'Jumlah hari kerja pada bulan terpilih'"
         unit="hari"
-        [subtitle]="compare ? '' : 'Total hari operasional'"
+        [subtitle]="compare ? '' : 'Total hari kerja'"
         icon="bi bi-calendar-check-fill"
         iconColor="#F59E0B"
         iconBgColor="#FEF3C7"
@@ -140,6 +142,7 @@
       <app-kpi-card
         [title]="'Total Biaya Usaha'"
         [value]="selectedMetrics()?.biaya_usaha ?? 0"
+        info="Biaya Usaha Pada Bulan Terpilih"
         [subtitle]="compare ? '' : 'Break Even Point'"
         dataType="currency"
         icon="bi bi-cash-stack"
@@ -166,6 +169,7 @@
       <app-kpi-card
         [title]="'Total Revenue Ater Sales'"
         [value]="selectedMetrics()?.total_revenue_realisasi ?? 0"
+        info="Total pendapatan after sales pada periode terpilih"
         [subtitle]="compare ? '' : 'Total Pendapatan After Sales'"
         icon="bi bi-cash"
         iconColor="#2563EB"
@@ -191,6 +195,7 @@
     <div class="col-6 col-sm-4 col-md-6 col-lg-2">
       <app-kpi-card
         [title]="'Total Profit Target'"
+        info="Total profit yang ditargetkan pada periode terpilih"
         [value]="selectedMetrics()?.profit ?? 0"
         [subtitle]="compare ? '' : 'Target'"
         icon="bi bi-bullseye"
@@ -214,6 +219,8 @@
     <div class="col-6 col-sm-4 col-md-6 col-lg-2">
       <app-kpi-card
         [title]="'Total Profit Realisasi'"
+        info="Total profit realisasi pada periode terpilih.
+        profit = (profit jasa service + (20% profit oli) + (17% profit part bengkel) + (17% profit part tunai) - biaya usaha)"
         [value]="selectedMetrics()?.profit_realisasi ?? 0"
         [subtitle]="compare ? '' : 'Target'"
         icon="bi bi-bullseye"

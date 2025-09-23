@@ -51,7 +51,7 @@
         class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
       >
         <div class="d-flex align-items-center">
-          <i class="bi bi-speedometer2 text-info me-2 fs-5"></i>
+          <i class="bi bi-speedometer2 me-2 fs-5" style="color: #2563EB"></i>
           <h6 class="mb-0 fw-bold text-dark">Sales Performance</h6>
         </div>
       </div>
@@ -212,6 +212,7 @@
       <app-kpi-card
         [title]="'Cabang Penjualan Tertinggi'"
         dataType="unit"
+        info="Cabang dengan penjualan tertinggi pada periode terpilih."
         [period]="sales.topBranch?.selected?.period ?? undefined"
         [value]="sales.topBranch?.selected?.branchName ?? 0"
         [subtitle]="sales.topBranch?.selected?.value + ' unit'"
@@ -228,15 +229,14 @@
   </div>
   }
 
-   <div class="row g-3 align-items-stretch">
+  <div class="row g-3 align-items-stretch">
     <!-- Trend Unit Terjual -->
     <section class="col-12 col-sm-6 col-lg-4">
-      @let series = trendLineSeries();
-      @if (series.length) {
+      @let series = trendLineSeries(); @if (series.length) {
       <app-line-chart-card
         class="h-100"
         [title]="'Trend Unit Terjual per Bulan'"
-        [labels]="MONTH_LABELS"  
+        [labels]="MONTH_LABELS"
         [datasets]="series"
         [showLegend]="true"
         [height]="251"
@@ -244,7 +244,9 @@
         ytitle="Unit"
       ></app-line-chart-card>
       } @else {
-      <div class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center">
+      <div
+        class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+      >
         Tidak ada data tren untuk periode ini.
       </div>
       }
@@ -252,12 +254,11 @@
 
     <!-- DO vs SPK -->
     <section class="col-12 col-sm-6 col-lg-4">
-      @let series2 = doSpkLineSeries();
-      @if (series2.length) {
+      @let series2 = doSpkLineSeries(); @if (series2.length) {
       <app-line-chart-card
         class="h-100"
         [title]="'DO vs SPK per Bulan'"
-        [labels]="MONTH_LABELS"   
+        [labels]="MONTH_LABELS"
         [datasets]="series2"
         [showLegend]="true"
         [height]="251"
@@ -265,7 +266,9 @@
         ytitle="Jumlah"
       ></app-line-chart-card>
       } @else {
-      <div class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center">
+      <div
+        class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+      >
         Tidak ada data DO vs SPK untuk periode ini.
       </div>
       }
@@ -273,20 +276,21 @@
 
     <!-- Model Distribution -->
     <section class="col-12 col-sm-12 col-lg-4">
-      @let items = modelDistItems();
-      @if (items.length) {
+      @let items = modelDistItems(); @if (items.length) {
       <app-yoy-progress-list
         [title]="'Proporsi Penjualan per Model'"
         [unit]="'Unit'"
         [items]="items"
         [maxRows]="100"
-        [compare]="currentFilter.compare ?? false" 
+        [compare]="currentFilter.compare ?? false"
         [labelCurr]="modelLabelCurr()"
         [labelPrevY]="modelLabelPrevY()"
         [labelPrevM]="modelLabelPrevM()"
       ></app-yoy-progress-list>
       } @else {
-      <div class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center">
+      <div
+        class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+      >
         Tidak ada data distribusi model untuk periode ini.
       </div>
       }
