@@ -1,4 +1,4 @@
-<div class="card border-0 shadow-sm p-2">
+<div class="card border-0 shadow-sm p-2 kpi-card-tall">
   <!-- Card Title -->
   <div class="card-title mb-2 text-center fw-semibold small text-dark">
     {{ title }}
@@ -34,71 +34,59 @@
   </div>
 
   <!-- Data Rows -->
-  <div class="list">
-    @for (item of rows; track item.name) {
-    <div class="row align-items-center py-1 px-1">
-      <!-- Item Name -->
-      <div class="col-12 col-md-3 mb-1 mb-md-0">
-        <div class="text-truncate fw-semibold small" [title]="item.name">
-          {{ item.name }}
-        </div>
+<div class="list">
+  @for (item of rows; track item.name) {
+  <div class="row kpi-row align-items-center py-1 px-1">
+    <!-- Item Name -->
+    <div class="col-12 col-md-3 mb-1 mb-md-0">
+      <div class="kpi-name text-truncate fw-semibold small" [title]="item.name">
+        {{ item.name }}
       </div>
+    </div>
 
-      <!-- Current Period Bar -->
-      <div
-        class="mb-1 mb-md-0"
-        [ngClass]="{
-          'col-12': true,
-          'col-md-9': !compare,
-          'col-md-3': compare
-        }"
-      >
-        <div class="bar bg-curr">
-          <div
-            class="fill curr"
-            [class.up]="item.curr >= (item.prevY || 0)"
-            [class.down]="item.curr < (item.prevY || 0)"
-            [style.width.%]="pctCurr(item.curr)"
-          ></div>
-          <span class="val val-center">{{ item.curr }} {{ unit }}</span>
-        </div>
+    <!-- Current Period Bar -->
+    <div
+      class="mb-1 mb-md-0"
+      [ngClass]="{
+        'col-12': true,
+        'col-md-9': !compare,
+        'col-md-3': compare
+      }"
+    >
+      <div class="bar bg-curr">
+        <div
+          class="fill curr"
+          [class.up]="item.curr >= (item.prevY || 0)"
+          [class.down]="item.curr < (item.prevY || 0)"
+          [style.width.%]="pctCurr(item.curr)"
+        ></div>
+        <span class="val val-center">{{ item.curr }} {{ unit }}</span>
       </div>
+    </div>
 
-      <!-- Previous Year Bar (only when compare & data exists) -->
-      @if (showPrevY) {
-      <div class="col-12 col-md-3 mb-1 mb-md-0">
-        <div class="bar bg-prevY">
-          <div
-            class="fill prev"
-            [style.width.%]="pctPrevY(item.prevY || 0)"
-          ></div>
-          <span class="val val-center">
-            {{ item.prevY ?? "-" }} {{ unit }}
-          </span>
-        </div>
+    @if (showPrevY) {
+    <div class="col-12 col-md-3 mb-1 mb-md-0">
+      <div class="bar bg-prevY">
+        <div class="fill prev" [style.width.%]="pctPrevY(item.prevY || 0)"></div>
+        <span class="val val-center">{{ item.prevY ?? "-" }} {{ unit }}</span>
       </div>
-      }
-
-      <!-- Previous Month Bar (only when compare & data exists) -->
-      @if (showPrevM) {
-      <div class="col-12 col-md-3">
-        <div class="bar bg-prevM">
-          <div
-            class="fill prevM"
-            [style.width.%]="pctPrevM(item.prevM || 0)"
-          ></div>
-          <span class="val val-center">
-            {{ item.prevM ?? "-" }} {{ unit }}
-          </span>
-        </div>
-      </div>
-      }
-
-      <!-- Placeholder agar grid tetap 12 kolom saat hanya 2 bar -->
-      @if (compare && showPrevY && !showPrevM) {
-      <div class="d-none d-md-block col-md-3"></div>
-      }
     </div>
     }
+
+    @if (showPrevM) {
+    <div class="col-12 col-md-3">
+      <div class="bar bg-prevM">
+        <div class="fill prevM" [style.width.%]="pctPrevM(item.prevM || 0)"></div>
+        <span class="val val-center">{{ item.prevM ?? "-" }} {{ unit }}</span>
+      </div>
+    </div>
+    }
+
+    @if (compare && showPrevY && !showPrevM) {
+    <div class="d-none d-md-block col-md-3"></div>
+    }
   </div>
+  }
+</div>
+
 </div>

@@ -3,51 +3,42 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
 import { FilterSalesDashboardComponent } from '../../shared/components/filter-sales-dashboard/filter-sales-dashboard.component';
+import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
+import { YoyProgressListComponent } from '../../shared/components/yoy-progress-list/yoy-progress-list.component';
 import { AppFilter } from '../../types/filter.model';
 import { SalesStateService } from '../../core/state/sales-state.service';
-import {
-  SalesApiService,
-  UiKpis,
-  UiSalesKpiResponse,
-} from '../../core/services/sales-api.service';
-import { SalesFilter } from '../../core/models/sales.models';
-
-// ⬇️ NEW: import utils
-import {
-  isUiKpisEmpty,
-  getCompanyDisplayName as utilCompanyName,
-  getCategoryDisplayName as utilCategoryName,
-  getBranchDisplayName as utilBranchName,
-} from './sales.utils';
-import { getPeriodDisplayName as utilPeriodName} from '../pages.utils';
-
-type SalesKpiSnapshot<TKpis = UiKpis> = {
-  request: any;
-  kpis: TKpis;
-  timestamp: number;
-};
+import { SalesDashboardFacade } from './sales-dashboard.facade';
+import { getPeriodDisplayName as utilPeriodName } from '../pages.utils';
+import { getCompanyDisplayName as utilCompanyName, getCategoryDisplayName as utilCategoryName, getBranchDisplayName as utilBranchName } from './sales.utils';
+const MONTH_LABELS: string[] = [
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MEI',
+  'JUN',
+  'JUL',
+  'AGU',
+  'SEP',
+  'OKT',
+  'NOV',
+  'DES',
+];
 
 @Component({
   selector: 'app-sales-dashboard',
   standalone: true,
-  imports: [CommonModule, KpiCardComponent, FilterSalesDashboardComponent],
+  imports: [CommonModule, KpiCardComponent, FilterSalesDashboardComponent, LineChartCardComponent, YoyProgressListComponent],
   templateUrl: './sales-dashboard.component.html',
   styleUrl: './sales-dashboard.component.css',
+  providers: [SalesDashboardFacade], // ← penting: 1 facade per component instance
 })
 export class SalesDashboardComponent implements OnInit {
-  private readonly api = inject(SalesApiService);
+  private readonly facade = inject(SalesDashboardFacade);
   private readonly state = inject(SalesStateService);
+  
+  readonly MONTH_LABELS = MONTH_LABELS;
 
-  // ===== Global Loading & Error =====
-  loading = signal(false);
-  loadingMessage = signal('Data Sedang di Siapkan...');
-  readonly MIN_SPINNER_MS = 1500;
-
-  error = signal<string | null>(null);
-  hasData = signal(false);
-  isDataEmpty = signal(true);
-
-  // ===== Filter saat ini (UI) =====
   currentFilter: AppFilter = {
     company: 'sinar-galesong-mobilindo',
     category: 'sales',
@@ -56,105 +47,47 @@ export class SalesDashboardComponent implements OnInit {
     branch: 'all-branch',
     compare: true,
     useCustomDate: true,
-    selectedDate: new Date().toISOString().slice(0, 10), // yyyy-mm-dd
+    selectedDate: new Date().toISOString().slice(0, 10),
   };
 
-  // ===== KPI untuk UI (UI-ready) =====
-  salesKpi = signal<UiKpis | null>(this.state.getKpis() as UiKpis | null);
+  // expose signals dari facade (binding template jadi gampang)
+  loading = this.facade.loading;
+  loadingMessage = this.facade.loadingMessage;
+  error = this.facade.error;
+  hasData = this.facade.hasData;
+  isDataEmpty = this.facade.isDataEmpty;
+  salesKpi = this.facade.salesKpi;
 
-  // ===== Lifecycle =====
+  trendLoading = this.facade.trendLoading;
+  trendError = this.facade.trendError;
+  trendLineSeries = this.facade.trendLineSeries;
+
+  doSpkLoading = this.facade.doSpkLoading;
+  doSpkError = this.facade.doSpkError;
+  doSpkLineSeries = this.facade.doSpkLineSeries;
+
+  modelDistLoading = this.facade.modelDistLoading;
+  modelDistError = this.facade.modelDistError;
+  modelDistItems = this.facade.modelDistItems;
+  modelLabelCurr = this.facade.modelLabelCurr;
+  modelLabelPrevY = this.facade.modelLabelPrevY;
+  modelLabelPrevM = this.facade.modelLabelPrevM;
+
   ngOnInit(): void {
-    const sf = this.state.getCurrentFilter();
-    const ui = this.toAppFilter(sf);
-    this.currentFilter = ui;
-
-    const salesFilter = this.toSalesFilter(ui);
-
-    if (this.state.isCacheValid(salesFilter)) {
-      const kpis = this.state.getKpis() as UiKpis | null;
-      this.salesKpi.set(kpis);
-      const ok = !!kpis;
-      this.hasData.set(ok);
-      this.isDataEmpty.set(!ok || isUiKpisEmpty(kpis));
-    } else {
-      this.fetchAndUpdate(salesFilter);
-    }
+    const saved = this.state.getCurrentFilter();
+    if (saved) this.currentFilter = { ...this.currentFilter, company: saved.companyId, branch: saved.branchId ?? 'all-branch', compare: !!saved.compare, useCustomDate: !!saved.useCustomDate, year: saved.year ?? this.currentFilter.year, month: saved.month ?? this.currentFilter.month, selectedDate: saved.selectedDate ?? this.currentFilter.selectedDate };
+    this.facade.initFromState(this.currentFilter);
   }
 
-  // ===== Event: user klik "Cari" di filter =====
   onSearch(filter: AppFilter): void {
-    const ui: AppFilter = { ...filter, category: 'sales' };
-    this.currentFilter = ui;
-
-    const salesFilter = this.toSalesFilter(ui);
-
-    this.fetchAndUpdate(salesFilter);
+    this.currentFilter = { ...filter, category: 'sales' };
+    this.facade.refreshAll(this.currentFilter);
   }
 
-  // ===== Fetch KPI (UI-ready) + enforce min spinner time =====
-  private fetchAndUpdate(f: SalesFilter): void {
-    this.loadingMessage.set('Data Sedang di Siapkan...');
-    this.loading.set(true);
-    this.error.set(null);
-
-    const start = performance.now();
-
-    this.state.saveFilter(f);
-
-    this.api.getSalesKpiView(f).subscribe({
-      next: (resp: UiSalesKpiResponse) => {
-        const snap: SalesKpiSnapshot = {
-          request: resp.data.request,
-          kpis: resp.data.kpis,
-          timestamp: Date.now(),
-        };
-
-        this.state.saveKpiData(snap);
-        this.salesKpi.set(resp.data.kpis);
-        this.hasData.set(true);
-        this.isDataEmpty.set(isUiKpisEmpty(resp.data.kpis));
-
-        const elapsed = performance.now() - start;
-        const remain = Math.max(0, this.MIN_SPINNER_MS - elapsed);
-        setTimeout(() => this.loading.set(false), remain);
-      },
-      error: (err: any) => {
-        const msg = err?.message || 'Gagal memuat data';
-        this.error.set(msg);
-        this.hasData.set(false);
-        this.isDataEmpty.set(true);
-
-        console.error('Sales KPI fetch error:', err);
-
-        const elapsed = performance.now() - start;
-        const remain = Math.max(0, this.MIN_SPINNER_MS - elapsed);
-        setTimeout(() => this.loading.set(false), remain);
-      },
-    });
-  }
-
-  // ===== Compare helpers (delegasi ke utils agar template tetap sama) =====
-  get compare(): boolean {
-    return !!this.currentFilter.compare;
-  }
-
-  get isCustom(): boolean {
-    return !!this.currentFilter.useCustomDate;
-  }
-
-  // ===== Display helpers (delegasi ke utils; signature tetap agar template tidak berubah) =====
-  getCompanyDisplayName(company: string): string {
-    return utilCompanyName(company);
-  }
-
-  getCategoryDisplayName(category: string): string {
-    return utilCategoryName(category);
-  }
-
-  getBranchDisplayName(branch: string): string {
-    return utilBranchName(branch);
-  }
-
+  // display helpers (tetap sama)
+  getCompanyDisplayName(company: string) { return utilCompanyName(company); }
+  getCategoryDisplayName(category: string) { return utilCategoryName(category); }
+  getBranchDisplayName(branch: string) { return utilBranchName(branch); }
   getPeriodDisplayName(): string {
     return utilPeriodName({
       useCustomDate: this.currentFilter.useCustomDate,
@@ -162,69 +95,5 @@ export class SalesDashboardComponent implements OnInit {
       year: this.currentFilter.year,
       month: this.currentFilter.month,
     });
-  }
-
-  // ===== Konversi filter (UI <-> API) =====
-  private toSalesFilter(ui: AppFilter): SalesFilter {
-    if (ui.useCustomDate) {
-      return {
-        companyId: ui.company,
-        branchId: ui.branch ?? 'all-branch',
-        useCustomDate: true,
-        compare: !!ui.compare,
-        year: null,
-        month: null,
-        selectedDate: ui.selectedDate ?? null,
-      };
-    }
-
-    const monthVal =
-      ui.month && ui.month !== 'all-month'
-        ? String(ui.month).padStart(2, '0')
-        : null;
-
-    return {
-      companyId: ui.company,
-      branchId: ui.branch ?? 'all-branch',
-      useCustomDate: false,
-      compare: !!ui.compare,
-      year: ui.year && ui.year.trim() ? ui.year : null,
-      month: monthVal,
-      selectedDate: null,
-    };
-  }
-
-  private toAppFilter(f: SalesFilter): AppFilter {
-    if (f.useCustomDate) {
-      const today = new Date();
-      const sd = f.selectedDate ?? '';
-      const y = sd ? sd.slice(0, 4) : String(today.getFullYear());
-      const m = sd
-        ? sd.slice(5, 7)
-        : String(today.getMonth() + 1).padStart(2, '0');
-
-      return {
-        company: f.companyId,
-        category: 'sales',
-        year: y, // ⬅️ bukan '' lagi
-        month: m, // ⬅️ bukan 'all-month' lagi
-        branch: f.branchId ?? 'all-branch',
-        compare: f.compare ?? true,
-        useCustomDate: true,
-        selectedDate: f.selectedDate ?? today.toISOString().slice(0, 10),
-      };
-    }
-
-    // mode periode
-    return {
-      company: f.companyId,
-      category: 'sales',
-      year: f.year ?? String(new Date().getFullYear()),
-      month: f.month ?? String(new Date().getMonth() + 1).padStart(2, '0'),
-      branch: f.branchId ?? 'all-branch',
-      compare: f.compare ?? true,
-      useCustomDate: false,
-      selectedDate: '',
-    };
   }
 }

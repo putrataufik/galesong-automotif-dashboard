@@ -91,16 +91,74 @@ export interface SalesFilter {
   selectedDate: string | null; // YYYY-MM-DD saat useCustomDate=true
 }
 
-/** Snapshot KPI yang disimpan di state */
+/** Snapshot KPI (UI-ready) yang disimpan di state */
 export type SalesKpiSnapshot<TKpis = UiKpis> = {
   request: any;
   kpis: TKpis;
   timestamp: number;
 };
 
+/* ============================================================
+   TYPES — RAW GRAFIK yang disimpan di state
+   ============================================================ */
+
+// Bentuk dataset yang datang dari endpoint trend/dovsspk
+export type RawTrendDataset = { label: string; data: number[] };
+
+/** Sales Trend Monthly */
+export interface SalesTrendMonthlySnapshot {
+  key: string;                 // cache key (company-year-compare)
+  companyId: string;
+  year: string;
+  compare: boolean;
+  datasets: RawTrendDataset[]; // RAW from API
+  timestamp: number;
+}
+
+/** DO vs SPK Monthly */
+export interface DoVsSpkMonthlySnapshot {
+  key: string;                 // cache key (company-year)
+  companyId: string;
+  year: string;
+  datasets: RawTrendDataset[]; // RAW from API
+  timestamp: number;
+}
+
+/** Model Distribution Monthly (current/prevMonth/prevYear) */
+export interface ModelDistributionItem {
+  name: string;
+  value: number;
+}
+export interface ModelDistributionBlock {
+  period: string;  // e.g. "2025-09"
+  label: string;   // e.g. "Sep 2025"
+  items: ModelDistributionItem[];
+}
+export interface ModelDistributionMonthlySnapshot {
+  key: string;                 // cache key (company-year-month-compare)
+  companyId: string;
+  year: string;                // "2025"
+  month: string;               // "01".."12"
+  compare: boolean;
+  current?: ModelDistributionBlock;
+  prevMonth?: ModelDistributionBlock;
+  prevYear?: ModelDistributionBlock;
+  timestamp: number;
+}
+
+/* ============================================================
+   STATE ROOT
+   ============================================================ */
+
 export interface SalesState {
   filter: SalesFilter | null;
   kpiData: SalesKpiSnapshot | null;
+
+  // NEW: grafik
+  trendMonthly: SalesTrendMonthlySnapshot | null;
+  doVsSpkMonthly: DoVsSpkMonthlySnapshot | null;
+  modelDistributionMonthly: ModelDistributionMonthlySnapshot | null;
+
   lastUpdated: number | null;
 }
 
@@ -114,13 +172,18 @@ export const defaultSalesFilter: SalesFilter = {
   useCustomDate: true,
   compare: true,
   year: null,
-  month: null,      // null = year-only; bisa kamu ubah ke 'all-month' upstream UI
+  month: null,      // null = year-only
   selectedDate: new Date().toISOString().slice(0, 10),
 };
 
 export const initialSalesState: SalesState = {
   filter: defaultSalesFilter,
   kpiData: null,
+
+  trendMonthly: null,
+  doVsSpkMonthly: null,
+  modelDistributionMonthly: null,
+
   lastUpdated: null,
 };
 
@@ -143,7 +206,7 @@ function getCabangName(code: string): string {
 /* ============================================================
    STORAGE CONFIG
    ============================================================ */
-const STORAGE_KEY = 'salesState:v1';
+const STORAGE_KEY = 'salesState:v1'; // tetap pakai v1 agar kompatibel; struktur baru di-handle di hydrate
 
 /* ============================================================
    SERVICE
@@ -326,6 +389,97 @@ export class SalesStateService {
     return c ? c.changePercent : null;
   }
 
+  /* =============== NEW — GRAFIK: SALES TREND MONTHLY =============== */
+
+  private buildTrendMonthlyKey(companyId: string, year: string, compare: boolean) {
+    return `trend_${companyId}_${year}_${compare}`;
+  }
+
+  saveTrendMonthly(snap: Omit<SalesTrendMonthlySnapshot, 'key' | 'timestamp'> & { timestamp?: number }) {
+    const key = this.buildTrendMonthlyKey(snap.companyId, snap.year, snap.compare);
+    const full: SalesTrendMonthlySnapshot = {
+      ...snap,
+      key,
+      timestamp: snap.timestamp ?? Date.now(),
+    };
+    this.patch({ trendMonthly: full });
+  }
+
+  getTrendMonthly(): SalesTrendMonthlySnapshot | null {
+    return this._state().trendMonthly ?? null;
+  }
+
+  clearTrendMonthly() {
+    this.patch({ trendMonthly: null });
+  }
+
+  isTrendCacheValid(companyId: string, year: string, compare: boolean): boolean {
+    const t = this._state().trendMonthly;
+    if (!t) return false;
+    return t.key === this.buildTrendMonthlyKey(companyId, year, compare);
+  }
+
+  /* =============== NEW — GRAFIK: DO vs SPK MONTHLY =============== */
+
+  private buildDoVsSpkKey(companyId: string, year: string) {
+    return `dovsspk_${companyId}_${year}`;
+  }
+
+  saveDoVsSpkMonthly(snap: Omit<DoVsSpkMonthlySnapshot, 'key' | 'timestamp'> & { timestamp?: number }) {
+    const key = this.buildDoVsSpkKey(snap.companyId, snap.year);
+    const full: DoVsSpkMonthlySnapshot = {
+      ...snap,
+      key,
+      timestamp: snap.timestamp ?? Date.now(),
+    };
+    this.patch({ doVsSpkMonthly: full });
+  }
+
+  getDoVsSpkMonthly(): DoVsSpkMonthlySnapshot | null {
+    return this._state().doVsSpkMonthly ?? null;
+  }
+
+  clearDoVsSpkMonthly() {
+    this.patch({ doVsSpkMonthly: null });
+  }
+
+  isDoVsSpkCacheValid(companyId: string, year: string): boolean {
+    const d = this._state().doVsSpkMonthly;
+    if (!d) return false;
+    return d.key === this.buildDoVsSpkKey(companyId, year);
+  }
+
+  /* =============== NEW — GRAFIK: MODEL DISTRIBUTION MONTHLY =============== */
+
+  private buildModelDistKey(companyId: string, year: string, month: string, compare: boolean) {
+    const mm = String(month).padStart(2, '0');
+    return `modeldist_${companyId}_${year}_${mm}_${compare}`;
+  }
+
+  saveModelDistributionMonthly(snap: Omit<ModelDistributionMonthlySnapshot, 'key' | 'timestamp'> & { timestamp?: number }) {
+    const key = this.buildModelDistKey(snap.companyId, snap.year, snap.month, snap.compare);
+    const full: ModelDistributionMonthlySnapshot = {
+      ...snap,
+      key,
+      timestamp: snap.timestamp ?? Date.now(),
+    };
+    this.patch({ modelDistributionMonthly: full });
+  }
+
+  getModelDistributionMonthly(): ModelDistributionMonthlySnapshot | null {
+    return this._state().modelDistributionMonthly ?? null;
+  }
+
+  clearModelDistributionMonthly() {
+    this.patch({ modelDistributionMonthly: null });
+  }
+
+  isModelDistributionCacheValid(companyId: string, year: string, month: string, compare: boolean): boolean {
+    const m = this._state().modelDistributionMonthly;
+    if (!m) return false;
+    return m.key === this.buildModelDistKey(companyId, year, month, compare);
+  }
+
   /* =============== EXECUTIVE SUMMARY-LIKE SNAPSHOT =============== */
 
   getCurrentPeriodSummary():
@@ -359,7 +513,6 @@ export class SalesStateService {
   }
 
   /* =============== CACHE / AGE MANAGEMENT =============== */
-
 
   getLastUpdated(): Date | null {
     const ts = this._state().lastUpdated;
@@ -419,6 +572,11 @@ export class SalesStateService {
       return {
         filter: parsed.filter ?? defaultSalesFilter,
         kpiData: parsed.kpiData ?? null,
+
+        trendMonthly: parsed.trendMonthly ?? null,
+        doVsSpkMonthly: parsed.doVsSpkMonthly ?? null,
+        modelDistributionMonthly: parsed.modelDistributionMonthly ?? null,
+
         lastUpdated: parsed.lastUpdated ?? null,
       };
     } catch (error) {

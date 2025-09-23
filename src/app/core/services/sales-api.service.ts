@@ -1,19 +1,15 @@
 // src/app/core/services/sales-api.service.ts
 
 import { Injectable } from '@angular/core';
-import { Observable, throwError, catchError, tap, finalize, map } from 'rxjs';
+import { Observable, throwError, catchError, map } from 'rxjs';
 import { BaseApiService } from './base-api.service';
-import {
-  SalesKpiResponse,
-  SalesFilter
-} from '../models/sales.models';
+import { SalesKpiResponse, SalesFilter } from '../models/sales.models';
 
 import {
   formatPeriodByMode,
   validateDateFormatYYYYMMDD,
   isDateInFutureLocal,
   branchNameFromMap,
-  createTimerLogger,
 } from './service-utils';
 
 // ==============================
@@ -29,6 +25,21 @@ const BRANCH_CODE_MAP: Record<string, string> = {
   '0055': 'SUNGGUMINASA',
 };
 
+const MONTH_LABELS: string[] = [
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MEI',
+  'JUN',
+  'JUL',
+  'AGU',
+  'SEP',
+  'OKT',
+  'NOV',
+  'DES',
+];
+
 function branchNameFromCode(code?: string): string {
   return branchNameFromMap(BRANCH_CODE_MAP, code);
 }
@@ -38,17 +49,55 @@ function branchNameFromCode(code?: string): string {
 // ==============================
 
 export type UiKpiPoint = { value: number; period: string };
-export type UiKpiBranchPoint = UiKpiPoint & { code: string; branchName: string };
+export type UiKpiBranchPoint = UiKpiPoint & {
+  code: string;
+  branchName: string;
+};
 export type UiKpiModelPoint = UiKpiPoint & { name: string };
 
 export interface UiKpis {
-  totalUnitSales?:  { selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
-  totalSPK?:        { selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
-  totalDO?:         { selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
-  totalProspect?:   { selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
-  totalHotProspect?:{ selected?: UiKpiPoint; prevMonth?: UiKpiPoint; prevYear?: UiKpiPoint; prevDate?: UiKpiPoint };
-  topBranch?:       { selected?: UiKpiBranchPoint; prevMonth?: UiKpiBranchPoint; prevYear?: UiKpiBranchPoint; prevDate?: UiKpiBranchPoint };
-  topModel?:        { selected?: UiKpiModelPoint;  prevMonth?: UiKpiModelPoint;  prevYear?: UiKpiModelPoint;  prevDate?: UiKpiModelPoint  };
+  totalUnitSales?: {
+    selected?: UiKpiPoint;
+    prevMonth?: UiKpiPoint;
+    prevYear?: UiKpiPoint;
+    prevDate?: UiKpiPoint;
+  };
+  totalSPK?: {
+    selected?: UiKpiPoint;
+    prevMonth?: UiKpiPoint;
+    prevYear?: UiKpiPoint;
+    prevDate?: UiKpiPoint;
+  };
+  totalDO?: {
+    selected?: UiKpiPoint;
+    prevMonth?: UiKpiPoint;
+    prevYear?: UiKpiPoint;
+    prevDate?: UiKpiPoint;
+  };
+  totalProspect?: {
+    selected?: UiKpiPoint;
+    prevMonth?: UiKpiPoint;
+    prevYear?: UiKpiPoint;
+    prevDate?: UiKpiPoint;
+  };
+  totalHotProspect?: {
+    selected?: UiKpiPoint;
+    prevMonth?: UiKpiPoint;
+    prevYear?: UiKpiPoint;
+    prevDate?: UiKpiPoint;
+  };
+  topBranch?: {
+    selected?: UiKpiBranchPoint;
+    prevMonth?: UiKpiBranchPoint;
+    prevYear?: UiKpiBranchPoint;
+    prevDate?: UiKpiBranchPoint;
+  };
+  topModel?: {
+    selected?: UiKpiModelPoint;
+    prevMonth?: UiKpiModelPoint;
+    prevYear?: UiKpiModelPoint;
+    prevDate?: UiKpiModelPoint;
+  };
 }
 
 export interface UiSalesKpiResponse {
@@ -60,16 +109,60 @@ export interface UiSalesKpiResponse {
   };
 }
 
+export interface RawTrendDataset {
+  label: string;
+  data: number[];
+}
+
+export interface SalesTrendMonthlyResponse {
+  status: string;
+  message: string;
+  data: {
+    // ikut ejaan API: "salesMontlyTrend" (tanpa 'h')
+    salesMontlyTrend?: {
+      datasets?: RawTrendDataset[];
+    };
+  };
+}
+
+// ↓↓↓ tambahkan di bawah SalesTrendMonthlyResponse
+export interface DoVsSpkMonthlyResponse {
+  status: string;
+  message: string;
+  data: {
+    // ikut ejaan API: "DOvsSPKMontlyTrend" (tanpa 'h')
+    DOvsSPKMontlyTrend?: {
+      datasets?: RawTrendDataset[]; // { label: string; data: number[] } sama seperti RawTrendDataset
+    };
+  };
+}
+
+// RAW types: Model distribution monthly
+export interface ModelDistributionItem {
+  name: string;
+  value: number;
+}
+export interface ModelDistributionBlock {
+  period: string; // e.g. "2025-09"
+  label: string; // e.g. "Sep 2025"
+  items: ModelDistributionItem[];
+}
+export interface SalesModelDistributionMonthlyResponse {
+  status: string;
+  message: string;
+  data: {
+    current?: ModelDistributionBlock;
+    prevMonth?: ModelDistributionBlock;
+    prevYear?: ModelDistributionBlock;
+  };
+}
+
 // ==============================
 // Service
 // ==============================
 
 @Injectable({ providedIn: 'root' })
 export class SalesApiService extends BaseApiService {
-
-  private readonly DEBUG = true;
-  private readonly L = createTimerLogger('SalesApiService', this.DEBUG);
-
   // ==============================
   // Public API (RAW)
   // ==============================
@@ -78,68 +171,127 @@ export class SalesApiService extends BaseApiService {
    * Get Sales KPI data berdasarkan filter parameters (RAW response)
    */
   getSalesKpiData(filter: SalesFilter): Observable<SalesKpiResponse> {
-    const label = `getSalesKpiData ${filter.companyId}`;
-    this.L.groupStart(label, { filter });
-
     const company = filter.companyId;
     const endpoint = 'getSalesReportByDate';
 
     // Validasi (versi longgar: year-only boleh)
     const validationError = this.validateFilter(filter);
     if (validationError) {
-      this.L.warn('validateFilter: FAIL →', validationError);
-      this.L.groupEnd(label);
       return throwError(() => new Error(validationError));
-    } else {
-      this.L.log('validateFilter: OK');
     }
 
     // Build params
     let params: Record<string, string | number>;
     try {
       params = this.buildSalesKpiParams(filter);
-      this.L.log('buildSalesKpiParams →', params);
     } catch (e) {
-      this.L.error('buildSalesKpiParams threw:', e);
-      this.L.groupEnd(label);
-      return throwError(() => e instanceof Error ? e : new Error(String(e)));
+      return throwError(() => (e instanceof Error ? e : new Error(String(e))));
     }
 
     const url = `${this.baseUrlOf(company)}/${endpoint}`;
-    this.L.log('HTTP GET →', { url });
 
-    return this.http.get<SalesKpiResponse>(
-      url,
-      {
+    return this.http
+      .get<SalesKpiResponse>(url, {
         headers: this.authHeaders,
-        params: this.buildParams(params)
-      }
-    ).pipe(
-      tap((res) => {
-        this.L.log('HTTP OK, response sample →', res);
-      }),
-      catchError((err) => {
-        this.L.error('HTTP ERROR captured → forwarding to handleError');
-        return this.handleError(err);
-      }),
-      finalize(() => {
-        this.L.groupEnd(label);
+        params: this.buildParams(params),
       })
-    );
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  getSalesTrendMonthlyRaw(
+    companyId: string,
+    year: string,
+    compare: boolean = true
+  ): Observable<SalesTrendMonthlyResponse> {
+    // Validasi ringan tahun (optional, longgar)
+    const y = parseInt(year, 10);
+    const nowYear = new Date().getFullYear();
+    if (!y || y < 2020 || y > nowYear) {
+      // kalau mau strict:
+      // return throwError(() => new Error('Invalid year range'));
+    }
+
+    const endpoint = 'getSalesTrendMonthly';
+    const url = `${this.baseUrlOf(companyId)}/${endpoint}`;
+    const params = { year, compare: String(compare) };
+
+    return this.http
+      .get<SalesTrendMonthlyResponse>(url, {
+        headers: this.authHeaders,
+        params: this.buildParams(params),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  getDoVsSpkMonthlyRaw(
+    companyId: string,
+    year: string
+  ): Observable<DoVsSpkMonthlyResponse> {
+    // Validasi ringan tahun (optional)
+    const y = parseInt(year, 10);
+    const nowYear = new Date().getFullYear();
+    if (!y || y < 2020 || y > nowYear) {
+      // kalau mau strict:
+      // return throwError(() => new Error('Invalid year range'));
+    }
+
+    const endpoint = 'getSalesReportDOvsSPKMonthly';
+    const url = `${this.baseUrlOf(companyId)}/${endpoint}`;
+    const params = { year };
+
+    return this.http
+      .get<DoVsSpkMonthlyResponse>(url, {
+        headers: this.authHeaders,
+        params: this.buildParams(params),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  getModelDistributionMonthlyRaw(
+    companyId: string,
+    year: string,
+    month: string,
+    compare: boolean = true
+  ): Observable<SalesModelDistributionMonthlyResponse> {
+    // Validasi sederhana
+    const y = parseInt(year, 10);
+    const nowYear = new Date().getFullYear();
+    if (!y || y < 2020 || y > nowYear) {
+      // kalau mau strict:
+      // return throwError(() => new Error('Invalid year range'));
+    }
+    const m = parseInt(month as any, 10);
+    if (!m || m < 1 || m > 12) {
+      // kalau mau strict:
+      // return throwError(() => new Error('Month must be between 1 and 12'));
+    }
+    const mm = String(month).padStart(2, '0');
+
+    const endpoint = 'getSalesReportByUnitMonthly';
+    // Jika kamu sudah punya baseSummaryUrlOf, lebih aman gunakan itu:
+    // const url = `${this.baseSummaryUrlOf(companyId)}/${endpoint}`;
+    const url = `${this.baseUrlOf(companyId)}/${endpoint}`;
+
+    const params = {
+      compare: String(compare),
+      year,
+      month: mm, // API contoh pakai 2 digit, misal "08"
+    };
+
+    return this.http
+      .get<SalesModelDistributionMonthlyResponse>(url, {
+        headers: this.authHeaders,
+        params: this.buildParams(params),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   /**
    * Get Sales KPI data siap-pakai untuk komponen (UI-ready response)
    */
   getSalesKpiView(filter: SalesFilter): Observable<UiSalesKpiResponse> {
-    const label = `getSalesKpiView ${filter.companyId}`;
-    this.L.groupStart(label, { filter });
-
     return this.getSalesKpiData(filter).pipe(
-      tap(res => this.L.log('RAW response →', res)),
-      map(res => this.toUiResponse(res, !!filter.useCustomDate)),
-      tap(ui => this.L.log('UI-ready response →', ui)),
-      finalize(() => this.L.groupEnd(label))
+      map((res) => this.toUiResponse(res, !!filter.useCustomDate))
     );
   }
 
@@ -152,8 +304,6 @@ export class SalesApiService extends BaseApiService {
     selectedDate: string,
     compare: boolean = true
   ): Observable<SalesKpiResponse> {
-    this.L.log('getSalesKpiByDate called →', { companyId, selectedDate, compare });
-
     const filter: SalesFilter = {
       companyId,
       branchId: 'all-branch',
@@ -161,7 +311,7 @@ export class SalesApiService extends BaseApiService {
       compare,
       year: null,
       month: null,
-      selectedDate
+      selectedDate,
     };
 
     return this.getSalesKpiData(filter);
@@ -173,16 +323,14 @@ export class SalesApiService extends BaseApiService {
     month: string | null,
     compare: boolean = true
   ): Observable<SalesKpiResponse> {
-    this.L.log('getSalesKpiByMonth called →', { companyId, year, month, compare });
-
     const filter: SalesFilter = {
       companyId,
       branchId: 'all-branch',
       useCustomDate: false,
       compare,
       year,
-      month,          // boleh null => "year-only"
-      selectedDate: null
+      month, // boleh null => "year-only"
+      selectedDate: null,
     };
 
     return this.getSalesKpiData(filter);
@@ -196,16 +344,12 @@ export class SalesApiService extends BaseApiService {
     const year = now.getFullYear().toString();
     const month = (now.getMonth() + 1).toString();
 
-    this.L.log('getCurrentMonthSalesKpi → now:', { year, month });
-
     return this.getSalesKpiByMonth(companyId, year, month, compare);
   }
 
   getSalesKpiByBranch(filter: SalesFilter): Observable<SalesKpiResponse> {
-    this.L.log('getSalesKpiByBranch called →', filter);
     if (filter.branchId === 'all-branch') {
       const err = 'Branch ID is required for branch-specific data';
-      this.L.warn(err);
       return throwError(() => new Error(err));
     }
     return this.getSalesKpiData(filter);
@@ -223,7 +367,10 @@ export class SalesApiService extends BaseApiService {
     };
   }
 
-  private mapBranchPoint(point: any, useCustomDate: boolean): UiKpiBranchPoint | undefined {
+  private mapBranchPoint(
+    point: any,
+    useCustomDate: boolean
+  ): UiKpiBranchPoint | undefined {
     if (!point) return undefined;
     const code = String(point.code ?? '');
     return {
@@ -234,7 +381,10 @@ export class SalesApiService extends BaseApiService {
     };
   }
 
-  private mapModelPoint(point: any, useCustomDate: boolean): UiKpiModelPoint | undefined {
+  private mapModelPoint(
+    point: any,
+    useCustomDate: boolean
+  ): UiKpiModelPoint | undefined {
     if (!point) return undefined;
     return {
       value: Number(point.value ?? 0),
@@ -247,55 +397,49 @@ export class SalesApiService extends BaseApiService {
     const k = raw?.data?.kpis ?? {};
     const ui: UiKpis = {
       totalUnitSales: {
-        selected:  this.mapPoint(k.totalUnitSales?.selected,  useCustomDate),
+        selected: this.mapPoint(k.totalUnitSales?.selected, useCustomDate),
         prevMonth: this.mapPoint(k.totalUnitSales?.prevMonth, useCustomDate),
-        prevYear:  this.mapPoint(k.totalUnitSales?.prevYear,  useCustomDate),
-        prevDate:  this.mapPoint(k.totalUnitSales?.prevDate,  useCustomDate),
+        prevYear: this.mapPoint(k.totalUnitSales?.prevYear, useCustomDate),
+        prevDate: this.mapPoint(k.totalUnitSales?.prevDate, useCustomDate),
       },
       totalSPK: {
-        selected:  this.mapPoint(k.totalSPK?.selected,  useCustomDate),
+        selected: this.mapPoint(k.totalSPK?.selected, useCustomDate),
         prevMonth: this.mapPoint(k.totalSPK?.prevMonth, useCustomDate),
-        prevYear:  this.mapPoint(k.totalSPK?.prevYear,  useCustomDate),
-        prevDate:  this.mapPoint(k.totalSPK?.prevDate,  useCustomDate),
+        prevYear: this.mapPoint(k.totalSPK?.prevYear, useCustomDate),
+        prevDate: this.mapPoint(k.totalSPK?.prevDate, useCustomDate),
       },
       totalDO: {
-        selected:  this.mapPoint(k.totalDO?.selected,  useCustomDate),
+        selected: this.mapPoint(k.totalDO?.selected, useCustomDate),
         prevMonth: this.mapPoint(k.totalDO?.prevMonth, useCustomDate),
-        prevYear:  this.mapPoint(k.totalDO?.prevYear,  useCustomDate),
-        prevDate:  this.mapPoint(k.totalDO?.prevDate,  useCustomDate),
+        prevYear: this.mapPoint(k.totalDO?.prevYear, useCustomDate),
+        prevDate: this.mapPoint(k.totalDO?.prevDate, useCustomDate),
       },
       totalProspect: {
-        selected:  this.mapPoint(k.totalProspect?.selected,  useCustomDate),
+        selected: this.mapPoint(k.totalProspect?.selected, useCustomDate),
         prevMonth: this.mapPoint(k.totalProspect?.prevMonth, useCustomDate),
-        prevYear:  this.mapPoint(k.totalProspect?.prevYear,  useCustomDate),
-        prevDate:  this.mapPoint(k.totalProspect?.prevDate,  useCustomDate),
+        prevYear: this.mapPoint(k.totalProspect?.prevYear, useCustomDate),
+        prevDate: this.mapPoint(k.totalProspect?.prevDate, useCustomDate),
       },
       totalHotProspect: {
-        selected:  this.mapPoint(k.totalHotProspect?.selected,  useCustomDate),
+        selected: this.mapPoint(k.totalHotProspect?.selected, useCustomDate),
         prevMonth: this.mapPoint(k.totalHotProspect?.prevMonth, useCustomDate),
-        prevYear:  this.mapPoint(k.totalHotProspect?.prevYear,  useCustomDate),
-        prevDate:  this.mapPoint(k.totalHotProspect?.prevDate,  useCustomDate),
+        prevYear: this.mapPoint(k.totalHotProspect?.prevYear, useCustomDate),
+        prevDate: this.mapPoint(k.totalHotProspect?.prevDate, useCustomDate),
       },
       topBranch: {
-        selected:  this.mapBranchPoint(k.topBranch?.selected,  useCustomDate),
+        selected: this.mapBranchPoint(k.topBranch?.selected, useCustomDate),
         prevMonth: this.mapBranchPoint(k.topBranch?.prevMonth, useCustomDate),
-        prevYear:  this.mapBranchPoint(k.topBranch?.prevYear,  useCustomDate),
-        prevDate:  this.mapBranchPoint(k.topBranch?.prevDate,  useCustomDate),
+        prevYear: this.mapBranchPoint(k.topBranch?.prevYear, useCustomDate),
+        prevDate: this.mapBranchPoint(k.topBranch?.prevDate, useCustomDate),
       },
       topModel: {
-        selected:  this.mapModelPoint(k.topModel?.selected,  useCustomDate),
+        selected: this.mapModelPoint(k.topModel?.selected, useCustomDate),
         prevMonth: this.mapModelPoint(k.topModel?.prevMonth, useCustomDate),
-        prevYear:  this.mapModelPoint(k.topModel?.prevYear,  useCustomDate),
-        prevDate:  this.mapModelPoint(k.topModel?.prevDate,  useCustomDate),
+        prevYear: this.mapModelPoint(k.topModel?.prevYear, useCustomDate),
+        prevDate: this.mapModelPoint(k.topModel?.prevDate, useCustomDate),
       },
     };
 
-    console.log('[SalesApiService] toUiResponse →', {
-      status: String(raw?.status ?? ''),
-      message: String(raw?.message ?? ''),
-      kpis: ui,
-      request: raw?.data?.request ?? raw?.request ?? null,
-    });
     return {
       status: String(raw?.status ?? ''),
       message: String(raw?.message ?? ''),
@@ -310,9 +454,9 @@ export class SalesApiService extends BaseApiService {
   // Helpers (params, validation, errors)
   // ==============================
 
-  private buildSalesKpiParams(filter: SalesFilter): Record<string, string | number> {
-    this.L.log('buildSalesKpiParams(input) →', filter);
-
+  private buildSalesKpiParams(
+    filter: SalesFilter
+  ): Record<string, string | number> {
     const params: Record<string, string | number> = {
       useCustomDate: String(filter.useCustomDate),
       compare: String(filter.compare),
@@ -363,37 +507,34 @@ export class SalesApiService extends BaseApiService {
       }
     }
 
-    this.L.error('Sales API Error →', errorMessage, { raw: error });
     return throwError(() => new Error(errorMessage));
   }
 
   validateDateFormat(date: string): boolean {
-    const ok = validateDateFormatYYYYMMDD(date);
-    this.L.log('validateDateFormat →', { date, ok });
-    return ok;
+    return validateDateFormatYYYYMMDD(date);
   }
 
   isDateInFuture(date: string): boolean {
-    const isFuture = isDateInFutureLocal(date);
-    this.L.log('isDateInFuture →', { date, isFuture });
-    return isFuture;
+    return isDateInFutureLocal(date);
   }
 
   // Versi B (longgar): mengizinkan year-only saat useCustomDate=false
   validateFilter(filter: SalesFilter): string | null {
-    this.L.log('validateFilter(input) →', filter);
-
     if (!filter.companyId) return 'Company ID is required';
 
     if (filter.useCustomDate) {
-      if (!filter.selectedDate) return 'selectedDate is required when useCustomDate is true';
-      if (!this.validateDateFormat(filter.selectedDate)) return 'selectedDate must be in YYYY-MM-DD format';
-      if (this.isDateInFuture(filter.selectedDate)) return 'selectedDate cannot be in the future';
+      if (!filter.selectedDate)
+        return 'selectedDate is required when useCustomDate is true';
+      if (!this.validateDateFormat(filter.selectedDate))
+        return 'selectedDate must be in YYYY-MM-DD format';
+      if (this.isDateInFuture(filter.selectedDate))
+        return 'selectedDate cannot be in the future';
     } else {
       if (!filter.year) return 'year is required when useCustomDate is false';
 
       const year = parseInt(filter.year, 10);
-      if (year < 2020 || year > new Date().getFullYear()) return 'Invalid year range';
+      if (year < 2020 || year > new Date().getFullYear())
+        return 'Invalid year range';
 
       if (filter.month != null) {
         const month = parseInt(String(filter.month), 10);
@@ -404,10 +545,8 @@ export class SalesApiService extends BaseApiService {
   }
 
   buildCacheKey(filter: SalesFilter): string {
-    const key = filter.useCustomDate
+    return filter.useCustomDate
       ? `sales_kpi_${filter.companyId}_${filter.branchId}_${filter.selectedDate}_${filter.compare}`
       : `sales_kpi_${filter.companyId}_${filter.branchId}_${filter.year}_${filter.month}_${filter.compare}`;
-    this.L.log('buildCacheKey →', key);
-    return key;
   }
 }

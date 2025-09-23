@@ -59,23 +59,4 @@ export function branchNameFromMap(map: Record<string,string>, code?: string): st
   return map[code] ?? code;
 }
 
-/** Logger kecil dengan groupCollapsed + timer */
-export function createTimerLogger(scope = 'Svc', enabled = true) {
-  const on = !!enabled;
-  return {
-    log:    (...a: any[]) => { if (on) console.log(`[${scope}]`, ...a); },
-    warn:   (...a: any[]) => { if (on) console.warn(`[${scope}]`, ...a); },
-    error:  (...a: any[]) => { if (on) console.error(`[${scope}]`, ...a); },
-    groupStart: (label: string, data?: unknown) => {
-      if (!on) return;
-      console.groupCollapsed(`[${scope}] ${label}`);
-      if (data !== undefined) console.log('→', data);
-      console.time(`[TIMER] ${scope}:${label}`);
-    },
-    groupEnd: (label: string) => {
-      if (!on) return;
-      console.timeEnd(`[TIMER] ${scope}:${label}`);
-      console.groupEnd();
-    },
-  };
-}
+
