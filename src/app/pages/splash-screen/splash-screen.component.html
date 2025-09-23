@@ -1,0 +1,62 @@
+<div class="splash-screen">
+      <div class="splash-container">
+        <!-- Logo -->
+        <div class="logo-container mb-4">
+          <img 
+            src="/favicon.ico" 
+            alt="Galesong Automotif" 
+            class="splash-logo"
+          />
+          <h1 class="company-name">Galesong Automotif Dashboard</h1>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-section" *ngIf="!hasError">
+          <!-- Progress Bar -->
+          <div class="progress-container mb-3">
+            <div class="progress">
+              <div 
+                class="progress-bar bg-primary" 
+                role="progressbar" 
+                [style.width.%]="progress"
+                [attr.aria-valuenow]="progress"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+              </div>
+            </div>
+            <div class="progress-text">{{ progress }}%</div>
+          </div>
+
+          <!-- Loading Message -->
+          <div class="loading-message">
+            <div class="loading-dots">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <p class="message-text">{{ message }}</p>
+          </div>
+        </div>
+
+        <!-- Error Section -->
+        <div class="error-section" *ngIf="hasError">
+          <div class="error-icon mb-3">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <p class="error-message mb-3">{{ message }}</p>
+          <button class="btn btn-primary" (click)="onRetry()">
+            Coba Lagi
+          </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="splash-footer">
+          <p class="version-text">Version 1.0.0</p>
+        </div>
+      </div>
+    </div>

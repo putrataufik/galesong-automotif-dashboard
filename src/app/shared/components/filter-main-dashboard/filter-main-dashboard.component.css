@@ -1,11 +1,49 @@
-/* Menyamakan tinggi input-group select dengan tampilan compact */
-.input-group > .form-select {
-    padding-top: .5rem;
-    padding-bottom: .5rem;
-  }
-  
-  /* Biar card filter terlihat “menempel” rapi pada layout */
-  :host ::ng-deep .bg-white.rounded-3.shadow-sm {
-    border: 1px solid rgba(0,0,0,.05);
-  }
-  
+.filter-card.compact {
+  padding-left: .5rem;   /* sama dengan px-2 */
+  padding-right: .5rem;
+}
+
+
+.filter-card.compact .form-label {
+  margin-bottom: .125rem;
+  font-weight: 600;
+  font-size: .75rem;
+  color: #6c757d;
+  line-height: 1.1;
+}
+
+.filter-card.compact .form-item {
+  display: flex;
+  flex-direction: column;
+  min-width: var(--fc-item-min);
+  align-self: flex-end;
+}
+.filter-card.compact .form-item.narrow { min-width: var(--fc-item-min-narrow); }
+.filter-card.compact .switch-align { padding-bottom: .125rem; }
+
+.filter-card.compact .form-select-sm,
+.filter-card.compact .btn-sm {
+  height: var(--fc-control-h);
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+  line-height: 1.2;
+}
+.filter-card.compact .form-select-sm { padding-left: .5rem; padding-right: 1.75rem; }
+
+.filter-card.compact .form-check.form-switch .form-check-input {
+  width: 2.1rem; height: 1.05rem; margin-top: .25rem;
+}
+
+.fit-card { width: max-content; max-width: 100%; display: inline-block; }
+
+@media (max-width: 1200px) { .filter-card.compact { --fc-item-min:150px; --fc-item-min-narrow:115px; } }
+@media (max-width: 992px)  { .filter-card.compact { --fc-item-min:140px; --fc-item-min-narrow:110px; } }
+@media (max-width: 768px)  { .filter-card.compact { --fc-item-min:130px; --fc-item-min-narrow:105px; } }
+@media (max-width: 576px)  { .filter-card.compact { --fc-item-min:120px; --fc-item-min-narrow:100px; } }
+                  
+
+/* Garis pemisah di bawah header */
+.fsd-header {
+  border-bottom: 1px solid rgb(93, 178, 248);
+  margin-bottom: .75rem;
+} 

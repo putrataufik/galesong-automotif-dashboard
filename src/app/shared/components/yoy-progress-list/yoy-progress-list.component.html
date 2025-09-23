@@ -1,0 +1,92 @@
+<div class="card border-0 shadow-sm p-2 kpi-card-tall">
+  <!-- Card Title -->
+  <div class="card-title mb-2 text-center fw-semibold small text-dark">
+    {{ title }}
+  </div>
+
+  <!-- Header Labels (Desktop Only) -->
+  <div class="row d-none d-md-flex mb-2 px-1">
+    <div class="col-3"></div>
+
+    <!-- Curr -->
+    <div
+      class="text-center"
+      [ngClass]="{
+        'col-9': !compare,
+        'col-3': compare
+      }"
+    >
+      <span class="badge-pill curr">{{ labelCurr }}</span>
+    </div>
+
+    <!-- PrevY (muncul hanya saat compare & ada data prevY) -->
+    <div class="col-3 text-center" *ngIf="showPrevY">
+      <span class="badge-pill prevY">{{ labelPrevY }}</span>
+    </div>
+
+    <!-- PrevM (muncul hanya saat compare & ada data prevM) -->
+    <div class="col-3 text-center" *ngIf="showPrevM">
+      <span class="badge-pill prevM">{{ labelPrevM }}</span>
+    </div>
+
+    <!-- Placeholder agar grid tetap rapi saat hanya 2 kolom bar -->
+    <div class="col-3" *ngIf="compare && showPrevY && !showPrevM"></div>
+  </div>
+
+  <!-- Data Rows -->
+<div class="list">
+  @for (item of rows; track item.name) {
+  <div class="row kpi-row align-items-center py-1 px-1">
+    <!-- Item Name -->
+    <div class="col-12 col-md-3 mb-1 mb-md-0">
+      <div class="kpi-name text-truncate fw-semibold small" [title]="item.name">
+        {{ item.name }}
+      </div>
+    </div>
+
+    <!-- Current Period Bar -->
+    <div
+      class="mb-1 mb-md-0"
+      [ngClass]="{
+        'col-12': true,
+        'col-md-9': !compare,
+        'col-md-3': compare
+      }"
+    >
+      <div class="bar bg-curr">
+        <div
+          class="fill curr"
+          [class.up]="item.curr >= (item.prevY || 0)"
+          [class.down]="item.curr < (item.prevY || 0)"
+          [style.width.%]="pctCurr(item.curr)"
+        ></div>
+        <span class="val val-center">{{ item.curr }} {{ unit }}</span>
+      </div>
+    </div>
+
+    @if (showPrevY) {
+    <div class="col-12 col-md-3 mb-1 mb-md-0">
+      <div class="bar bg-prevY">
+        <div class="fill prev" [style.width.%]="pctPrevY(item.prevY || 0)"></div>
+        <span class="val val-center">{{ item.prevY ?? "-" }} {{ unit }}</span>
+      </div>
+    </div>
+    }
+
+    @if (showPrevM) {
+    <div class="col-12 col-md-3">
+      <div class="bar bg-prevM">
+        <div class="fill prevM" [style.width.%]="pctPrevM(item.prevM || 0)"></div>
+        <span class="val val-center">{{ item.prevM ?? "-" }} {{ unit }}</span>
+      </div>
+    </div>
+    }
+
+    @if (compare && showPrevY && !showPrevM) {
+    <div class="d-none d-md-block col-md-3"></div>
+    }
+  </div>
+  }
+</div>
+
+</div>

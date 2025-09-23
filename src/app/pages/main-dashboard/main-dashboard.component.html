@@ -1,318 +1,459 @@
-<div class="container-fluid p-4">
-  <!-- Header dan Filter -->
-  <div class="row mb-4">
+<div class="container-fluid p-4 no-pt">
+  <!-- ================= Filter ================= -->
+  <div class="row mb-2">
     <div class="col-12">
-      <h2 class="fw-bold text-dark my-3">
-        Dashboard <span class="text-primary">Galesong Otomotif</span>
-      </h2>
-
       <app-filter-main-dashboard
-        [initialFilter]="prefilledFilter"
+        [currentFilter]="currentFilter"
         [loading]="loading()"
         (search)="onSearch($event)"
-      />
+      ></app-filter-main-dashboard>
     </div>
   </div>
 
-  <!-- Error Alert -->
-  @if (error() && !loading()) {
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="alert alert-danger border-0 rounded-3" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <strong>Error:</strong> {{ error() }}
-      </div>
-    </div>
-  </div>
-  }
-
-  <!-- Global Loading Spinner -->
-  @if (loading()) {
+  <!-- ============ Breadcrumb ringkas ============ -->
   <div class="row">
     <div class="col-12">
+      <nav aria-label="Filter breadcrumb">
+        <ol class="breadcrumb mb-0 bg-light rounded">
+          <li class="breadcrumb-item">
+            <i class="bi bi-funnel me-1"></i>
+            Filter
+          </li>
+          <li class="breadcrumb-item">
+            <strong>{{ getCompanyDisplayName(currentFilter.company) }}</strong>
+          </li>
+          <li class="breadcrumb-item">
+            {{ getBranchDisplayName(currentFilter.branch) }}
+          </li>
+          <li class="breadcrumb-item">
+            {{ getCategoryDisplayName(currentFilter.category) }}
+          </li>
+          <li class="breadcrumb-item" aria-current="page">
+            {{ getPeriodDisplayName() }}
+            @if (currentFilter.compare) { |
+            <span class="breadcrumb-item active">Komparasi Data</span>
+            }
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ============ KPI Section ============ -->
+  @if (!loading()) { @if (kpis(); as data) {
+  <div class="row g-2 mb-2">
+    @if(currentFilter.category ==='sales' || currentFilter.category
+    ==='all-category') {
+    <div class="col-12">
       <div
-        class="d-flex justify-content-center align-items-center p-5"
-        style="min-height: 400px"
+        class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
       >
-        <div
-          class="spinner-border text-primary"
-          style="width: 3rem; height: 3rem"
-          role="status"
-        >
-          <span class="visually-hidden">Memuat dashboard...</span>
+        <div class="d-flex align-items-center">
+          <i class="bi bi-speedometer2 me-2 fs-5" style="color: #2563EB"></i>
+          <h6 class="mb-0 fw-bold text-dark">Sales Performance</h6>
         </div>
       </div>
     </div>
-  </div>
-  }
 
-  <!-- SALES SECTION -->
-  @if (prefilledFilter?.category === 'sales' || prefilledFilter?.category ===
-  'all-category') { @if (hasData()) {
-
-  <!-- Sales KPI Section -->
-  <div class="row g-4 mb-4">
-    <div class="col-12">
-      <div class="d-flex align-items-center mb-3">
-        <i class="bi bi-speedometer2 text-info me-2 fs-4"></i>
-        <h4 class="mb-0 fw-bold text-dark">Sales Performance</h4>
-      </div>
+    <!-- Total SPK -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total SPK'"
+        dataType="unit"
+        [period]="data.totalSPK?.selected?.period ?? undefined"
+        [value]="data.totalSPK?.selected?.value ?? 0"
+        [subtitle]="currentFilter.compare ? '' : 'Surat Pemesanan Kendaraan'"
+        info="Jumlah surat pemesanan kendaraan (SPK) pada periode terpilih."
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.totalSPK?.prevYear?.value ?? null"
+        [prevYearSubtitle]="data.totalSPK?.prevYear?.period ?? undefined"
+        [prevMonthValue]="data.totalSPK?.prevMonth?.value ?? null"
+        [prevMonthSubtitle]="data.totalSPK?.prevMonth?.period ?? undefined"
+      />
     </div>
 
+    <!-- Total DO -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total DO'"
+        dataType="unit"
+        [period]="data.totalDO?.selected?.period ?? undefined"
+        [value]="data.totalDO?.selected?.value ?? 0"
+        [compareMode]="compare"
+        [subtitle]="currentFilter.compare ? '' : 'Delivery Order'"
+        info="Jumlah unit yang telah dibuatkan Delivery Order pada periode terpilih."
+        unitLabel="unit"
+        [prevYearValue]="data.totalDO?.prevYear?.value ?? null"
+        [prevYearSubtitle]="data.totalDO?.prevYear?.period ?? undefined"
+        [prevMonthValue]="data.totalDO?.prevMonth?.value ?? null"
+        [prevMonthSubtitle]="data.totalDO?.prevMonth?.period ?? undefined"
+      />
+    </div>
+    <!-- Total Prospect  -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total prospek'"
+        dataType="unit"
+        [subtitle]="currentFilter.compare ? '' : 'Prospek Penjualan'"
+        info="Jumlah unit yang telah dibuatkan Prospek Penjualan pada periode terpilih."
+        [period]="data.totalProspect?.selected?.period ?? undefined"
+        [value]="data.totalProspect?.selected?.value ?? 0"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.totalProspect?.prevYear?.value ?? null"
+        [prevYearSubtitle]="data.totalProspect?.prevYear?.period ?? undefined"
+        [prevMonthValue]="data.totalProspect?.prevMonth?.value ?? null"
+        [prevMonthSubtitle]="data.totalProspect?.prevMonth?.period ?? undefined"
+      />
+    </div>
+    <!-- Total Hot Prospect  -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total hot prospek'"
+        dataType="unit"
+        [subtitle]="currentFilter.compare ? '' : 'Prospek Penjualan'"
+        info="Jumlah hot prospek pada periode terpilih."
+        [period]="data.totalHotProspect?.selected?.period ?? undefined"
+        [value]="data.totalHotProspect?.selected?.value ?? 0"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.totalHotProspect?.prevYear?.value ?? null"
+        [prevYearSubtitle]="
+          data.totalHotProspect?.prevYear?.period ?? undefined
+        "
+        [prevMonthValue]="data.totalHotProspect?.prevMonth?.value ?? null"
+        [prevMonthSubtitle]="
+          data.totalHotProspect?.prevMonth?.period ?? undefined
+        "
+      />
+    </div>
     <!-- Total Unit Sales -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
       <app-kpi-card
         [title]="'Total Unit Sales'"
-        [value]="kpiTotalUnitSales() || 0"
-        unit="unit"
-        [subtitle]="'Akumulasi penjualan per tahun'"
-        icon="bi bi-car-front"
-        iconColor="#0E3B9E"
-        iconBgColor="#D0EBFF"
+        dataType="unit"
+         [subtitle]="currentFilter.compare ? '' : 'Total unit terjual'"
+        info="Total unit yang terjual pada periode terpilih."
+        [period]="data.totalUnitSales?.selected?.period ?? undefined"
+        [value]="data.totalUnitSales?.selected?.value ?? 0"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.totalUnitSales?.prevYear?.value ?? null"
+        [prevYearSubtitle]="data.totalUnitSales?.prevYear?.period ?? undefined"
+        [prevMonthValue]="data.totalUnitSales?.prevMonth?.value ?? null"
+        [prevMonthSubtitle]="
+          data.totalUnitSales?.prevMonth?.period ?? undefined
+        "
       />
     </div>
 
     <!-- Model Favorit -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
       <app-kpi-card
         [title]="'Model Favorit'"
-        [value]="kpiTopModel()?.name || '—'"
-        [subtitle]="
-          kpiTopModel()
-            ? (kpiTopModel()!.unit || 0) + ' unit terjual'
-            : 'Belum ada data'
-        "
-        icon="bi bi-star-fill"
-        iconColor="#FFD700"
-        iconBgColor="#FFEDD0"
+        dataType="unit"
+        info="Model dengan penjualan tertinggi pada periode terpilih."
+        [period]="data.topModel?.selected?.period ?? undefined"
+        [value]="data.topModel?.selected?.name ?? 0"
+        [subtitle]="data.topModel?.selected?.value + ' unit'"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.topModel?.prevYear?.name ?? null"
+        [prevYearSubtitle]="data.topModel?.prevYear?.period ?? undefined"
+        [prevYearName]="data.topModel?.prevYear?.value + ' unit'"
+        [prevMonthValue]="data.topModel?.prevMonth?.name ?? null"
+        [prevMonthSubtitle]="data.topModel?.prevMonth?.period ?? undefined"
+        [prevMonthName]="data.topModel?.prevMonth?.value + ' unit'"
       />
     </div>
-
     <!-- Cabang Penjualan Tertinggi -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
       <app-kpi-card
         [title]="'Cabang Penjualan Tertinggi'"
-        [value]="kpiTopBranch()?.code || '—'"
-        [subtitle]="
-          kpiTopBranch()
-            ? (kpiTopBranch()!.unit || 0) + ' unit terjual'
-            : 'Belum ada data'
-        "
-        icon="bi bi-trophy-fill"
-        iconColor="#FFD400"
-        iconBgColor="#FFEDD0"
+        dataType="unit"
+        info="Cabang dengan penjualan tertinggi pada periode terpilih."
+        [period]="data.topBranch?.selected?.period ?? undefined"
+        [value]="data.topBranch?.selected?.branchName ?? 0"
+        [subtitle]="data.topBranch?.selected?.value + ' unit'"
+        [compareMode]="compare"
+        unitLabel="unit"
+        [prevYearValue]="data.topBranch?.prevYear?.branchName ?? null"
+        [prevYearSubtitle]="data.topBranch?.prevYear?.period ?? undefined"
+        [prevYearName]="data.topBranch?.prevYear?.value + ' unit'"
+        [prevMonthValue]="data.topBranch?.prevMonth?.branchName ?? null"
+        [prevMonthSubtitle]="data.topBranch?.prevMonth?.period ?? undefined"
+        [prevMonthName]="data.topBranch?.prevMonth?.value + ' unit'"
       />
     </div>
-  </div>
+    <div class="row g-3 align-items-stretch">
+      <!-- Trend Unit Terjual -->
+      <section class="col-12 col-md-6 col-xl-4">
+        @let series = trendLineSeries(); @if (trendLoading()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Memuat tren...
+        </div>
+        } @else if (trendError()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          {{ trendError() }}
+        </div>
+        } @else if (series.length) {
+        <app-line-chart-card
+          class="h-100"
+          [title]="'Trend Unit Terjual per Bulan'"
+          [labels]="MONTH_LABELS"
+          [datasets]="series"
+          [showLegend]="true"
+          [height]="251"
+          xtitle="Bulan"
+          ytitle="Unit"
+        ></app-line-chart-card>
+        } @else {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Tidak ada data tren.
+        </div>
+        }
+      </section>
 
-  <!-- Sales Charts Section -->
-  @if (lineMonthly() || branchPerformance() || modelDistribution()) {
-  <div class="row g-4 mb-5">
-    <!-- Line Chart - Monthly Trend -->
-    @if (lineMonthly()) {
-    <div class="col-12 col-lg-9">
-      <app-line-chart-card
-        [label]="'Unit Terjual'"
-        [title]="'Trend Penjualan Unit per Bulan'"
-        [labels]="lineMonthly()!.labels"
-        [data]="lineMonthly()!.data"
-        [height]="300"
-        [showLegend]="false"
-        [borderColor]="'#0d6efd'"
-        [backgroundColor]="'rgba(13, 110, 253, 0.2)'"
-        [pointBackgroundColor]="'#0d6efd'"
-        [fill]="true"
-      />
+      <!-- DO vs SPK -->
+      <section class="col-12 col-md-6 col-xl-4">
+        @let series2 = doSpkLineSeries(); @if (doSpkLoading()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Memuat DO vs SPK...
+        </div>
+        } @else if (doSpkError()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          {{ doSpkError() }}
+        </div>
+        } @else if (series2.length) {
+        <app-line-chart-card
+          class="h-100"
+          [title]="'DO vs SPK per Bulan'"
+          [labels]="MONTH_LABELS"
+          [datasets]="series2"
+          [showLegend]="true"
+          [height]="251"
+          xtitle="Bulan"
+          ytitle="Jumlah"
+        ></app-line-chart-card>
+        } @else {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Tidak ada data DO vs SPK.
+        </div>
+        }
+      </section>
+
+      <!-- Model Distribution YoY/MoM -->
+      <section class="col-12 col-xl-4">
+        @let rows = modelDistRows(); @if (modelDistLoading()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Memuat distribusi model...
+        </div>
+        } @else if (modelDistError()) {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          {{ modelDistError() }}
+        </div>
+        } @else if (rows.length) {
+        <app-yoy-progress-list
+          [title]="'Proporsi Penjualan per Model'"
+          [unit]="'Unit'"
+          [items]="modelDistRows()"
+          [maxRows]="100"
+          [compare]="compare"
+          [labelCurr]="modelLabelCurr()"
+          [labelPrevY]="modelLabelPrevY()"
+          [labelPrevM]="modelLabelPrevM()"
+        ></app-yoy-progress-list>
+
+        } @else {
+        <div
+          class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+        >
+          Tidak ada data distribusi model.
+        </div>
+        }
+      </section>
     </div>
     }
-
-    
-    <!-- Pie Chart - Model Distribution -->
-    @if (modelDistribution()) {
-      <div class="col-12 col-lg-3">
-        <app-pie-chart-card
-        [title]="'Proporsi Penjualan per Model Unit'"
-        [labels]="modelDistribution()!.labels"
-        [data]="modelDistribution()!.data"
-        [height]="300"
-        [showLegend]="true"
-        [chartType]="'unit'"
-        />
-      </div>
-      <!-- Bar Chart - Branch Performance -->
-      @if (branchPerformance()) {
-      <div class="col-12 col-lg-6">
-        <app-bar-chart-card
-          [title]="'Performa Penjualan per Cabang'"
-          [labels]="branchPerformance()!.labels"
-          [data]="branchPerformance()!.data"
-          [height]="300"
-          [horizontal]="true"
-          [showLegend]="false"
-          [label]="'Unit Terjual'"
-        />
-      </div>
-      }
-    }
   </div>
-  } } }
+  @if(currentFilter.category ==='after-sales' || currentFilter.category
+  ==='all-category') {
 
-  <!-- AFTER SALES SECTION -->
-  @if (prefilledFilter?.category === 'after-sales' || prefilledFilter?.category
-  === 'all-category') { @if (hasData()) {
-
-  <!-- After Sales KPI Section -->
-  @if (afterSalesKpi(); as kpi) {
-  <div class="row g-4 mb-4">
+  <div class="row g-2 mb-2">
     <div class="col-12">
-      <div class="d-flex align-items-center mb-3">
-        <i class="bi bi-tools text-success me-2 fs-4"></i>
-        <h4 class="mb-0 fw-bold text-dark">After Sales Performance</h4>
+      <div
+        class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
+      >
+        <div class="d-flex align-items-center">
+          <i class="bi bi-speedometer2 me-2 fs-5" style="color: #006e1a"></i>
+          <h6 class="mb-0 fw-bold text-dark">After Sales Performance</h6>
+        </div>
       </div>
     </div>
+    <!-- Jumlah Mekanik -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Jumlah Mekanik'"
+        [value]="selectedMetrics()?.mekanik ?? 0"
+        [unitLabel]="'orang'"
+        info="Jumlah Mekanik yang aktif pada bulan terpilih"
+        [subtitle]="'Total mekanik aktif'"
+        [compareMode]="currentFilter.compare || false"
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.mekanik ??
+          prevDateBlock()?.metrics?.mekanik ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="prevMonthBlock()?.metrics?.mekanik ?? 0"
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
+      />
+    </div>
+    <div class="col-6 col-sm-4 col-md-6 col-lg-2">
+      <app-kpi-card
+        [title]="'Jumlah Hari Kerja'"
+        [value]="selectedMetrics()?.hari_kerja ?? 0"
+        info="Jumlah hari kerja pada bulan terpilih"
+        unit="hari"
+        [subtitle]="compare ? '' : 'Total hari kerja'"
+        icon="bi bi-calendar-check-fill"
+        iconColor="#F59E0B"
+        iconBgColor="#FEF3C7"
+        [compareMode]="currentFilter.compare"
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.hari_kerja ??
+          prevDateBlock()?.metrics?.hari_kerja ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="prevMonthBlock()?.metrics?.hari_kerja ?? 0"
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
+      />
+    </div>
 
-    <!-- Total Biaya Usaha (BEP) -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+    <div class="col-6 col-sm-4 col-md-6 col-lg-2">
       <app-kpi-card
         [title]="'Total Biaya Usaha'"
-        [value]="formatCompactNumber(kpi.totalBiayaUsaha)"
-        unit=""
-        [subtitle]="'Break Even Point'"
+        [value]="selectedMetrics()?.biaya_usaha ?? 0"
+        info="Biaya Usaha Pada Bulan Terpilih"
+        [subtitle]="compare ? '' : 'Break Even Point'"
+        dataType="currency"
         icon="bi bi-cash-stack"
         iconColor="#228000"
         iconBgColor="#DCFFD0"
+        [compareMode]="
+          currentFilter.useCustomDate ? false : currentFilter.compare
+        "
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.biaya_usaha ??
+          prevDateBlock()?.metrics?.biaya_usaha ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="prevMonthBlock()?.metrics?.biaya_usaha ?? 0"
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
       />
     </div>
 
-    <!-- Total Profit -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+    <div class="col-6 col-sm-4 col-md-6 col-lg-2">
       <app-kpi-card
-        [title]="'Total Profit'"
-        [value]="formatCompactNumber(kpi.totalProfit)"
-        unit=""
-        [subtitle]="'Target Profit'"
-        icon="bi bi-graph-up-arrow"
-        iconColor="#228000"
-        iconBgColor="#DCFFD0"
-      />
-    </div>
-
-    <!-- Total Revenue After Sales -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card
-        [title]="'Total Revenue After Sales'"
-        [value]="formatCompactNumber(kpi.totalRevenueRealisasi)"
-        [subtitle]="'Total pendapatan After Sales'"
+        [title]="'Total Revenue Ater Sales'"
+        info="Total pendapatan after sales pada periode terpilih"
+        [value]="selectedMetrics()?.total_revenue_realisasi ?? 0"
+        [subtitle]="compare ? '' : 'Total Pendapatan After Sales'"
         icon="bi bi-cash"
         iconColor="#2563EB"
+        dataType="currency"
         iconBgColor="#DBEAFE"
+        [compareMode]="currentFilter.compare"
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.total_revenue_realisasi ??
+          prevDateBlock()?.metrics?.total_revenue_realisasi ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="
+          prevMonthBlock()?.metrics?.total_revenue_realisasi ?? 0
+        "
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
       />
     </div>
-
-    <!-- Service Cabang -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+    <!-- Total Profit -->
+    <div class="col-6 col-sm-4 col-md-6 col-lg-2">
       <app-kpi-card
-        [title]="'Service Cabang'"
-        [value]="formatCompactNumber(kpi.afterSalesRealisasi)"
-        unit=""
-        [subtitle]="'Total Service'"
-        icon="bi bi-tools"
-        iconColor="#9333EA"
-        iconBgColor="#F3E8FF"
-      />
+        [title]="'Total Profit Target'"
+        info="Total profit yang ditargetkan pada periode terpilih"
+        [value]="selectedMetrics()?.profit ?? 0"
+        [subtitle]="compare ? '' : 'Target'"
+        icon="bi bi-bullseye"
+        dataType="currency"
+        iconColor="#228000"
+        iconBgColor="#DCFFD0"
+        [compareMode]="currentFilter.compare"
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.profit ??
+          prevDateBlock()?.metrics?.profit ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="prevMonthBlock()?.metrics?.profit ?? 0"
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
+      />`
     </div>
-
-    <!-- Unit Entry -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
+    <!-- Total Profit Realisasi-->
+    <div class="col-6 col-sm-4 col-md-6 col-lg-2">
       <app-kpi-card
-        [title]="'Unit Entry'"
-        [value]="kpi.unitEntryRealisasi"
-        unit="unit"
-        [subtitle]="'Jumlah kendaraan masuk'"
-        icon="bi bi-car-front-fill"
-        iconColor="#0D9488"
-        iconBgColor="#CCFBF1"
-      />
-    </div>
-
-    <!-- Sparepart Tunai -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card
-        [title]="'Sparepart Tunai'"
-        [value]="formatCompactNumber(kpi.sparepartTunaiRealisasi)"
-        unit=""
-        [subtitle]="'Penjualan sparepart cash'"
-        icon="bi bi-wrench-adjustable-circle-fill"
-        iconColor="#DC2626"
-        iconBgColor="#FEE2E2"
-      />
-    </div>
-    <!-- Sparepart Bengkel -->
-    <div class="col-12 col-sm-6 col-md-6 col-xl-3">
-      <app-kpi-card
-        [title]="'Sparepart Bengkel'"
-        [value]="formatCompactNumber(kpi.sparepartBengkelRealisasi)"
-        unit=""
-        [subtitle]="'Penjualan sparepart cash'"
-        icon="bi bi-gear-fill"
-        iconColor="#DC2626"
-        iconBgColor="#FEE2E2"
-      />
+        [title]="'Total Profit Realisasi'"
+        info="Total profit realisasi pada periode terpilih.
+        profit = (profit jasa service + (20% profit oli) + (17% profit part bengkel) + (17% profit part tunai) - biaya usaha)"
+        [value]="selectedMetrics()?.profit_realisasi ?? 0"
+        [subtitle]="compare ? '' : 'Target'"
+        icon="bi bi-bullseye"
+        dataType="currency"
+        iconColor="#228000"
+        iconBgColor="#DCFFD0"
+        [compareMode]="currentFilter.compare"
+        [prevYearValue]="
+          prevYearBlock()?.metrics?.profit_realisasi ??
+          prevDateBlock()?.metrics?.profit_realisasi ??
+          0
+        "
+        [prevYearSubtitle]="
+          prevYearBlock()?.period ?? prevDateBlock()?.period ?? ''
+        "
+        [prevMonthValue]="prevMonthBlock()?.metrics?.profit_realisasi ?? 0"
+        [prevMonthSubtitle]="prevMonthBlock()?.period ?? ''"
+      />`
     </div>
   </div>
-  }
-
-  <!-- After Sales Charts Section -->
-  @if (afterSalesRealisasiVsTarget() || afterSalesProfitByBranch()) {
-  <div class="row g-4 mb-5">
-    <!-- After Sales Realisasi vs Target Chart -->
-    @if (afterSalesRealisasiVsTarget()) {
-    <div class="col-12 col-lg-9">
-      <app-bar-chart-card
-        [title]="'After Sales Realisasi vs Target per Bulan'"
-        [chartData]="afterSalesRealisasiVsTarget()!"
-        [height]="300"
-        [horizontal]="false"
-        [showLegend]="true"
-        [isMultiDataset]="true"
-      />
-    </div>
-    }
-    @if (afterSalesDistribution()) {
-      <div class="col-12 col-lg-3">
-       <app-pie-chart-card
-        [title]="'Proporsi After Sales'"
-        [labels]="afterSalesDistribution()!.labels"
-        [data]="afterSalesDistribution()!.data"
-        [height]="300"
-        [showLegend]="true"
-        [chartType]="'currency'"
-      />
-      </div>
-    }
-
-    <!-- Profit by Branch Chart -->
-    @if (afterSalesProfitByBranch()) {
-    <div class="col-12 col-lg-6">
-      <app-bar-chart-card
-        [title]="'Profit per Cabang (After Sales)'"
-        [labels]="afterSalesProfitByBranch()!.labels"
-        [data]="afterSalesProfitByBranch()!.data"
-        [height]="300"
-        [horizontal]="true"
-        [showLegend]="false"
-        [label]="'Profit'"
-        [chartType]="'currency'"
-        [backgroundColor]="'#ffc107'"
-        [borderColor]="'#ffc107'"
-      />
-    </div>
-    }
-  </div>
-  } } }
-
-  <!-- Empty State -->
-  @if (!hasData() && !loading()) {
+  } } @else {
+  <!-- Empty State (no data) -->
   <div class="row">
     <div class="col-12">
       <div class="text-center py-5">
@@ -328,5 +469,23 @@
       </div>
     </div>
   </div>
-  }
+  } }
+
+  <!-- Spacer bawah -->
+  <div style="height: 8px"></div>
+</div>
+
+<!-- ============ Global Loading Overlay ============ -->
+<div class="global-loading-overlay" *ngIf="loading()">
+  <div class="loader-box">
+    <div class="spinner-with-logo mb-3" aria-label="Loading">
+      <div
+        class="spinner-border text-primary"
+        role="status"
+        aria-hidden="true"
+      ></div>
+      <img src="/favicon.ico" alt="Loading" class="spinner-logo" />
+    </div>
+    <div class="loading-text">{{ loadingMessage() }}</div>
+  </div>
 </div>

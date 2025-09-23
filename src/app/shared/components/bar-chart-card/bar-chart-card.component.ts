@@ -15,18 +15,20 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
-// Chart.js imports untuk Bar Chart
+// Chart.js imports
 import {
   Chart,
-  BarController, // ← Bar chart controller
-  BarElement, // ← Bar elements
+  BarController,
+  BarElement,
   CategoryScale,
   LinearScale,
   Title,
   Tooltip,
   Legend,
 } from 'chart.js';
-import { ChartData } from '../../../types/sales.model';
+
+// PASTIKAN path tipe ini sesuai file kamu: src/app/types/chart.model.ts
+import { ChartData } from '../../../types/charts.model';
 
 // Register Chart.js components
 Chart.register(
@@ -44,8 +46,8 @@ Chart.register(
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body p-3">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-2">
         <div class="chart-container" [style.height.px]="height">
           <canvas #canvasRef></canvas>
         </div>
@@ -58,34 +60,39 @@ Chart.register(
 export class BarChartCardComponent
   implements AfterViewInit, OnChanges, OnDestroy {
   @Input() title = 'Bar Chart';
+  /** Mode single */
   @Input() labels: string[] = [];
   @Input() data: number[] = [];
-  @Input() height = 300;
-  @Input() showLegend = false;
-  @Input() backgroundColor?: string | string[]; // Allow single color or array
-  @Input() borderColor?: string | string[];
   @Input() label = 'Data';
-  @Input() horizontal = true; // ← Default horizontal
-  @Input() chartType: 'sales' | 'currency' | 'unit' = 'unit';
-  // Tambahkan setelah existing @Input properties
+  @Input() backgroundColor?: string | string[];
+  @Input() borderColor?: string | string[];
+
+  /** Mode multi (opsional legacy) */
   @Input() datasets?: Array<{
     label: string;
     data: number[];
     backgroundColor: string;
     borderColor: string;
     borderWidth?: number;
-  }>; // ← Untuk multi-dataset
-  @Input() isMultiDataset = false; // ← Flag untuk multi-dataset mode
+  }>;
+  @Input() isMultiDataset = false;
+
+  /** Rekomendasi: kirim ini saja dari parent */
   @Input() chartData?: ChartData;
 
-  // Chart color palette - Blue gradient
+  @Input() height = 300;
+  @Input() showLegend = false;
+  @Input() xTitle?: string;
+  @Input() horizontal = true;
+  @Input() chartType: 'sales' | 'currency' | 'unit' = 'unit';
+
   private readonly CHART_COLORS = [
-    '#001244ff', // Biru Tua - 100%
-    '#30529bff', // Biru - 85%
-    '#60A5FA', // Biru Muda - 70%
-    '#B08D57', // Biru Sangat Muda - 55%
-    '#E6BE8A', // Abu-abu Muda - 40%
-    '#D4AF37', // Abu-abu Sangat Muda - 25%
+    '#001244ff',
+    '#30529bff',
+    '#60A5FA',
+    '#B08D57',
+    '#E6BE8A',
+    '#D4AF37',
   ] as const;
 
   @ViewChild('canvasRef', { static: false })
@@ -107,14 +114,35 @@ export class BarChartCardComponent
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!this.isBrowser) return;
-    if (changes['labels'] || changes['data']) {
-      if (this.chart) {
+
+    const needsRebuild =
+      changes['chartData'] ||
+      changes['datasets'] ||
+      changes['isMultiDataset'] ||
+      changes['horizontal'] ||
+      changes['title'];
+
+    const simpleUpdate =
+      !needsRebuild &&
+      (changes['labels'] || changes['data'] || changes['backgroundColor']);
+
+    if (this.chart && simpleUpdate) {
+      // Single dataset live update
+      if (!this.hasMultiChartData()) {
         this.chart.data.labels = this.labels;
         this.chart.data.datasets[0].data = this.data;
-        this.chart.data.datasets[0].backgroundColor =
-          this.getBackgroundColors();
+        this.chart.data.datasets[0].backgroundColor = this.getBackgroundColors();
         this.chart.update();
+        return;
       }
+    }
+
+    if (needsRebuild) {
+      if (this.chart) {
+        this.chart.destroy();
+        this.chart = undefined;
+      }
+      this.buildChart();
     }
   }
 
@@ -129,6 +157,14 @@ export class BarChartCardComponent
     }
   }
 
+  /** Deteksi apakah input efektifnya multi-dataset */
+  private hasMultiChartData(): boolean {
+    // chartData union: SingleChartData | MultiChartData
+    if (this.chartData && 'datasets' in this.chartData) return true;
+    if (this.isMultiDataset && this.datasets?.length) return true;
+    return false;
+  }
+
   private getBackgroundColors(): string[] {
     if (Array.isArray(this.backgroundColor)) {
       return this.backgroundColor;
@@ -136,7 +172,6 @@ export class BarChartCardComponent
     if (this.backgroundColor) {
       return Array(this.data.length).fill(this.backgroundColor);
     }
-    // Use chart colors cycling through the palette
     return this.data.map(
       (_, index) => this.CHART_COLORS[index % this.CHART_COLORS.length]
     );
@@ -144,25 +179,38 @@ export class BarChartCardComponent
 
   private buildChart(): void {
     if (!this.canvasRef?.nativeElement) return;
-  
-    // Determine chart data structure based on available inputs
-    let chartData: any;
-  
-    if (this.chartData?.datasets) {
-      // Use ChartData with datasets
-      chartData = {
-        labels: this.chartData.labels,
-        datasets: this.chartData.datasets
-      };
+
+    // Susun data Chart.js berdasarkan prioritas input
+    let built: { labels: string[]; datasets: any[] } | null = null;
+
+    if (this.chartData) {
+      if ('datasets' in this.chartData) {
+        // MultiChartData langsung
+        built = {
+          labels: this.chartData.labels,
+          datasets: this.chartData.datasets,
+        };
+      } else {
+        // SingleChartData → bungkus jadi satu dataset
+        built = {
+          labels: this.chartData.labels,
+          datasets: [
+            {
+              label: this.label,
+              data: this.chartData.data,
+              backgroundColor: this.getBackgroundColorsForArray(this.chartData.data.length),
+              borderWidth: 1,
+              borderRadius: 4,
+              borderSkipped: false,
+            },
+          ],
+        };
+      }
     } else if (this.isMultiDataset && this.datasets) {
-      // Use standalone datasets input
-      chartData = {
-        labels: this.labels,
-        datasets: this.datasets
-      };
+      built = { labels: this.labels, datasets: this.datasets };
     } else {
-      // Use single dataset mode
-      chartData = {
+      // Fallback: single input labels+data
+      built = {
         labels: this.labels,
         datasets: [
           {
@@ -173,67 +221,58 @@ export class BarChartCardComponent
             borderRadius: 4,
             borderSkipped: false,
           },
-        ]
+        ],
       };
     }
-  
+
+    const isMulti = built.datasets.length > 1;
+
     this.chart = new Chart(this.canvasRef.nativeElement, {
-      type: this.horizontal ? 'bar' : 'bar',
-      data: chartData,
+      type: 'bar',
+      data: built,
       options: {
-        // ... rest of your existing options
         indexAxis: this.horizontal ? 'y' : 'x',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            display: this.isMultiDataset || this.chartData?.datasets ? true : this.showLegend,
+            // Tampilkan legend otomatis bila multi; kalau single, pakai showLegend
+            display: isMulti ? true : this.showLegend,
             position: 'top',
           },
           title: {
             display: !!this.title,
             text: this.title,
-            font: {
-              size: 16,
-              weight: 'bold',
-            },
-            padding: {
-              bottom: 20,
-            },
+            font: { size: 16, weight: 'bold' },
+            padding: { bottom: 20 },
           },
           tooltip: {
             callbacks: {
               label: (context) => {
                 const label = context.dataset.label || '';
-                
-                let value: number;
-                if (this.horizontal) {
-                  value = context.parsed.x;
-                } else {
-                  value = context.parsed.y;
+                const value = this.horizontal
+                  ? context.parsed.x
+                  : context.parsed.y;
+
+                if (this.chartType === 'currency') {
+                  const formatted = new Intl.NumberFormat('id-ID').format(value);
+                  return `${label}: Rp ${formatted}`;
                 }
-                
-                // Fix: Gunakan chartType untuk menentukan format
-                if (this.chartType === 'currency' || this.isMultiDataset || this.chartData?.datasets) {
-                  const formattedValue = new Intl.NumberFormat('id-ID').format(value);
-                  return `${label}: Rp ${formattedValue}`;
-                } else {
-                  return `${label}: ${value} unit`;
-                }
+                // default unit/sales
+                return `${label}: ${value}`;
               },
             },
           },
         },
         scales: {
           x: {
+            title: { display: !!this.xTitle, text: this.xTitle || '' },
             beginAtZero: this.horizontal ? true : false,
             grid: {
               display: this.horizontal ? true : false,
               color: 'rgba(0,0,0,0.05)',
             },
-            ticks: {
-              precision: 0,
-            },
+            ticks: { precision: 0 },
           },
           y: {
             beginAtZero: this.horizontal ? false : true,
@@ -242,50 +281,51 @@ export class BarChartCardComponent
               color: 'rgba(0,0,0,0.05)',
             },
             ticks: this.horizontal
-              ? {
-                  maxRotation: 0,
-                  minRotation: 0,
-                }
-              : {
-                  precision: 0,
-                },
+              ? { maxRotation: 0, minRotation: 0 }
+              : { precision: 0 },
           },
         },
         elements: {
-          bar: {
-            borderWidth: 1,
-          },
+          bar: { borderWidth: 1 },
         },
       },
     });
   }
-  
+
+  private getBackgroundColorsForArray(length: number): string[] {
+    if (Array.isArray(this.backgroundColor)) {
+      // Jika parent memberi array warna, pakai sesuai panjang
+      if (this.backgroundColor.length >= length) return this.backgroundColor as string[];
+      // Kalau kurang panjang, ulangi
+      return Array.from({ length }, (_, i) =>
+        (this.backgroundColor as string[])[i % (this.backgroundColor as string[]).length]
+      );
+    }
+    if (typeof this.backgroundColor === 'string' && this.backgroundColor) {
+      return Array(length).fill(this.backgroundColor);
+    }
+    // default palette
+    return Array.from({ length }, (_, i) => this.CHART_COLORS[i % this.CHART_COLORS.length]);
+  }
 
   private setupResizeObserver(): void {
     if (!this.canvasRef?.nativeElement?.parentElement) return;
-  
-    // Debounce resize untuk menghindari ResizeObserver loop
+
     let resizeTimeout: any;
-    
-    this.ro = new ResizeObserver((entries) => {
-      // Clear previous timeout
-      if (resizeTimeout) {
-        clearTimeout(resizeTimeout);
-      }
-      
-      // Debounce resize operation
+
+    this.ro = new ResizeObserver(() => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
-        if (this.chart && !this.chart.canvas?.isConnected === false) {
+        if (this.chart && this.chart.canvas?.isConnected !== false) {
           try {
             this.chart.resize();
-          } catch (error) {
-            // Silently handle resize errors
-            console.debug('Chart resize warning (safe to ignore):', error);
+          } catch (e) {
+            console.debug('Chart resize warning (safe to ignore):', e);
           }
         }
-      }, 50); // 50ms debounce
+      }, 50);
     });
-  
+
     this.ro.observe(this.canvasRef.nativeElement.parentElement);
   }
 }

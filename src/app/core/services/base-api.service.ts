@@ -7,7 +7,8 @@ import { environment } from '../../../environments/environment';
 export abstract class BaseApiService {
   protected http = inject(HttpClient);
 
-  private readonly authHeaders = new HttpHeaders({
+  // ↓ ubah: private → protected
+  protected readonly authHeaders = new HttpHeaders({
     authentication: environment.authenticationToken,
   });
 

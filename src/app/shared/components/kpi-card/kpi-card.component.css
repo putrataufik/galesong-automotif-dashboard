@@ -1,130 +1,116 @@
-/* KPI Card Styles */
-.kpi-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: default;
-  border: 1px solid #f0f0f0;
+/* Judul kecil di atas nilai */
+.kpi-title-compact {
+  font-size: .75rem;
+  letter-spacing: .3px;
+  font-weight: 600;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: #6c757d;
 }
 
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
-}
-
-.kpi-card-large {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: default;
-  border: 1px solid #f0f0f0;
-  min-height: 120px;
-}
-
-.kpi-card-large:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
-}
-
-/* Icon container backgrounds - matching the design */
-.icon-bg-blue {
-  background-color: #e3f2fd;
-}
-
-.icon-bg-purple {
-  background-color: #f3e5f5;
-}
-
-.icon-bg-green {
-  background-color: #e8f5e8;
-}
-
-.icon-bg-red {
-  background-color: #ffebee;
-}
-
-.icon-bg-orange {
-  background-color: #fff3e0;
-}
-
-.icon-bg-yellow {
-  background-color: #fffde7;
-}
-
-/* Icon container styling */
-.icon-container {
-  flex-shrink: 0;
-}
-
-/* Content container */
-.content-container {
-  min-width: 0; /* Prevents flex item from overflowing */
-}
-
-/* Typography adjustments */
-.kpi-title {
-  color: #666;
-  letter-spacing: 0.25px;
-}
-
+/* Nilai utama (current) */
 .kpi-value {
-  color: #1a1a1a;
+  font-size: 1.35rem;
   font-weight: 700;
+  line-height: 1;
+  color: #212529;
 }
 
-.kpi-unit {
-  color: #999;
-  margin-left: 0.25rem;
-}
-
-.kpi-subtitle {
-  color: #777;
-}
-
-.kpi-highlight-value {
-  color: #1a1a1a;
+/* Nilai pembanding (angka) */
+.comparison-main-value {
+  font-size: .85rem;
   font-weight: 700;
+  line-height: 1.1;
+  color: #495057;
 }
 
-.kpi-highlight-name {
-  color: #333;
+/* Nama di samping angka */
+.comparison-name {
+  font-size: .78rem;
+  font-weight: 500;
+  color: #6c757d;
+  max-width: 12rem;        /* batasi supaya tidak nabrak */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .kpi-value {
-    font-size: 1.25rem !important;
-  }
+/* Separator bullet kecil di tengah */
+.comparison-sep {
+  display: inline-block;
+  margin: 0 .25rem;
+  color: #98a2b3;
+  font-size: .85rem;
+  line-height: 1;
+}
+
+/* Kontainer angka + nama → sejajar (inline) dan tetap center */
+.comparison-pair {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: .25rem;
+  flex-wrap: nowrap;
+}
+.text-muted-name{
+  font-size: 0.65rem;
+}
+
+/* Status warna */
+.kpi-up { color: #20c997; }    /* hijau */
+.kpi-down { color: #ff2525; }  /* merah */
+.kpi-flat { color: #495057; }  /* abu-abu */
+
+/* Garis pemisah bagian comparison lebih lembut */
+.border-top {
+  border-top: 1px solid rgba(0,0,0,.06) !important;
+}
+
+/* Tombol info (kanan atas) */
+.info-btn {
+  position: absolute;
+  top: .35rem;
+  right: .5rem;
+  color: #6c757d;
+  z-index: 61;               /* di atas bubble */
+}
+.info-btn:hover { color: #343a40; }
+
+/* Info bubble */
+.info-bubble {
+  position: absolute;
+  top: 2rem;
+  right: .3rem;
+  left: .3rem;
+  z-index: 60;
+  max-width: 320px;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: .5rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+.info-bubble__content {
+  padding: .6rem .75rem;
+  font-size: .82rem;
+  color: #334155;
+}
+.info-bubble__arrow {
+  position: absolute;
+  top: -6px;
+  right: 10px;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-left: 1px solid rgba(0,0,0,.08);
+  border-top: 1px solid rgba(0,0,0,.08);
+  transform: rotate(45deg);
+}
+
+/* Responsif */
+@media (max-width: 576px) {
+  .kpi-value { font-size: 1.2rem; }
+  .comparison-main-value { font-size: .82rem; }
+  .comparison-name { max-width: 9rem; }
   
-  .kpi-highlight-value {
-    font-size: 1.5rem !important;
-  }
-  
-  .icon-container {
-    width: 40px !important;
-    height: 40px !important;
-  }
-  
-  .icon-container img {
-    width: 20px !important;
-    height: 20px !important;
-  }
-  
-  .kpi-card {
-    padding: 1rem !important;
-  }
-}
-
-/* Loading state */
-.kpi-card.loading {
-  opacity: 0.7;
-}
-
-.kpi-card.loading .kpi-value {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-  border-radius: 4px;
-  color: transparent;
-}
-
-@keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
 }

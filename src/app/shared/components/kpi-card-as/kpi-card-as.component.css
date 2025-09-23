@@ -2,80 +2,56 @@
 .kpi-card-as {
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.05);
-  min-height: 200px;
-  padding: 0;
+  min-height: 50px;
   overflow: hidden;
-  transition: all 0.3s ease;
 }
 
 /* Header Chip */
 .header-chip-wrapper {
   position: relative;
   color: white;
-  height: 60px;
+  height: 35px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  padding: 0 20px;
+  padding: 10px 0px 10px 0px;
 }
 
 .chip-title {
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-align: start;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-align: center;
   flex-grow: 1;
-}
-
-.chip-icon {
-  font-size: 0.9rem;
-  opacity: 0.8;
-  margin-left: 8px;
-}
-.chip-icon:hover {
-  opacity: 1;
-}
-
-/* Tombol ikon agar accessible */
-.chip-icon-btn {
-  background: transparent;
-  border: none;
-  padding: 6px;
-  border-radius: 50%;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  outline: none;
-}
-.chip-icon-btn:focus-visible {
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.45);
 }
 
 /* Content Section */
 .content-section {
-  padding: 10px;
+  padding: 8px 8px 10px;
 }
 
 /* Percentage Display */
+/* Versi dinamis, tanpa tinggi tetap */
 .percentage-display {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 800;
   color: #242424;
-  margin-bottom: 10px;
   line-height: 1;
-  animation: countUp 0.6s ease-out;
+  display: inline-flex;         /* biar sekecil konten */
+  align-items: center;
+  justify-content: center;             /* beri sedikit bantalan saja */
+  min-height: 0;                /* pastikan tidak dipaksa tinggi */
+  margin-right: 5px;
 }
+
 
 /* Progress Bar */
 .progress {
-  height: 25px;
+  height: 20px;
   background-color: #878787;
   margin-bottom: 0px;
   position: relative;
-  overflow: hidden;            /* ← penting: potong isi agar mengikuti pil */
-  border-radius: 9999px;       /* ← radius hanya di track */
+  overflow: hidden; /* ← penting: potong isi agar mengikuti pil */
+  border-radius: 9999px; /* ← radius hanya di track */
 }
 
 /* Hindari radius di bar agar ujung kanan tidak membulat ketika kecil */
@@ -85,7 +61,6 @@
   height: 100%;
 }
 
-
 /* Teks di tengah progress */
 .progress-text {
   position: absolute;
@@ -93,7 +68,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: #ffffff;
   z-index: 2;
@@ -102,14 +77,11 @@
 
 /* Detail Rows */
 
-
 .detail-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 4px 0;
-  border-bottom: 1px solid #e5e5e5;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }
 
 .detail-row:last-child {
@@ -119,11 +91,12 @@
 .detail-row span:first-child {
   color: #6c757d;
   font-weight: 500;
-  font-size: 0.85rem;
+  font-size: 0.6rem;
 }
 
 .detail-row span:last-child {
-  font-size: 0.85rem;
+  font-size: 0.6rem;
+  font-weight: bold;
 }
 
 /* Loading Overlay */
@@ -168,14 +141,32 @@
   }
 }
 
-/* Animation for percentage counter */
-@keyframes countUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Label periode (badge di kiri, rapih) */
+.period-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.125rem 0;
 }
+
+/* Soft badges (kalau belum ada) */
+.badge-soft-primary {
+  background: #e0f2fe;
+  color: #0c4a6e;
+  font-size: 0.6rem;
+}
+
+.badge-soft-warning {
+  background: #fff1c2;
+  color: #92400e;
+  font-size: 0.6rem;
+}
+
+/* Garis pemisah halus antar-periode */
+.period-sep {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #000000, transparent);
+  margin: 0.2rem 0;
+}
+
