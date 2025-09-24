@@ -30,7 +30,7 @@ export class FilterMainDashboardComponent
   implements OnInit, OnChanges, OnDestroy
 {
   // Props dari parent
-  @Input() currentFilter: AppFilter | null = null; // ⬅️ renamed
+  @Input() currentFilter: AppFilter | null = null;
   @Input() loading = false;
 
   // Emit ke parent
@@ -73,12 +73,36 @@ export class FilterMainDashboardComponent
   showAlert = false;
   alertMessage = '';
   alertType: 'success' | 'danger' = 'danger';
+  full_name = '';
+  photo_profile_path = '';
+  work_area = '';
+  organization = '';
+  job_level = '';
+  company_name= '';
   private alertTimeoutId: any;
-
   constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {}
 
   // Lifecycle
   ngOnInit() {
+    console.log('Filter Ter Init')
+    try { 
+      const raw = localStorage.getItem('auth.user'); 
+      if (raw) { 
+        const p: any = JSON.parse(raw);
+        const u = Array.isArray(p?.data) ? p.data[0] : Array.isArray(p) ? p[0] : p;
+        this.full_name = u?.full_name ?? u?.alias_name ?? '';
+        this.photo_profile_path = u?.photo_profile_path ?? '';
+        this.work_area = u?.work_area ?? '';
+        this.organization = u?.organization ?? '';
+        this.job_level = u?.job_level ?? '';
+        this.company_name = u?.company ?? '';
+
+        console.log('Dataaaaa: ',this.full_name, this.photo_profile_path, this.work_area, this.organization, this.job_level, this.company_name);
+      }
+      console.log('di luarrrr')
+    } catch {
+      console.log('Gagal parse user data');
+    }
     if (this.currentFilter) this.applyCurrentFilter(this.currentFilter);
   }
 
@@ -171,7 +195,8 @@ export class FilterMainDashboardComponent
       this.show('Mohon lengkapi: ' + empty.join(', '), 'danger');
       return;
     }
-
+    console.log('search klik')
+    console.log('nama: ', this.full_name)
     this.search.emit({
       company: this.company,
       category: this.category,
