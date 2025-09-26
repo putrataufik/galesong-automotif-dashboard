@@ -9,11 +9,13 @@ import {
   OnDestroy,
   NgZone,
   ChangeDetectorRef,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppFilter, CategoryFilter } from '../../../types/filter.model';
 
-// Interface opsi dropdown
+import { UserInfoComponent } from '../user-info/user-info.component';
+
 interface Option {
   value: string;
   name: string;
@@ -22,21 +24,19 @@ interface Option {
 @Component({
   selector: 'app-filter-main-dashboard',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, UserInfoComponent],
   templateUrl: './filter-main-dashboard.component.html',
-  styleUrl: './filter-main-dashboard.component.css',
+  styleUrls: ['./filter-main-dashboard.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FilterMainDashboardComponent
   implements OnInit, OnChanges, OnDestroy
 {
-  // Props dari parent
   @Input() currentFilter: AppFilter | null = null;
   @Input() loading = false;
 
-  // Emit ke parent
   @Output() search = new EventEmitter<AppFilter>();
 
-  // Static data
   companies: Option[] = [
     { value: 'sinar-galesong-mobilindo', name: 'Sinar Galesong Mobilindo' },
   ];
@@ -47,7 +47,6 @@ export class FilterMainDashboardComponent
     { value: 'after-sales', name: 'After Sales' },
   ];
 
-  // Branch/cabang (contoh statis; bisa diganti dari API)
   branches: Option[] = [
     { value: 'all-branch', name: 'Semua Cabang' },
     { value: '0050', name: 'Pettarani' },
@@ -57,52 +56,28 @@ export class FilterMainDashboardComponent
     { value: '0054', name: 'Palopo' },
   ];
 
-  // Tahun & Bulan
   years: Option[] = this.generateYearYears();
   months: Option[] = this.generateMonths();
 
   company = '';
   category: CategoryFilter = 'all-category';
   year = String(new Date().getFullYear());
-  // bulan default = bulan saat ini
   month = String(new Date().getMonth() + 1).padStart(2, '0');
-  branch = 'all-branch'; // default: Semua Cabang
+  branch = 'all-branch';
   compare = false;
 
-  // Alert
   showAlert = false;
   alertMessage = '';
   alertType: 'success' | 'danger' = 'danger';
-  full_name = '';
-  photo_profile_path = '';
-  work_area = '';
-  organization = '';
-  job_level = '';
-  company_name= '';
   private alertTimeoutId: any;
-  constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {}
 
-  // Lifecycle
-  ngOnInit() {
-    console.log('Filter Ter Init')
-    try { 
-      const raw = localStorage.getItem('auth.user'); 
-      if (raw) { 
-        const p: any = JSON.parse(raw);
-        const u = Array.isArray(p?.data) ? p.data[0] : Array.isArray(p) ? p[0] : p;
-        this.full_name = u?.full_name ?? u?.alias_name ?? '';
-        this.photo_profile_path = u?.photo_profile_path ?? '';
-        this.work_area = u?.work_area ?? '';
-        this.organization = u?.organization ?? '';
-        this.job_level = u?.job_level ?? '';
-        this.company_name = u?.company ?? '';
+  constructor(
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef,
+  ) {} // <-- Hapus dm & ml dari constructor
 
-        console.log('Dataaaaa: ',this.full_name, this.photo_profile_path, this.work_area, this.organization, this.job_level, this.company_name);
-      }
-      console.log('di luarrrr')
-    } catch {
-      console.log('Gagal parse user data');
-    }
+  async ngOnInit() {
+    // Hapus: await this.dm.ensureLoaded();
     if (this.currentFilter) this.applyCurrentFilter(this.currentFilter);
   }
 
@@ -116,14 +91,12 @@ export class FilterMainDashboardComponent
     clearTimeout(this.alertTimeoutId);
   }
 
-  // Terapkan filter dari parent
   private applyCurrentFilter(filter: AppFilter | null) {
     if (!filter) return;
 
     this.company = filter.company ?? this.company;
     this.category = (filter.category ?? this.category) as CategoryFilter;
 
-    // Jika tahun tidak ada di list -> tambahkan
     if (filter.year && !this.years.find((p) => p.value === filter.year)) {
       this.years = [{ value: filter.year, name: filter.year }, ...this.years];
     }
@@ -134,58 +107,35 @@ export class FilterMainDashboardComponent
     this.compare = !!filter.compare;
   }
 
-  // Generate list tahun (current -> 2022)
   private generateYearYears(): Option[] {
     const currentYear = new Date().getFullYear();
-    const list: Option[] = [
-      { value: String(currentYear), name: `Tahun Ini (${currentYear})` },
-    ];
-    for (let y = currentYear - 1; y >= 2022; y--) {
-      list.push({ value: String(y), name: String(y) });
-    }
+    const list: Option[] = [{ value: String(currentYear), name: `Tahun Ini (${currentYear})` }];
+    for (let y = currentYear - 1; y >= 2022; y--) list.push({ value: String(y), name: String(y) });
     return list;
   }
 
   private generateMonths(): Option[] {
     const names = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember',
+      'Januari','Februari','Maret','April','Mei','Juni',
+      'Juli','Agustus','September','Oktober','November','Desember',
     ];
     const opts: Option[] = [];
     for (let i = 0; i < 12; i++) {
-      const v = String(i + 1).padStart(2, '0'); // "01".."12"
+      const v = String(i + 1).padStart(2, '0');
       opts.push({ value: v, name: names[i] });
     }
     return opts;
   }
 
-  // Perubahan filter → reset alert
   onFilterChange() {
     if (this.showAlert) this.hideAlert();
   }
-
-  // Saat tahun berubah → jangan reset bulan ke "all-month"
-  onYearChange() {
-    this.onFilterChange();
-  }
-
-  // Saat perusahaan berubah → reset branch ke "Semua"
+  onYearChange() { this.onFilterChange(); }
   onCompanyChange() {
     this.branch = 'all-branch';
     this.onFilterChange();
   }
 
-  // Klik cari
   onSearchClick() {
     const empty: string[] = [];
     if (!this.company) empty.push('Perusahaan');
@@ -195,8 +145,7 @@ export class FilterMainDashboardComponent
       this.show('Mohon lengkapi: ' + empty.join(', '), 'danger');
       return;
     }
-    console.log('search klik')
-    console.log('nama: ', this.full_name)
+
     this.search.emit({
       company: this.company,
       category: this.category,
@@ -207,7 +156,6 @@ export class FilterMainDashboardComponent
     });
   }
 
-  // Alert helpers
   private show(msg: string, type: 'success' | 'danger') {
     this.alertMessage = msg;
     this.alertType = type;
@@ -225,4 +173,6 @@ export class FilterMainDashboardComponent
   hideAlert() {
     this.showAlert = false;
   }
+
+  trackByValue = (index: number, item: Option) => item?.value ?? index;
 }

@@ -6,7 +6,9 @@
   aria-live="polite"
 >
   <div
-    class="alert alert-{{ alertType }} alert-dismissible fade show shadow-sm py-2 px-3 small"
+    class="alert alert-{{
+      alertType
+    }} alert-dismissible fade show shadow-sm py-2 px-3 small"
   >
     <i
       class="bi {{
@@ -27,19 +29,24 @@
 </div>
 }
 
-<header class="bg-white px-2 px-md-3 py-2" role="banner" aria-label="Header Dashboard">
+<header
+  class="bg-white px-2 px-md-3 py-2"
+  role="banner"
+  aria-label="Header Dashboard"
+>
   <div class="d-flex align-items-center justify-content-between gap-2">
-    <h6 class="mb-0 fw-bold text-dark d-flex align-items-center">
-      <i class="bi bi-card-heading me-2"></i>
-      <span>Mainnnnn Dashboard</span>
-    </h6>
-
-    <div class="text-end lh-sm">
-      <div class="fw-medium small text-dark">{{ full_name }}</div>
-      <div class="text-muted small">Direktur</div>
+    <div>
+      <h6 class="mb-0 fw-bold text-dark d-flex align-items-center">
+        <i class="bi bi-card-heading me-2"></i>
+        <span>Main Dashboard</span>
+      </h6>
     </div>
+
+    <!-- === User info diganti jadi komponen reusable === -->
+    <app-user-info></app-user-info>
   </div>
 </header>
+
 
 <section
   class="filter-card compact bg-white shadow-sm rounded-3 p-2 p-md-3"
@@ -61,7 +68,7 @@
       >
         <option value="">Pilih</option>
         @for (c of companies; track c.value) {
-          <option [value]="c.value">{{ c.name }}</option>
+        <option [value]="c.value">{{ c.name }}</option>
         }
       </select>
     </div>
@@ -76,7 +83,7 @@
         (change)="onFilterChange()"
       >
         @for (b of branches; track b.value) {
-          <option [value]="b.value">{{ b.name }}</option>
+        <option [value]="b.value">{{ b.name }}</option>
         }
       </select>
     </div>
@@ -91,7 +98,7 @@
         (change)="onFilterChange()"
       >
         @for (k of categories; track k.value) {
-          <option [value]="k.value">{{ k.name }}</option>
+        <option [value]="k.value">{{ k.name }}</option>
         }
       </select>
     </div>
@@ -108,7 +115,7 @@
         (change)="onYearChange()"
       >
         @for (p of years; track p.value) {
-          <option [value]="p.value">{{ p.name }}</option>
+        <option [value]="p.value">{{ p.name }}</option>
         }
       </select>
     </div>
@@ -123,7 +130,7 @@
         (change)="onFilterChange()"
       >
         @for (m of months; track m.value) {
-          <option [value]="m.value">{{ m.name }}</option>
+        <option [value]="m.value">{{ m.name }}</option>
         }
       </select>
     </div>
@@ -140,7 +147,7 @@
           (change)="onFilterChange()"
         />
         <label class="form-check-label small mb-0" for="compareSwitch">
-          {{ compare ? 'ON' : 'OFF' }}
+          {{ compare ? "ON" : "OFF" }}
         </label>
       </div>
     </div>

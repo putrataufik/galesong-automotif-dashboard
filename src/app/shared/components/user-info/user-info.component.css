@@ -1,0 +1,165 @@
+/* =========================
+   UTILITIES & TYPOGRAPHY
+   ========================= */
+.tiny  { font-size: .75rem; line-height: 1.15; }
+.micro { font-size: .70rem; line-height: 1.10; }
+
+.text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.min-w-0 { min-width: 0; }
+
+.btn-reset { all: unset; cursor: pointer; line-height: 0; }
+
+/* Avatar sizes */
+.avatar-mobile   { width: 36px; height: 36px; object-fit: cover; }
+.avatar-popover  { width: 34px; height: 34px; object-fit: cover; }
+.avatar-desktop  { width: 35px; height: 35px; object-fit: cover; } /* jika dipakai di desktop */
+
+@media (min-width: 768px) {
+  .avatar-mobile { width: 40px; height: 40px; }
+}
+
+/* =========================
+   ANCHOR (Wajib Relative)
+   ========================= */
+.avatar-anchor { position: relative; --gap: 10px; } /* --gap = jarak bubble dari avatar */
+
+/* =========================
+   INFO BUBBLE (original + tweak)
+   ========================= */
+
+/* Base dari kamu */
+.info-bubble {
+  position: absolute;
+  z-index: 60;
+  max-width: 320px;
+  min-width: 220px;
+  background: #fff;
+}
+
+.info-bubble__content {
+  padding: .6rem .75rem;
+  font-size: .82rem;
+  color: #334155;
+}
+
+/* Arrow (kotak diputar 45deg) */
+.info-bubble__arrow {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  transform: rotate(45deg);
+}
+
+/* =========================
+   POSISI DEFAULT (BAWAH–KANAN)
+   ========================= */
+/* Override posisi agar nempel ke avatar */
+.avatar-anchor > .info-bubble {
+  top: calc(100% + var(--gap));  /* jarak vertikal dari avatar */
+  right: 0;                      /* rata kanan anchor */
+  left: auto;
+  transform: none;
+}
+
+/* Arrow untuk bawah–kanan */
+.avatar-anchor > .info-bubble .info-bubble__arrow {
+  top: -6px;
+  right: 10px;                   /* posisikan panah di sisi kanan bubble */
+  left: auto;
+  transform: rotate(45deg);
+}
+
+/* =========================
+   PRESET OPSIONAL (tinggal tambah class)
+   ========================= */
+
+/* Bawah–Tengah */
+.info-bubble.is-bottom-center {
+  top: calc(100% + var(--gap));
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+.info-bubble.is-bottom-center .info-bubble__arrow {
+  top: -6px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/* Bawah–Kiri */
+.info-bubble.is-bottom-start {
+  top: calc(100% + var(--gap));
+  left: 0;
+  right: auto;
+  transform: none;
+}
+.info-bubble.is-bottom-start .info-bubble__arrow {
+  top: -6px;
+  left: 10px;
+  right: auto;
+  transform: rotate(45deg);
+}
+
+/* Atas–Tengah */
+.info-bubble.is-top-center {
+  bottom: calc(100% + var(--gap));
+  top: auto;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+.info-bubble.is-top-center .info-bubble__arrow {
+  bottom: -6px;
+  top: auto;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/* Kanan–Tengah */
+.info-bubble.is-right {
+  left: calc(100% + var(--gap));
+  right: auto;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+}
+.info-bubble.is-right .info-bubble__arrow {
+  left: -6px;     /* panah di sisi kiri bubble */
+  right: auto;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* Kiri–Tengah */
+.info-bubble.is-left {
+  right: calc(100% + var(--gap));
+  left: auto;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+}
+.info-bubble.is-left .info-bubble__arrow {
+  right: -6px;    /* panah di sisi kanan bubble */
+  left: auto;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* =========================
+   ANIMASI HALUS (opsional)
+   ========================= */
+.info-bubble { animation: popin .12s ease-out; }
+@keyframes popin {
+  from { opacity: 0; transform: translateY(-2px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* =========================
+   USERBAR (desktop) – supaya tidak pecah
+   ========================= */
+.userbar { flex-wrap: wrap; } /* jika dipakai */

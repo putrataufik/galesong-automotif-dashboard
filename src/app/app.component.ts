@@ -25,6 +25,7 @@ import { SalesFilter } from './core/models/sales.models';
 // Auth
 import { AuthService } from './core/services/auth.service';
 import { AfterSalesDashboardStateService } from './core/state/after-sales-state.service';
+import { DataMasterService } from './core/services/data-master.service';
 
 @Component({
   selector: 'app-root',
@@ -60,6 +61,7 @@ export class AppComponent implements OnInit {
   private readonly mainState = inject(MainDashboardStateService);
   private readonly salesState = inject(SalesStateService);
   private readonly auth = inject(AuthService);
+  private dm = inject(DataMasterService);
 
   // ===== Expose as readonly =====
   isSidebarCollapsed = this._isSidebarCollapsed.asReadonly();
@@ -82,18 +84,28 @@ export class AppComponent implements OnInit {
     }
   }
 
-  // ===== Ambil token dari URL =====
+  // ===== Ambil token dari URL atau localStorage =====
   private getTokenFromUrl(): string | null {
     if (typeof window === 'undefined') return null;
+
     const url = new URL(window.location.href);
 
-    // Prioritas query param ?t=xxxx
+    // 1) Prioritas: query param ?t=xxxx
     const qToken = url.searchParams.get('t');
-    if (qToken) return qToken;
+    if (qToken && qToken.trim()) return qToken.trim();
 
-    // Fallback path /t=xxxx
+    // 2) Fallback: path /t=xxxx
     const m = url.pathname.match(/(?:^|\/)t=([^/?#]+)/i);
-    return m ? m[1] : null;
+    if (m && m[1] && m[1].trim()) return m[1].trim();
+
+    // 3) Fallback terakhir: localStorage auth.token
+    try {
+      const lsToken = window.localStorage?.getItem('auth.token');
+      const token = (lsToken ?? '').trim();
+      return token || null;
+    } catch {
+      return null;
+    }
   }
 
   private async autoLoginIfToken(): Promise<'ok' | 'redirect' | 'skip'> {
@@ -101,9 +113,15 @@ export class AppComponent implements OnInit {
     return t ? await this.performTokenLogin(t) : 'skip';
   }
 
-  private redirectWithToken(token: string): void {
+  private redirectWithToken(token: string, reason?: string): void {
+    // if (typeof window !== 'undefined') {
+    //   window.location.href = `https://sinargalesong.net/${token}`;
+    // }
     if (typeof window !== 'undefined') {
-      window.location.href = `https://sinargalesong.net/${token}`;
+      console.log('Redirect to: ', `https://sinargalesong.net/${token}`);
+      if (reason) {
+        console.log('Reason: ', reason);
+      }
     }
   }
 
@@ -138,21 +156,33 @@ export class AppComponent implements OnInit {
       console.group('[AUTO-LOGIN] User Data');
       console.log('Raw user response:', userResp);
 
-      // parsing defensif qualification dari berbagai bentuk payload
+      // --- Parsing defensif dari berbagai bentuk payload ---
       const d = userResp?.data ?? userResp;
-      const qualification = Array.isArray(d)
-        ? d[0]?.qualification
-        : d?.qualification;
 
-      console.log('Parsed qualification:', qualification);
+      // helper ambil field dari object/array
+      const pick = (key: string) =>
+        Array.isArray(d) ? d?.[0]?.[key] : d?.[key];
+
+      // beberapa backend kadang typo "oraganization", fallback ke "organization"
+      const qualificationRaw = pick('qualification');
+      const organizationRaw = pick('organization') ?? pick('oraganization');
+
+      // normalisasi ke string trimmed
+      const q = String(qualificationRaw ?? '').trim();
+      const org = String(organizationRaw ?? '').trim();
+
+      console.group('[AUTO-LOGIN] Gate check');
+      console.log('Parsed qualification:', qualificationRaw, '→', q);
+      console.log('Parsed organization :', organizationRaw, '→', org);
       console.groupEnd();
 
-      // === Gate by qualification ===
-      if (String(qualification) !== '9') {
-        // BUKAN '9' → redirect sesuai rule kamu
-        this.redirectWithToken(row.token || t);
+      // === Gate by qualification/organization (ALLOW if q==9 OR org==6) ===
+      if (!(q === '9' || org === '6')) {
+        this.redirectWithToken(row.token || t, `gate fail: q=${q}, org=${org}`);
         return 'redirect';
       }
+
+      // Lolos gate (q==9 ATAU org==6) -> lanjut proses...
 
       // === SIMPAN sesi ===
       localStorage.setItem('auth.token', row.token);
@@ -181,27 +211,42 @@ export class AppComponent implements OnInit {
       // Ambil token dari URL—wajib ada
       const urlToken = this.getTokenFromUrl();
       if (!urlToken) {
-        // kalau memang wajib ada token di URL
         this.redirectWithToken('');
         return;
       }
 
       const loginResult = await this.autoLoginIfToken();
 
-      // >>> PERBAIKAN: masukkan token ke redirectWithToken <<<
+      // Jika perlu redirect, sertakan token dari URL
       if (loginResult === 'redirect') {
         this.redirectWithToken(urlToken);
         return;
       }
 
+      // === 1) MASTER DATA DULU (sekuensial) ===
+      this._splashMessage.set('Memuat master data (branch, company, dll)...');
+      this._splashProgress.set(25);
+
+      try {
+        // TTL opsional: 30 hari (ganti sesuai kebutuhan)
+        await this.dm.loadAll(true);
+        console.log('Berhasil Load data Master');
+      } catch (e) {
+        console.warn(
+          '[MASTER] Gagal memuat dari server, coba pakai cache lokal jika ada:',
+          e
+        );
+        // fallback: jika belum ada cache sama sekali, biarkan lanjut; UI bisa handle kosong
+      }
+
+      // === 2) PRELOAD DASHBOARD (paralel) ===
       this._splashMessage.set('Memuat semua data...');
-      this._splashProgress.set(30);
+      this._splashProgress.set(45);
       console.log('Starting data preload...');
 
-      // Jalankan preload: Main (isi state khusus Main) + Sales (isi state halaman Sales)
       await Promise.all([
-        this.preloadMainDashboardData(), // → state Main
-        this.preloadSalesDashboardData(), // → state Sales (terpisah)
+        this.preloadMainDashboardData(), // isi state Main
+        this.preloadSalesDashboardData(), // isi state Sales
         this.preloadAfterSalesDashboardData(),
       ]);
 

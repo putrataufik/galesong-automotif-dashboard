@@ -1,0 +1,117 @@
+<!-- HEADER -->
+<header
+  class="bg-white px-2 px-md-3 py-2"
+  role="banner"
+  aria-label="Header Dashboard"
+>
+  <div class="d-flex align-items-center justify-content-between gap-2">
+    <!-- Kiri: Judul + Avatar (mobile only) -->
+    <div class="d-flex align-items-center gap-2">
+      <div
+        #avatarAnchor
+        class="avatar-anchor d-inline-flex d-md-none ms-1 align-items-center justify-content-center"
+      >
+        <button
+          type="button"
+          class="btn-reset"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="popoverOpen()"
+          aria-label="Tampilkan info pengguna"
+          (click)="togglePopover($event)"
+        >
+          <img
+            [src]="photo_profile_path() || ''"
+            alt="Foto profil"
+            class="avatar-mobile"
+            (error)="photo_profile_path.set('')"
+          />
+        </button>
+
+        @if (popoverOpen()) {
+        <div
+          class="info-bubble"
+          role="dialog"
+          aria-label="Info pengguna"
+          tabindex="-1"
+          (click)="$event.stopPropagation()"
+        >
+          <span class="info-bubble__arrow"></span>
+          <div class="info-bubble__content">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <div
+                class="fw-semibold tiny text-dark text-truncate"
+                style="max-width: 200px"
+              >
+                {{ full_name() }}
+              </div>
+            </div>
+            <div class="micro text-muted">
+              Jabatan: <span class="text-dark">{{ qualification_name() }}</span>
+            </div>
+            <div class="micro text-muted">
+              Organisasi:
+              <span class="text-dark">{{ organization_name() }}</span>
+            </div>
+            <div class="micro text-muted">
+              Area Kerja: <span class="text-dark">{{ work_area_name() }}</span>
+            </div>
+            <div class="micro text-muted">
+              Perusahaan: <span class="text-dark">{{ company_name() }}</span>
+            </div>
+            <div class="micro text-muted">
+              Cabang: <span class="text-dark">{{ branch_name() }}</span>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Kanan: Userbar (DESKTOP/TABLET ONLY) -->
+    <div
+      class="d-none d-md-flex align-items-center justify-content-between gap-4 userbar"
+    >
+      <!-- ✅ Beri pembungkus per kolom + min-w-0 -->
+      <div
+        class="d-flex align-items-center justify-content-end gap-2 lh-1 min-w-0"
+      >
+        <div class="text-end min-w-0">
+          <div class="fw-medium text-dark tiny text-truncate">
+            {{ company_name() }}
+          </div>
+          <div class="text-muted micro text-truncate">
+            CABANG - {{ branch_name() }}
+          </div>
+        </div>
+        <div class="flex-shrink-0">
+          <img
+            [src]="photo_profile_path() || ''"
+            alt="Foto profil"
+            class="avatar-desktop"
+            decoding="async"
+            loading="lazy"
+            (error)="photo_profile_path.set('')"
+          />
+        </div>
+      </div>
+
+      <div class="text-end lh-1 min-w-0">
+        <div class="fw-medium text-dark tiny text-truncate">
+          {{ organization_name() }}
+        </div>
+        <div class="text-muted micro text-truncate">
+          AREA KERJA - {{ work_area_name() }}
+        </div>
+      </div>
+
+      <div class="text-end lh-1 min-w-0">
+        <div class="fw-medium text-dark tiny text-truncate">
+          {{ full_name() }}
+        </div>
+        <div class="text-muted micro text-truncate">
+          JABATAN - {{ qualification_name() }}
+        </div>
+      </div>
+    </div>
+  </div>
+</header>

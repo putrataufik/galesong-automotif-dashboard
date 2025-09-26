@@ -30,17 +30,21 @@
 </div>
 }
 <!-- HEADER COMPACT (tetap) -->
-<header class="bg-white px-2 px-md-3 py-2" role="banner" aria-label="Header Dashboard">
+<header
+  class="bg-white px-2 px-md-3 py-2"
+  role="banner"
+  aria-label="Header Dashboard"
+>
   <div class="d-flex align-items-center justify-content-between gap-2">
-    <h6 class="mb-0 fw-bold text-dark d-flex align-items-center">
-      <i class="bi bi-car-front-fill me-2"></i>
-      <span>Sales Dashboard</span>
-    </h6>
-
-    <div class="text-end lh-sm">
-      <div class="fw-medium small text-dark">Putra Taufik</div>
-      <div class="text-muted small">Direktur</div>
+    <div>
+      <h6 class="mb-0 fw-bold text-dark d-flex align-items-center">
+        <i class="bi bi-card-heading me-2"></i>
+        <span>Sales Dashboard</span>
+      </h6>
     </div>
+
+    <!-- === User info diganti jadi komponen reusable === -->
+    <app-user-info></app-user-info>
   </div>
 </header>
 

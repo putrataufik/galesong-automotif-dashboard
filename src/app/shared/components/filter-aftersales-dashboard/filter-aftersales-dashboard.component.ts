@@ -12,6 +12,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { UserInfoComponent } from "../user-info/user-info.component";
 
 // Filter yang dipakai parent/dashboard
 export interface AfterSalesFilter {
@@ -32,7 +33,7 @@ interface Option {
 @Component({
   selector: 'app-filter-aftersales-dashboard',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, UserInfoComponent],
   templateUrl: './filter-aftersales-dashboard.component.html',
   styleUrl: './filter-aftersales-dashboard.component.css',
 })

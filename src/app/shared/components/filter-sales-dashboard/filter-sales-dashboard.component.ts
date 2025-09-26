@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppFilter, CategoryFilter } from '../../../types/filter.model';
-
+import { UserInfoComponent } from "../user-info/user-info.component";
 // Interface opsi dropdown
 interface Option {
   value: string;
@@ -23,7 +23,7 @@ interface Option {
 @Component({
   selector: 'app-filter-sales-dashboard',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, UserInfoComponent],
   templateUrl: './filter-sales-dashboard.component.html',
   styleUrl: './filter-sales-dashboard.component.css',
 })
