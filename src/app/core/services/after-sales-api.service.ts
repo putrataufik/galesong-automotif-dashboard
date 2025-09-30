@@ -146,7 +146,7 @@ export class AfterSalesApiService extends BaseApiService {
   private readonly ENDPOINT = 'getAfterSalesReportByDate';
 
   /* ===========================
-     PUBLIC: RAW (plus computed)
+     PUBLIC: RAW (tanpa enrichment)
   ============================ */
   getAfterSalesRaw(filter: SalesFilter): Observable<RawAfterSalesResponse> {
     const err = this.validateFilter(filter);
@@ -168,11 +168,7 @@ export class AfterSalesApiService extends BaseApiService {
         headers: this.authHeaders,
         params: this.buildParams(params),
       })
-      .pipe(
-        // Enrich: metrik turunan
-        map((res) => this.enrichResponseWithComputed(res)),
-        catchError((err2) => this.handleError(err2))
-      );
+      .pipe(catchError((err2) => this.handleError(err2)));
   }
 
   /* =========================================
@@ -180,7 +176,12 @@ export class AfterSalesApiService extends BaseApiService {
   ========================================= */
   getAfterSalesView(filter: SalesFilter): Observable<UiAfterSalesResponse> {
     return this.getAfterSalesRaw(filter).pipe(
-      map((raw) => this.toUiAfterSalesResponse(raw, !!filter.useCustomDate))
+      // 1) Jika useCustomDate, ubah target selected menjadi "per hari" = target / hari_kerja
+      map((raw) => this.applyPerDayTargetsIfNeeded(raw, filter)),
+      // 2) Hitung ulang turunan berdasarkan target yang sudah diubah
+      map((raw2) => this.enrichResponseWithComputed(raw2)),
+      // 3) Format periode & bentuk UI response
+      map((raw3) => this.toUiAfterSalesResponse(raw3, !!filter.useCustomDate))
     );
   }
 
@@ -402,4 +403,74 @@ export class AfterSalesApiService extends BaseApiService {
       },
     };
   }
+
+  // ====== Per-day targets using 'hari_kerja' ======
+  /**
+   * Mengubah nilai target menjadi "rata-rata per hari" dengan membagi tiap target pada
+   * metrics dengan nilai hari_kerja. Jika hari_kerja tidak valid (<=0/NaN), tidak diubah.
+   * Field yang diubah: after_sales_target, unit_entry_target, jasa_service_target,
+   * part_bengkel_target, part_tunai_target, total_revenue_target.
+   */
+  private targetsToPerDay(metrics: RawAfterSalesMetrics): RawAfterSalesMetrics {
+    if (!metrics) return metrics;
+    const hk = this.num(metrics.hari_kerja);
+    if (!hk || hk <= 0) return metrics;
+
+    const div = (v: Num) => this.num(v) / hk;
+
+    return {
+      ...metrics,
+      after_sales_target:   div(metrics.after_sales_target),
+      unit_entry_target:    div(metrics.unit_entry_target),
+      jasa_service_target:  div(metrics.jasa_service_target),
+      part_bengkel_target:  div(metrics.part_bengkel_target),
+      part_tunai_target:    div(metrics.part_tunai_target),
+      total_revenue_target: div(metrics.total_revenue_target),
+    };
+  }
+
+  /**
+   * Terapkan konversi "target per hari" (target / hari_kerja) pada blok selected
+   * KETIKA useCustomDate aktif. Comparisons dibiarkan apa adanya (periode penuh).
+   * Setelah target diubah, turunan dihitung ulang pada tahap enrichment berikutnya.
+   */
+
+  private targetsToPerDayBlock(block?: RawComparisonBlock | null): RawComparisonBlock | undefined {
+  if (!block) return block ?? undefined;
+  return {
+    ...block,
+    metrics: this.targetsToPerDay(block.metrics),
+  };
+}
+
+  private applyPerDayTargetsIfNeeded(raw: RawAfterSalesResponse, filter: SalesFilter): RawAfterSalesResponse {
+  if (!filter?.useCustomDate) return raw;
+
+  const kp = raw?.data?.kpi_data;
+  if (!kp) return raw;
+
+  const selectedPerDay = kp.selected ? this.targetsToPerDay(kp.selected) : kp.selected;
+
+  const comps = kp.comparisons;
+  const compsPerDay = comps
+    ? {
+        prevDate: this.targetsToPerDayBlock(comps.prevDate),
+        prevMonth: this.targetsToPerDayBlock(comps.prevMonth),
+        prevYear: this.targetsToPerDayBlock(comps.prevYear),
+      }
+    : undefined;
+
+  return {
+    ...raw,
+    data: {
+      ...raw.data,
+      kpi_data: {
+        ...kp,
+        selected: selectedPerDay as RawAfterSalesMetrics,
+        comparisons: compsPerDay,
+      },
+    },
+  };
+}
+
 }

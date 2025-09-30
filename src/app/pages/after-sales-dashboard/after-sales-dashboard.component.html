@@ -304,6 +304,7 @@
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
             title="AFTER SALES"
+            
             headerProgress="Realisasi vs Target"
             headerColor="#0070D2"
             [realisasi]="
@@ -351,7 +352,7 @@
         <!-- Service Cabang -->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="SERVICE CABANG"
+            [title]="'SERVICE CABANG'"
             headerProgress="Realisasi vs Target"
             headerColor="#3B00A0"
             [realisasi]="selectedMetrics()?.service_cabang_realisasi ?? 0"
@@ -393,7 +394,7 @@
         <!-- JASA SERVICE -->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="JASA SERVICE"
+            [title]="'JASA SERVICE'"
             headerProgress="Realisasi vs Target"
             headerColor="#3B00A0"
             [realisasi]="selectedMetrics()?.jasa_service_realisasi ?? 0"
@@ -433,7 +434,7 @@
         <!-- Unit Entry -->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="Unit Entry"
+            [title]="'Unit Entry'"
             headerProgress="Realisasi vs Target"
             headerColor="#588000"
             [realisasi]="selectedMetrics()?.unit_entry_realisasi ?? 0"
@@ -473,7 +474,7 @@
         <!-- PART TUNAI -->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="SPAREPART TUNAI"
+            [title]="'SPAREPART TUNAI'"
             headerProgress="Realisasi vs Target"
             headerColor="#004B66"
             [realisasi]="selectedMetrics()?.part_tunai_realisasi ?? 0"
@@ -513,7 +514,7 @@
         <!-- PART BENGKEL -->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="SPAREPART BENGKEL"
+            [title]="'SPAREPART BENGKEL'"
             headerProgress="Realisasi vs Target"
             headerColor="#890000"
             [realisasi]="selectedMetrics()?.part_bengkel_realisasi ?? 0"
@@ -553,7 +554,7 @@
         <!-- OLI -->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="SPAREPART OLI"
+            [title]="'SPAREPART OLI'"
             headerProgress="Realisasi vs Target"
             headerColor="#944700"
             [realisasi]="selectedMetrics()?.ganti_oli_realisasi ?? 0"
@@ -580,7 +581,6 @@
               prevDateBlock()?.metrics?.part_bengkel_realisasi ??
               0
             "
-            sd
             [prevYTarget]="
               (prevYearBlock()?.metrics?.part_bengkel_target ??
                 prevDateBlock()?.metrics?.part_bengkel_target) || 0
@@ -600,7 +600,7 @@
   <div class="row g-2">
     <div class="col-12">
       <div
-        class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
+        class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-1"
       >
         <div class="d-flex align-items-center my-4">
           <i class="bi bi-speedometer2 text-success me-2 fs-5"></i>
@@ -612,14 +612,14 @@
       <!-- ========================================================== -->
 
       <div class="d-flex align-items-center">
-        <i class="bi bi-car-front text-success me-2 my-4 fs-5"></i>
-        <h6 class="mb-0 text-dark" style="color: #588000;">CPUS Unit</h6>
+        <i class="bi bi-car-front text-success me-2 fs-5"></i>
+        <h6 class="mb-0 text-dark" style="color: #588000;">CPUS & NON CPUS Unit</h6>
       </div>
       <div class="row g-2">
         <!--  Ganti Oli Unit-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="GANTI OLI UNIT"
+            [title]="'GANTI OLI UNIT'"
             headerProgress="Realisasi vs Total"
             headerColor="#588000"
             [realisasi]="selectedMetrics()?.unit_entry_oli_realisasi ?? 0"
@@ -659,7 +659,7 @@
         <!--  EXPRESS UNIT-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="EXPRESS UNIT"
+            [title]="'EXPRESS UNIT'"
             headerProgress="Realisasi vs Total"
             headerColor="#588000"
             [realisasi]="selectedMetrics()?.unit_entry_express_realisasi ?? 0"
@@ -699,7 +699,7 @@
         <!--  RUTIN UNIT-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="RUTIN UNIT"
+            [title]="'RUTIN UNIT'"
             headerProgress="Realisasi vs Total"
             headerColor="#588000"
             [realisasi]="selectedMetrics()?.unit_entry_rutin_realisasi ?? 0"
@@ -739,7 +739,7 @@
         <!--  SEDANG UNIT-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="SEDANG UNIT"
+            [title]="'SEDANG UNIT'"
             headerProgress="Realisasi vs Total"
             headerColor="#588000"
             [realisasi]="selectedMetrics()?.unit_entry_sedang_realisasi ?? 0"
@@ -779,7 +779,7 @@
         <!--  BERAT UNIT-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="BERAT UNIT"
+            [title]="'BERAT UNIT'"
             headerProgress="Realisasi vs Total"
             headerColor="#588000"
             [realisasi]="selectedMetrics()?.unit_entry_berat_realisasi ?? 0"
@@ -819,7 +819,7 @@
         <!--  OVERHOUL UNIT-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="OVERHOUL UNIT"
+            [title]="'OVERHOUL UNIT'"
             headerProgress="Realisasi vs Total"
             headerColor="#588000"
             [realisasi]="selectedMetrics()?.unit_entry_overhoul_realisasi ?? 0"
@@ -859,7 +859,7 @@
         <!--  KELISTRIKAN UNIT-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="KELISTRIKAN UNIT"
+            [title]="'KELISTRIKAN UNIT'"
             headerProgress="Realisasi vs Total"
             headerColor="#588000"
             [realisasi]="
@@ -898,16 +898,12 @@
           >
           </app-kpi-card-as>
         </div>
-        <div class="d-flex align-items-center my-4">
-          <i class="bi bi-speedometer2 text-success me-2 fs-5"></i>
-          <h6 class="mb-0 text-dark">NON CPUS Unit</h6>
-        </div>
         <!--  CLAIM UNIT-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="CLAIM UNIT"
+            [title]="'CLAIM UNIT (NON CPUS)'"
             headerProgress="Realisasi vs Total"
-            headerColor="#588000"
+            headerColor="#3A5500"
             [realisasi]="selectedMetrics()?.unit_entry_claim_realisasi ?? 0"
             [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
             [unitEntry]="getTotalUnitEntry()"
@@ -945,9 +941,9 @@
         <!--  KUPON UNIT-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="KUPON UNIT"
+            [title]="'KUPON UNIT (NON CPUS)'"
             headerProgress="Realisasi vs Total"
-            headerColor="#588000"
+            headerColor="#3A5500"
             [realisasi]="selectedMetrics()?.unit_entry_kupon_realisasi ?? 0"
             [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
             [unitEntry]="getTotalUnitEntry()"
@@ -985,9 +981,9 @@
         <!--  PDC UNIT-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="PDC UNIT"
+            [title]="'PDC UNIT (NON CPUS)'"
             headerProgress="Realisasi vs Total"
-            headerColor="#588000"
+            headerColor="#3A5500"
             [realisasi]="selectedMetrics()?.unit_entry_pdc_realisasi ?? 0"
             [target]="selectedMetrics()?.unit_entry_realisasi ?? 0"
             [unitEntry]="getTotalUnitEntry()"
@@ -1022,6 +1018,7 @@
           >
           </app-kpi-card-as>
         </div>
+        
       </div>
 
       <!-- ========================================================== -->
@@ -1029,14 +1026,14 @@
       <!-- ========================================================== -->
       <div class="d-flex align-items-center my-4">
         <i class="bi bi-tools me-2 fs-5" style="color: #3B00A0;"></i>
-        <h6 class="mb-0 text-dark">CPUS Jasa Service</h6>
+        <h6 class="mb-0 text-dark">CPUS & NON CPUSJasa Service</h6>
       </div>
       <!-- CPUS JASA SERVICE -->
       <div class="row g-2">
         <!--  Ganti Oli JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="GANTI OLI JASA SERVICE"
+            [title]="'GANTI OLI JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#3B00A0"
             [realisasi]="selectedMetrics()?.jasa_service_oli_realisasi ?? 0"
@@ -1078,7 +1075,7 @@
         <!--  EXPRESS JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="EXPRESS JASA SERVICE"
+            [title]="'EXPRESS JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#3B00A0"
             [realisasi]="selectedMetrics()?.jasa_service_express_realisasi ?? 0"
@@ -1120,7 +1117,7 @@
         <!--  RUTIN JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="RUTIN JASA SERVICE"
+            [title]="'RUTIN JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#3B00A0"
             [realisasi]="selectedMetrics()?.jasa_service_rutin_realisasi ?? 0"
@@ -1162,7 +1159,7 @@
         <!--  SEDANG JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="SEDANG JASA SERVICE"
+            [title]="'SEDANG JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#3B00A0"
             [realisasi]="selectedMetrics()?.jasa_service_sedang_realisasi ?? 0"
@@ -1204,7 +1201,7 @@
         <!--  BERAT JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="BERAT JASA SERVICE"
+            [title]="'BERAT JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#3B00A0"
             [realisasi]="selectedMetrics()?.jasa_service_berat_realisasi ?? 0"
@@ -1246,7 +1243,7 @@
         <!--  OVERHOUL JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="OVERHOUL JASA SERVICE"
+            [title]="'OVERHOUL JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#3B00A0"
             [realisasi]="
@@ -1290,7 +1287,7 @@
         <!--  KELISTRIKAN JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="KELISTRIKAN JASA SERVICE"
+            [title]="'KELISTRIKAN JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#3B00A0"
             [realisasi]="
@@ -1330,17 +1327,13 @@
             "
           >
           </app-kpi-card-as>
-        </div>
-        <div class="d-flex align-items-center my-4">
-          <i class="bi bi-tools text-success me-2 fs-5"></i>
-          <h6 class="mb-0 text-dark">NON CPUS Jasa Service</h6>
-        </div>
+        </div>]
         <!--  CLAIM JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="CLAIM JASA SERVICE"
+            [title]="'CLAIM JASA SERVICE (NON CPUS)'"
             headerProgress="Realisasi vs Total"
-            headerColor="#3B00A0"
+            headerColor="#1E0052"
             [realisasi]="selectedMetrics()?.jasa_service_claim_realisasi ?? 0"
             [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
             [unitEntry]="getTotalUnitEntry()"
@@ -1380,9 +1373,9 @@
         <!--  KUPON JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="KUPON JASA SERVICE"
+            [title]="'KUPON JASA SERVICE (NON CPUS)'"
             headerProgress="Realisasi vs Total"
-            headerColor="#3B00A0"
+            headerColor="#1E0052"
             [realisasi]="selectedMetrics()?.jasa_service_kupon_realisasi ?? 0"
             [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
             [unitEntry]="getTotalUnitEntry()"
@@ -1422,9 +1415,9 @@
         <!--  PDC JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="PDC JASA SERVICE"
+            [title]="'PDC JASA SERVICE (NON CPUS)'"
             headerProgress="Realisasi vs Total"
-            headerColor="#3B00A0"
+            headerColor="#1E0052"
             [realisasi]="selectedMetrics()?.jasa_service_pdc_realisasi ?? 0"
             [target]="selectedMetrics()?.jasa_service_realisasi ?? 0"
             [unitEntry]="getTotalUnitEntry()"
@@ -1461,20 +1454,21 @@
           >
           </app-kpi-card-as>
         </div>
+        
       </div>
       <!-- ========================================================== -->
       <!-- SECTION 4.c CPUS & NON CPUS SPAREPART BENGKEL -->
       <!-- ========================================================== -->
        <div class="d-flex align-items-center my-4">
         <i class="bi bi-gear-fill me-2 fs-5" style="color: #890000;"></i>
-        <h6 class="mb-0 text-dark">CPUS Sparepart Bengkel</h6>
+        <h6 class="mb-0 text-dark">CPUS & NON CPUS Sparepart Bengkel</h6>
       </div>
       <!-- CPUS SPAREPART BENGKEL -->
       <div class="row g-2">
         <!--  Ganti Oli SPAREPART BENGKEL-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="GANTI OLI SPAREPART BENGKEL"
+            [title]="'GANTI OLI SPAREPART BENGKEL'"
             headerProgress="Realisasi vs Total"
             headerColor="#890000"
             [realisasi]="selectedMetrics()?.part_bengkel_oli_realisasi ?? 0"
@@ -1516,7 +1510,7 @@
         <!--  EXPRESS JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="EXPRESS JASA SERVICE"
+            [title]="'EXPRESS JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#890000"
             [realisasi]="selectedMetrics()?.part_bengkel_express_realisasi ?? 0"
@@ -1558,7 +1552,7 @@
         <!--  RUTIN JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="RUTIN JASA SERVICE"
+            [title]="'RUTIN JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#890000"
             [realisasi]="selectedMetrics()?.part_bengkel_rutin_realisasi ?? 0"
@@ -1600,7 +1594,7 @@
         <!--  SEDANG JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="SEDANG JASA SERVICE"
+            [title]="'SEDANG JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#890000"
             [realisasi]="selectedMetrics()?.part_bengkel_sedang_realisasi ?? 0"
@@ -1642,7 +1636,7 @@
         <!--  BERAT JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="BERAT JASA SERVICE"
+            [title]="'BERAT JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#890000"
             [realisasi]="selectedMetrics()?.part_bengkel_berat_realisasi ?? 0"
@@ -1684,7 +1678,7 @@
         <!--  OVERHOUL JASA SERVICE-->
         <div class="col-12 col-sm-6 col-md-4 col-lg-2">
           <app-kpi-card-as
-            title="OVERHOUL JASA SERVICE"
+            [title]="'OVERHOUL JASA SERVICE'"
             headerProgress="Realisasi vs Total"
             headerColor="#890000"
             [realisasi]="

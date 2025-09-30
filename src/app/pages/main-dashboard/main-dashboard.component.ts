@@ -44,6 +44,7 @@ import {
 import { mapToLineSeries } from '../../shared/utils/chart-mapper';
 import { YoyProgressListComponent } from '../../shared/components/yoy-progress-list/yoy-progress-list.component';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
+import { KpiCardAsComponent } from "../../shared/components/kpi-card-as/kpi-card-as.component";
 
 const MONTH_LABELS: string[] = [
   'JAN',
@@ -60,12 +61,12 @@ const MONTH_LABELS: string[] = [
   'DES',
 ];
 
-type ModelYoYMoM = {
-  name: string;
-  curr: number;
-  prevY: number | null;
-  prevM: number | null;
-};
+// type ModelYoYMoM = {
+//   name: string;
+//   curr: number;
+//   prevY: number | null;
+//   prevM: number | null;
+// };
 
 @Component({
   selector: 'app-main-dashboard',
@@ -76,7 +77,8 @@ type ModelYoYMoM = {
     FilterMainDashboardComponent,
     YoyProgressListComponent,
     LineChartCardComponent,
-  ],
+    KpiCardAsComponent
+],
   templateUrl: './main-dashboard.component.html',
   styleUrls: ['./main-dashboard.component.css'],
 })
@@ -119,6 +121,10 @@ export class MainDashboardComponent implements OnInit {
   );
 
   // ===== Selectors dari state untuk ditampilkan di template =====
+  sisaHariKerja: number | null = null;
+  getSisaHariKerja(): number {
+    return this.sisaHariKerja ?? 0;
+  }
   kpis(): UiKpis | null {
     return this.mainState.getKpis();
   }
@@ -295,69 +301,81 @@ export class MainDashboardComponent implements OnInit {
   /* ==================== Fetch + Save to State ==================== */
 
   private fetchBothAndUpdate(filter: SalesFilter): void {
-    this.loading.set(true);
-    this.error.set(null);
-    const start = performance.now();
+  this.loading.set(true);
+  this.error.set(null);
+  const start = performance.now();
+  console.log('filter saat ini:', filter);
 
-    // Simpan filter ke state Main
-    this.mainState.saveFilter(filter);
+  // Simpan filter global (apa adanya) ke state
+  this.mainState.saveFilter(filter);
 
-    const sales$ = this.salesApi
-      .getSalesKpiView(filter)
-      .pipe(catchError((err) => of({ __error: err } as any)));
+  // === Mapping branchId Sales -> After Sales (lokal & sederhana) ===
+  const branchMap: Record<string, string> = {
+    '0050': '0001', // Pettarani
+    '0051': '0003', // Palu
+    '0052': '0004', // Kendari
+    '0053': '0002', // Gorontalo
+    '0054': '0005', // Palopo
+    // '0006' (Sungguminasa) hanya ada di After Sales; tidak dipetakan dari Sales
+  };
 
-    const after$ = this.afterSalesApi
-      .getAfterSalesView(filter)
-      .pipe(catchError((err) => of({ __error: err } as any)));
+  const sales$ = this.salesApi
+    .getSalesKpiView(filter)
+    .pipe(catchError((err) => of({ __error: err } as any)));
 
-    forkJoin({ sales: sales$, after: after$ }).subscribe(({ sales, after }) => {
-      // ---- Sales → STATE (Main) ----
-      if ((sales as any)?.__error) {
-        const snap: MainSalesSnapshot = {
-          request: {},
-          kpis: null,
-          timestamp: Date.now(),
-        };
-        this.mainState.saveSalesSnapshot(snap);
-      } else {
-        const resp = sales as UiSalesKpiResponse;
-        const snap: MainSalesSnapshot = {
-          request: resp.data.request,
-          kpis: resp.data.kpis,
-          timestamp: Date.now(),
-        };
-        this.mainState.saveSalesSnapshot(snap);
-      }
+  // Pakai branchId hasil mapping untuk After Sales
+  const afterBranch =
+    !filter?.branchId || filter.branchId === 'all-branch'
+      ? 'all-branch'
+      : (branchMap[filter.branchId] ?? filter.branchId);
 
-      // ---- After Sales → STATE (Main) ----
-      if ((after as any)?.__error) {
-        this.mainState.clearAfterSnapshot();
-      } else {
-        const aResp = after as UiAfterSalesResponse;
-        const snap: MainAfterSalesSnapshot = {
-          request: aResp.data.request,
-          selected: aResp.data.kpi_data.selected,
-          prevDate: aResp.data.kpi_data.comparisons?.prevDate,
-          prevMonth: aResp.data.kpi_data.comparisons?.prevMonth,
-          prevYear: aResp.data.kpi_data.comparisons?.prevYear,
-          proporsi: aResp.data.proporsi_after_sales?.data.items ?? [],
-          timestamp: Date.now(),
-        };
-        this.mainState.saveAfterSnapshot(snap);
-      }
+  const after$ = this.afterSalesApi
+    .getAfterSalesView({ ...filter, branchId: afterBranch })
+    .pipe(catchError((err) => of({ __error: err } as any)));
 
-      // ---- Error aggregate ----
-      const bothFailed = !!(sales as any)?.__error && !!(after as any)?.__error;
-      this.error.set(
-        bothFailed ? 'Gagal memuat data (Sales & After Sales).' : null
-      );
+  forkJoin({ sales: sales$, after: after$ }).subscribe(({ sales, after }) => {
+    // ---- Sales → STATE (Main) ----
+    if ((sales as any)?.__error) {
+      const snap: MainSalesSnapshot = { request: {}, kpis: null, timestamp: Date.now() };
+      this.mainState.saveSalesSnapshot(snap);
+    } else {
+      const resp = sales as UiSalesKpiResponse;
+      const snap: MainSalesSnapshot = {
+        request: resp.data.request,
+        kpis: resp.data.kpis,
+        timestamp: Date.now(),
+      };
+      this.mainState.saveSalesSnapshot(snap);
+    }
 
-      // ---- Spinner smooth ----
-      const elapsed = performance.now() - start;
-      const remain = Math.max(0, this.MIN_SPINNER_MS - elapsed);
-      setTimeout(() => this.loading.set(false), remain);
-    });
-  }
+    // ---- After Sales → STATE (Main) ----
+    if ((after as any)?.__error) {
+      this.mainState.clearAfterSnapshot();
+    } else {
+      const aResp = after as UiAfterSalesResponse;
+      const snap: MainAfterSalesSnapshot = {
+        request: aResp.data.request,
+        selected: aResp.data.kpi_data.selected,
+        prevDate: aResp.data.kpi_data.comparisons?.prevDate,
+        prevMonth: aResp.data.kpi_data.comparisons?.prevMonth,
+        prevYear: aResp.data.kpi_data.comparisons?.prevYear,
+        proporsi: aResp.data.proporsi_after_sales?.data.items ?? [],
+        timestamp: Date.now(),
+      };
+      this.mainState.saveAfterSnapshot(snap);
+    }
+
+    // ---- Error aggregate ----
+    const bothFailed = !!(sales as any)?.__error && !!(after as any)?.__error;
+    this.error.set(bothFailed ? 'Gagal memuat data (Sales & After Sales).' : null);
+
+    // ---- Spinner smooth ----
+    const elapsed = performance.now() - start;
+    const remain = Math.max(0, this.MIN_SPINNER_MS - elapsed);
+    setTimeout(() => this.loading.set(false), remain);
+  });
+}
+
 
   onSearch(filter: AppFilter) {
     this.currentFilter = filter;

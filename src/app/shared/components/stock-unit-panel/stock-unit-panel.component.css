@@ -1,0 +1,279 @@
+/* Skala dasar seluruh komponen */
+:host {
+  font-size: 0.88rem; /* turunkan semua default */
+}
+
+/* Khusus area accordion ini */
+#stockAccordion {
+  font-size: 0.85rem;
+}
+
+/* Header tombol accordion */
+#stockAccordion .accordion-button {
+  font-size: 0.5em;           /* relatif ke #stockAccordion */
+  padding: 0.4rem 0.75rem;    /* lebih rapat */
+  line-height: 1.2;
+}
+
+/* Badge ringkasan bucket */
+#stockAccordion .badge {
+  font-size: 0.82em;
+  padding: 0.28em 0.45em;
+}
+
+/* Tabel konten */
+#stockAccordion .table {
+  --bs-table-bg: transparent; /* (opsional) */
+}
+
+#stockAccordion .table thead th {
+  font-size: 0.82em;
+  font-weight: 600;
+  padding: 0.35rem 0.5rem;
+  white-space: nowrap;
+}
+
+#stockAccordion .table tbody td {
+  font-size: 0.82em;
+  padding: 0.35rem 0.5rem;
+  vertical-align: middle;
+}
+
+/* Body accordion */
+#stockAccordion .accordion-body {
+  padding: 0.52rem; /* sebelumnya  p-2 = 0.5rem, atur sesuai selera */
+}
+
+/* Keterangan kecil */
+#stockAccordion .text-muted,
+#stockAccordion .small {
+  font-size: 0.78em;
+}
+
+
+.card .btn.btn-link.text-muted:hover { text-decoration: none; opacity: .8; }
+
+
+/* Hilangkan highlight biru saat tombol accordion di-klik/focus */
+#stockAccordion .accordion-button:focus,
+#stockAccordion .accordion-button:focus-visible,
+#stockAccordion .accordion-button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Samakan tampilan saat terbuka & tertutup (tidak biru) */
+#stockAccordion .accordion-button {
+  background-color: #fff;         /* sesuaikan jika pakai tema gelap */
+  color: inherit;
+  -webkit-tap-highlight-color: transparent; /* hilangkan flash biru di mobile */
+  transition: background-color .2s ease;
+}
+
+#stockAccordion .accordion-button:not(.collapsed) {
+  background-color: #fff;         /* default bootstrap sering memberi bg */
+  color: inherit;
+  box-shadow: none;
+}
+
+/* Opsional: kecilkan border & hover agar tetap ada affordance */
+#stockAccordion .accordion-button:hover {
+  background-color: #f8f9fa;
+}
+
+#stockAccordion .accordion-item {
+  border: 1px solid rgba(0,0,0,.075);
+  border-radius: .5rem;
+  overflow: hidden;
+}
+
+#stockAccordion .accordion-button::-moz-focus-inner {
+  border: 0;
+}
+
+/* Popover info di header card */
+#stockCard .info-popover {
+  position: absolute;
+  top: 2.1rem;             /* muncul di bawah tombol i */
+  right: .35rem;
+  z-index: 1050;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: .5rem;
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+  padding: .5rem .75rem;
+  max-width: min(80vw, 360px);
+}
+
+/* Segitiga (arrow) popover */
+#stockCard .info-popover::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: .75rem;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid rgba(0,0,0,.15);
+}
+#stockCard .info-popover::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  right: .75rem;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #fff;
+}
+
+/* Swatch kecil untuk legend di popover */
+#stockCard .legend-swatch {
+  display: inline-block;
+  width: .8rem;
+  height: .8rem;
+  border-radius: .25rem;
+  border: 1px solid rgba(0,0,0,.07);
+}
+
+/* ====== RESPONSIVE (mobile) ====== */
+@media (max-width: 576px) {
+  :host { font-size: 0.84rem; }
+
+  /* Header card & tombol info */
+  #stockCard .card-body { padding: .5rem .5rem !important; }
+  #stockCard .btn.btn-link { padding: .25rem .25rem; }
+
+  /* Header tombol accordion lebih rapat */
+  #stockAccordion .accordion-button {
+    font-size: 0.55em;        /* relatif ke #stockAccordion */
+    padding: 0.35rem 0.5rem; 
+    line-height: 1.2;
+  }
+
+  /* Biarkan konten header accordion bisa turun baris */
+  #stockAccordion .accordion-button > .d-flex {
+    flex-wrap: wrap;
+    row-gap: .25rem;
+  }
+
+  /* Badge pindah ke baris baru & mulai dari kiri (bukan mepet kanan) */
+  #stockAccordion .accordion-button > .d-flex .ms-auto {
+    margin-left: 0 !important;
+    width: 100%;
+    justify-content: flex-start;
+    gap: .25rem;
+  }
+
+  /* Badge ukurannya sedikit dikecilkan */
+  #stockAccordion .badge {
+    font-size: 0.7em;
+    padding: 0.2em 0.4em;
+  }
+
+  /* ===== Tabel menjadi stacked list di mobile ===== */
+  #stockAccordion .table-responsive { overflow-x: visible; }
+  #stockAccordion .table thead { 
+    /* sembunyikan header tabel; label muncul via ::before */
+    display: none;
+  }
+  #stockAccordion .table tbody tr {
+    display: block;
+    border: 1px solid rgba(0,0,0,.06);
+    border-radius: .5rem;
+    padding: .25rem .25rem;
+    margin-bottom: .5rem;
+    background: #fff;
+  }
+  #stockAccordion .table tbody td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .35rem .5rem;
+    font-size: 0.86em;
+  }
+  #stockAccordion .table tbody td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: #6c757d;           /* text-muted */
+    font-weight: 600;
+  }
+  /* Kolom angka rata-kanan agar rapi */
+  #stockAccordion .table tbody td:last-child {
+    text-align: right;
+  }
+
+  /* Popover: geser ke kiri & lebarkan sedikit agar tidak terpotong */
+  #stockCard .info-popover {
+    right: auto;
+    left: .35rem;
+    top: 2.3rem;
+    max-width: calc(100vw - .7rem);
+  }
+  #stockCard .info-popover::before {
+    right: auto;
+    left: .75rem;
+  }
+  #stockCard .info-popover::after {
+    right: auto;
+    left: .75rem;
+  }
+}
+
+
+/* Anchor tetap */
+.notes-anchor {
+  position: relative;
+  display: inline-block;
+}
+
+/* Popover notes: muncul di KIRI ikon, center vertikal */
+.notes-popover {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + .5rem);   /* geser ke kiri dari ikon */
+  transform: translateY(-50%); /* center vertikal */
+  z-index: 1060;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: .5rem;
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+  max-width: min(70vw, 360px);
+  min-width: 220px;
+}
+
+.notes-popover .notes-popover-body {
+  padding: .5rem .75rem;
+  max-height: 40vh;
+  overflow: auto;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* Arrow di sisi KANAN popover (mengarah ke ikon di kanan) */
+.notes-popover::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  transform: translateY(-50%);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 6px solid rgba(0,0,0,.15);
+}
+.notes-popover::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -5px;
+  transform: translateY(-50%);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 5px solid #fff;
+}
+
+/* (opsional) Mobile: batasi lebar supaya tidak keluar layar */
+@media (max-width: 576px) {
+  .notes-popover {
+    max-width: calc(100vw - 2rem);
+  }
+}

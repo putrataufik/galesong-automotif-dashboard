@@ -1,17 +1,43 @@
 <!-- src/app/shared/components/kpi-card-as/kpi-card-as.component.html -->
 <div class="kpi-card-as compact shadow-soft rounded-4 position-relative">
   <!-- Header pill -->
-  <div class="header-chip-wrapper" [style.background]="headerColor">
-    <div class="chip-title">{{ title }}</div>
+  <div class="header-chip-wrapper pointer" [style.background]="headerColor">
+    <div
+      class="chip-title"
+      [appTooltip]="titleTooltip"
+      tooltipPos="bottom"
+      [attr.title]="null"
+      [attr.data-bs-toggle]="null"
+      [attr.data-bs-original-title]="null"
+    >
+      {{ title }}
+    </div>
   </div>
 
   <!-- Body -->
   <div class="content-section">
     <!-- Realisasi / Target -->
-    <div class="detail-row d-flex flex-column align-items-center">
-      <span>{{ headerProgress }}</span>
+    <div class="detail-row d-flex flex-column align-items-center pointer">
+      <span
+        [appTooltip]="progressTooltip"
+        tooltipPos="top"
+        [attr.title]="null"
+        [attr.data-bs-toggle]="null"
+        [attr.data-bs-original-title]="null"
+      >
+        {{ headerProgress }}
+      </span>
+
       <div class="w-100">
-        <div class="progress rounded-pill position-relative">
+        <div
+          class="progress rounded-pill position-relative"
+          [appTooltip]="progressTooltip"
+          tooltipPos="top"
+          [attr.title]="null"
+          [attr.data-bs-toggle]="null"
+          [attr.data-bs-original-title]="null"
+          aria-label="Progress bar"
+        >
           <div
             class="progress-bar"
             [ngStyle]="getProgressBarStyle()"
@@ -31,9 +57,14 @@
     <!-- Ringkasan -->
     <div class="row g-2 align-items-center justify-content-center">
       <!-- Persentase -->
-      <div class="col-auto d-flex align-items-center">
+      <div class="col-auto d-flex align-items-center pointer">
         <div
           class="percentage-display d-flex align-items-center justify-content-center"
+          [appTooltip]="progressTooltip"
+          tooltipPos="top"
+          [attr.title]="null"
+          [attr.data-bs-toggle]="null"
+          [attr.data-bs-original-title]="null"
         >
           {{ formatPercentage(percentage) }}
         </div>
@@ -42,23 +73,49 @@
       <!-- Detail -->
       <div class="col">
         <div class="details">
-          <div
-            class="detail-row d-flex justify-content-between align-items-center"
-          >
-            <span>Deviasi Target</span>
-            <span class="fw-bold" [ngClass]="getValueColor(grandTotal)">
+          <div class="detail-row d-flex justify-content-between align-items-center pointer">
+            <span
+              [appTooltip]="deviationTooltip"
+              tooltipPos="right"
+              >Deviasi Target</span
+            >
+            <span
+              class="fw-bold"
+              [ngClass]="getValueColor(grandTotal)"
+              [appTooltip]="deviationTooltip"
+              tooltipPos="left"
+            >
               {{ formatValue(grandTotal) }}
             </span>
           </div>
-          <div class="detail-row d-flex justify-content-between">
-            <span>Rata - Rata</span>
-            <span class="fw-bold">{{ formatRataRataDisplay(rataRata) }}</span>
+
+          <div class="detail-row d-flex justify-content-between pointer">
+            <span
+              [appTooltip]="rataRataTooltip"
+              tooltipPos="right"
+              >Rata - Rata</span
+            >
+            <span
+              class="fw-bold"
+              [appTooltip]="rataRataTooltip"
+              tooltipPos="left"
+            >
+              {{ formatRataRataDisplay(rataRata) }}
+            </span>
           </div>
 
           @if (showHarapanTarget) {
-          <div class="detail-row d-flex justify-content-between">
-            <span>Harapan Target</span>
-            <span class="fw-bold">
+          <div class="detail-row d-flex justify-content-between pointer">
+            <span
+              [appTooltip]="harapanTooltip"
+              tooltipPos="right"
+              >Harapan Target</span
+            >
+            <span
+              class="fw-bold"
+              [appTooltip]="harapanTooltip"
+              tooltipPos="left"
+            >
               {{ formatValue(harapanTarget) }}{{ getUnitSuffix() }} / Hari
             </span>
           </div>
@@ -69,121 +126,193 @@
 
     <!-- Compare blocks -->
     @if (compare) {
-    <hr class="period-sep" />
+      <hr class="period-sep" />
 
-    <!-- Prev Month -->
-    @if (prevMPeriod) {
-    <div class="period-label mb-2">
-      <span class="badge badge-soft-primary">{{ prevMPeriod }}</span>
-    </div>
-
-    <div class="row g-2 align-items-start">
-      <!-- Progress -->
-      <div class="col-12 mt-1">
-        <div class="progress rounded-pill position-relative">
-          <div
-            class="progress-bar"
-            [ngStyle]="getProgressBarStyleForPercent(prevMPercentage)"
-            role="progressbar"
-            [attr.aria-valuenow]="prevMPercentage"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            [style.width.%]="prevMPercentage"
-          ></div>
-          <div class="progress-text position-absolute w-100 text-center">
-            {{ formatValue(prevMRealisasi) }} / {{ formatValue(prevMTarget) }}
-          </div>
-        </div>
+      <!-- Prev Month -->
+      @if (prevMPeriod) {
+      <div class="period-label mb-2 pointer">
+        <span
+          class="badge badge-soft-primary"
+          [appTooltip]="getPrevMProgressTip()"
+          tooltipPos="bottom"
+          [attr.title]="null"
+          [attr.data-bs-toggle]="null"
+          [attr.data-bs-original-title]="null"
+        >
+          {{ prevMPeriod }}
+        </span>
       </div>
-      <div class="row g-2 align-items-center justify-content-center">
-        <!-- Persentase -->
-        <div class="col-auto">
-          <div
-            class="percentage-display d-flex align-items-center justify-content-center"
-          >
-            {{ formatPercentage(prevMPercentage) }}
-          </div>
-        </div>
 
-        <!-- Detail -->
-        <div class="col">
-          <div class="details">
+      <div class="row g-2 align-items-start pointer">
+        <!-- Progress -->
+        <div class="col-12 mt-1">
+          <div
+            class="progress rounded-pill position-relative"
+            [appTooltip]="getPrevMProgressTip()"
+            tooltipPos="top"
+            [attr.title]="null"
+            [attr.data-bs-toggle]="null"
+            [attr.data-bs-original-title]="null"
+          >
             <div
-              class="detail-row d-flex justify-content-between align-items-center"
+              class="progress-bar"
+              [ngStyle]="getProgressBarStyleForPercent(prevMPercentage)"
+              role="progressbar"
+              [attr.aria-valuenow]="prevMPercentage"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [style.width.%]="prevMPercentage"
+            ></div>
+            <div class="progress-text position-absolute w-100 text-center">
+              {{ formatValue(prevMRealisasi) }} / {{ formatValue(prevMTarget) }}
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-2 align-items-center justify-content-center">
+          <!-- Persentase -->
+          <div class="col-auto">
+            <div
+              class="percentage-display d-flex align-items-center justify-content-center pointer"
+              [appTooltip]="getPrevMProgressTip()"
+              tooltipPos="top"
             >
-              <span>Deviasi Target</span>
-              <span class="fw-bold" [ngClass]="getValueColor(prevMDeviation)">
-                {{ formatValue(prevMDeviation) }}
-              </span>
+              {{ formatPercentage(prevMPercentage) }}
             </div>
-            <div class="detail-row d-flex justify-content-between">
-              <span>Rata - Rata</span>
-              <span class="fw-bold">{{
-                formatRataRataDisplay(prevMRataRata)
-              }}</span>
+          </div>
+
+          <!-- Detail -->
+          <div class="col">
+            <div class="details">
+              <div class="detail-row d-flex justify-content-between align-items-center pointer">
+                <span
+                  [appTooltip]="getPrevMDeviationTip()"
+                  tooltipPos="right"
+                  >Deviasi Target</span
+                >
+                <span
+                  class="fw-bold"
+                  [ngClass]="getValueColor(prevMDeviation)"
+                  [appTooltip]="getPrevMDeviationTip()"
+                  tooltipPos="left"
+                >
+                  {{ formatValue(prevMDeviation) }}
+                </span>
+              </div>
+              <div class="detail-row d-flex justify-content-between pointer">
+                <span
+                  [appTooltip]="getPrevMRataTip()"
+                  tooltipPos="right"
+                  >Rata - Rata</span
+                >
+                <span
+                  class="fw-bold"
+                  [appTooltip]="getPrevMRataTip()"
+                  tooltipPos="left"
+                >
+                  {{ formatRataRataDisplay(prevMRataRata) }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <hr class="period-sep" />
-    }
+      <hr class="period-sep" />
+      }
 
-    <!-- Prev Year -->
-    @if (prevYPeriod) {
-    <div class="period-label">
-      <span class="badge badge-soft-warning mb-2">{{ prevYPeriod }}</span>
-    </div>
-
-    <div class="row g-2 align-items-start">
-      <!-- Progress -->
-      <div class="col-12 mt-1">
-        <div class="progress rounded-pill position-relative">
-          <div
-            class="progress-bar"
-            [ngStyle]="getProgressBarStyleForPercent(prevYPercentage)"
-            role="progressbar"
-            [attr.aria-valuenow]="prevYPercentage"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            [style.width.%]="prevYPercentage"
-          ></div>
-          <div class="progress-text position-absolute w-100 text-center">
-            {{ formatValue(prevYRealisasi) }} / {{ formatValue(prevYTarget) }}
-          </div>
-        </div>
+      <!-- Prev Year -->
+      @if (prevYPeriod) {
+      <div class="period-label pointer pointer">
+        <span
+          class="badge badge-soft-warning mb-2"
+          [appTooltip]="getPrevYProgressTip()"
+          tooltipPos="bottom"
+          [attr.title]="null"
+          [attr.data-bs-toggle]="null"
+          [attr.data-bs-original-title]="null"
+        >
+          {{ prevYPeriod }}
+        </span>
       </div>
-      <div class="row g-2 align-items-center justify-content-center">
-        <!-- Persentase -->
-        <div class="col-auto">
+
+      <div class="row g-2 align-items-start pointer">
+        <!-- Progress -->
+        <div class="col-12 mt-1">
           <div
-            class="percentage-display d-flex align-items-center justify-content-center"
+            class="progress rounded-pill position-relative pointer"
+            [appTooltip]="getPrevYProgressTip()"
+            tooltipPos="top"
+            [attr.title]="null"
+            [attr.data-bs-toggle]="null"
+            [attr.data-bs-original-title]="null"
           >
-            {{ formatPercentage(prevYPercentage) }}
+            <div
+              class="progress-bar"
+              [ngStyle]="getProgressBarStyleForPercent(prevYPercentage)"
+              role="progressbar"
+              [attr.aria-valuenow]="prevYPercentage"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [style.width.%]="prevYPercentage"
+            ></div>
+            <div class="progress-text position-absolute w-100 text-center">
+              {{ formatValue(prevYRealisasi) }} / {{ formatValue(prevYTarget) }}
+            </div>
           </div>
         </div>
 
-        <!-- Detail -->
-        <div class="col">
-          <div class="details">
-            <div class="detail-row d-flex justify-content-between">
-              <span>Deviasi Target</span>
-              <span class="fw-bold" [ngClass]="getValueColor(prevYDeviation)">
-                {{ formatValue(prevYDeviation) }}
-              </span>
+        <div class="row g-2 align-items-center justify-content-center ">
+          <!-- Persentase -->
+          <div class="col-auto">
+            <div
+              class="percentage-display d-flex align-items-center justify-content-center pointer"
+              [appTooltip]="getPrevYProgressTip()"
+              tooltipPos="top"
+            >
+              {{ formatPercentage(prevYPercentage) }}
             </div>
-            <div class="detail-row d-flex justify-content-between">
-              <span>Rata - Rata</span>
-              <span class="fw-bold">{{
-                formatRataRataDisplay(prevYRataRata)
-              }}</span>
+          </div>
+
+          <!-- Detail -->
+          <div class="col">
+            <div class="details">
+              <div class="detail-row d-flex justify-content-between pointer">
+                <span
+                  [appTooltip]="getPrevYDeviationTip()"
+                  tooltipPos="right"
+                  >Deviasi Target</span
+                >
+                <span
+                  class="fw-bold"
+                  [ngClass]="getValueColor(prevYDeviation)"
+                  [appTooltip]="getPrevYDeviationTip()"
+                  tooltipPos="left"
+                >
+                  {{ formatValue(prevYDeviation) }}
+                </span>
+              </div>
+              <div class="detail-row d-flex justify-content-between pointer">
+                <span
+                  [appTooltip]="getPrevYRataTip()"
+                  tooltipPos="right"
+                  >Rata - Rata</span
+                >
+                <span
+                  class="fw-bold"
+                  [appTooltip]="getPrevYRataTip()"
+                  tooltipPos="left"
+                >
+                  {{ formatRataRataDisplay(prevYRataRata) }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    } } @if (loading) {
+      }
+    }
+    @if (loading) {
     <div
       class="loading-overlay d-flex align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100"
     >

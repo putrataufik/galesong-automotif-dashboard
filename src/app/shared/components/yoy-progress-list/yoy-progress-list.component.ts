@@ -20,7 +20,7 @@ export class YoyProgressListComponent {
   @Input() title = 'Proporsi Penjualan per Model';
   @Input() unit = 'Unit';
   @Input() items: ModelYoYMoM[] = [];
-  @Input() maxRows = 100;
+  @Input() maxRows = 200;
 
   /** label periode (tampilkan di header kecil di atas kolom) */
   @Input() labelCurr = 'Current';

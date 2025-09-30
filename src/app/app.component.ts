@@ -95,7 +95,7 @@ export class AppComponent implements OnInit {
     if (qToken && qToken.trim()) return qToken.trim();
 
     // 2) Fallback: path /t=xxxx
-    const m = url.pathname.match(/(?:^|\/)t=([^/?#]+)/i);
+    const m = url.pathname.match(/(?:^|\/)t=([^\/?#]+)/i);
     if (m && m[1] && m[1].trim()) return m[1].trim();
 
     // 3) Fallback terakhir: localStorage auth.token
@@ -114,37 +114,30 @@ export class AppComponent implements OnInit {
   }
 
   private redirectWithToken(token: string, reason?: string): void {
-    // if (typeof window !== 'undefined') {
-    //   window.location.href = `https://sinargalesong.net/${token}`;
-    // }
     if (typeof window !== 'undefined') {
-      console.log('Redirect to: ', `https://sinargalesong.net/${token}`);
-      if (reason) {
-        console.log('Reason: ', reason);
-      }
+      // window.location.href = `https://sinargalesong.net/${token}`;
+      void reason; // no-op to avoid unused var when logs removed
     }
   }
 
   private async performTokenLogin(t: string): Promise<'ok' | 'redirect'> {
     this._splashMessage.set('Memverifikasi sesi...');
     this._splashProgress.set(10);
-    console.log(`[AUTO-LOGIN] Token ditemukan: ${t}, memverifikasi...`);
 
     try {
       const loginResp: any = await this.auth.loginWithToken(t).toPromise();
       const row = loginResp?.data?.[0];
-      console.log('[AUTO-LOGIN] Raw login response:', loginResp);
 
       // row wajib ada
       if (!row) {
-        this.redirectWithToken(t);
+        this.redirectWithToken(t, 'Data Anda Tidak di Temukan');
         return 'redirect';
       }
 
       const status = String(row.status);
       if (status !== '1' || !row.user_id) {
         // token invalid atau user_id kosong → redirect
-        this.redirectWithToken(row?.token || t);
+        this.redirectWithToken(row?.token || t, 'token invalid');
         return 'redirect';
       }
 
@@ -152,9 +145,6 @@ export class AppComponent implements OnInit {
       const userResp: any = await this.auth
         .fetchUser(String(row.user_id))
         .toPromise();
-
-      console.group('[AUTO-LOGIN] User Data');
-      console.log('Raw user response:', userResp);
 
       // --- Parsing defensif dari berbagai bentuk payload ---
       const d = userResp?.data ?? userResp;
@@ -170,11 +160,6 @@ export class AppComponent implements OnInit {
       // normalisasi ke string trimmed
       const q = String(qualificationRaw ?? '').trim();
       const org = String(organizationRaw ?? '').trim();
-
-      console.group('[AUTO-LOGIN] Gate check');
-      console.log('Parsed qualification:', qualificationRaw, '→', q);
-      console.log('Parsed organization :', organizationRaw, '→', org);
-      console.groupEnd();
 
       // === Gate by qualification/organization (ALLOW if q==9 OR org==6) ===
       if (!(q === '9' || org === '6')) {
@@ -196,8 +181,7 @@ export class AppComponent implements OnInit {
       );
 
       return 'ok';
-    } catch (err) {
-      console.error('[AUTO-LOGIN] error:', err);
+    } catch {
       this.redirectWithToken(t);
       return 'redirect';
     }
@@ -206,43 +190,37 @@ export class AppComponent implements OnInit {
   // ===== Init App (splash + preload data) =====
   private async initializeApp(): Promise<void> {
     try {
-      await this.delay(100);
+      // await this.delay(100);
 
-      // Ambil token dari URL—wajib ada
-      const urlToken = this.getTokenFromUrl();
-      if (!urlToken) {
-        this.redirectWithToken('');
-        return;
-      }
+      // // Ambil token dari URL—wajib ada
+      // const urlToken = this.getTokenFromUrl();
+      // if (!urlToken) {
+      //   this.redirectWithToken('');
+      //   return;
+      // }
 
-      const loginResult = await this.autoLoginIfToken();
+      // const loginResult = await this.autoLoginIfToken();
 
-      // Jika perlu redirect, sertakan token dari URL
-      if (loginResult === 'redirect') {
-        this.redirectWithToken(urlToken);
-        return;
-      }
+      // // Jika perlu redirect, sertakan token dari URL
+      // if (loginResult === 'redirect') {
+      //   this.redirectWithToken(urlToken);
+      //   return;
+      // }
 
-      // === 1) MASTER DATA DULU (sekuensial) ===
-      this._splashMessage.set('Memuat master data (branch, company, dll)...');
-      this._splashProgress.set(25);
+      // // === 1) MASTER DATA DULU (sekuensial) ===
+      // this._splashMessage.set('Memuat master data (branch, company, dll)...');
+      // this._splashProgress.set(25);
 
       try {
         // TTL opsional: 30 hari (ganti sesuai kebutuhan)
         await this.dm.loadAll(true);
-        console.log('Berhasil Load data Master');
-      } catch (e) {
-        console.warn(
-          '[MASTER] Gagal memuat dari server, coba pakai cache lokal jika ada:',
-          e
-        );
+      } catch {
         // fallback: jika belum ada cache sama sekali, biarkan lanjut; UI bisa handle kosong
       }
 
       // === 2) PRELOAD DASHBOARD (paralel) ===
       this._splashMessage.set('Memuat semua data...');
       this._splashProgress.set(45);
-      console.log('Starting data preload...');
 
       await Promise.all([
         this.preloadMainDashboardData(), // isi state Main
@@ -250,16 +228,12 @@ export class AppComponent implements OnInit {
         this.preloadAfterSalesDashboardData(),
       ]);
 
-      console.log('Data preload completed');
-
       this._splashMessage.set('Selesai!');
       this._splashProgress.set(100);
       await this.delay(300);
 
       this._isAppReady.set(true);
-      console.log('App is ready!');
-    } catch (error) {
-      console.error('App initialization failed:', error);
+    } catch {
       this._hasError.set(true);
       this._splashMessage.set(
         'Gagal memuat data. Aplikasi akan tetap berjalan...'
@@ -310,6 +284,9 @@ export class AppComponent implements OnInit {
         mainFilter.month!, // "MM"
         !!mainFilter.compare
       );
+      const stockunit$ = this.salesApi.getStockUnitRaw(
+        mainFilter.companyId
+      );
 
       // ====== Flags selesai ======
       let doneSales = false;
@@ -333,12 +310,10 @@ export class AppComponent implements OnInit {
             timestamp: Date.now(),
           };
           this.mainState.saveSalesSnapshot(salesSnap);
-          console.log('[Preload Main] Sales KPI OK');
           doneSales = true;
           tryFinish();
         },
-        error: (err) => {
-          console.error('[Preload Main] Sales KPI FAIL:', err);
+        error: () => {
           doneSales = true;
           tryFinish();
         },
@@ -357,12 +332,10 @@ export class AppComponent implements OnInit {
             timestamp: Date.now(),
           };
           this.mainState.saveAfterSnapshot(afterSnap);
-          console.log('[Preload Main] After-Sales KPI OK');
           doneAfter = true;
           tryFinish();
         },
-        error: (err) => {
-          console.error('[Preload Main] After-Sales KPI FAIL:', err);
+        error: () => {
           doneAfter = true;
           tryFinish();
         },
@@ -378,12 +351,10 @@ export class AppComponent implements OnInit {
             compare: !!mainFilter.compare,
             datasets,
           });
-          console.log('[Preload Main] Trend Monthly OK');
           doneTrend = true;
           tryFinish();
         },
-        error: (err) => {
-          console.error('[Preload Main] Trend Monthly FAIL:', err);
+        error: () => {
           doneTrend = true;
           tryFinish();
         },
@@ -398,12 +369,10 @@ export class AppComponent implements OnInit {
             year: mainFilter.year!,
             datasets,
           });
-          console.log('[Preload Main] DOvsSPK Monthly OK');
           doneDovs = true;
           tryFinish();
         },
-        error: (err) => {
-          console.error('[Preload Main] DOvsSPK Monthly FAIL:', err);
+        error: () => {
           doneDovs = true;
           tryFinish();
         },
@@ -421,18 +390,18 @@ export class AppComponent implements OnInit {
             prevMonth: mResp?.data?.prevMonth,
             prevYear: mResp?.data?.prevYear,
           });
-          console.log('[Preload Main] Model Distribution Monthly OK');
           doneMdist = true;
           tryFinish();
         },
-        error: (err) => {
-          console.error('[Preload Main] Model Distribution Monthly FAIL:', err);
+        error: () => {
           doneMdist = true;
           tryFinish();
         },
       });
     });
+
   }
+
   private async preloadSalesDashboardData(): Promise<void> {
     const today = new Date().toISOString().slice(0, 10);
 
@@ -471,15 +440,19 @@ export class AppComponent implements OnInit {
         month,
         !!salesFilter.compare
       );
+      const stockunit$ = this.salesApi.getStockUnitRaw(
+        salesFilter.companyId
+      )
 
       // ===== flags selesai =====
       let doneKpi = false;
       let doneTrend = false;
       let doneDovs = false;
       let doneMdist = false;
+      let doneStockUnit = false;
 
       const tryFinish = () => {
-        if (doneKpi && doneTrend && doneDovs && doneMdist) resolve();
+        if (doneKpi && doneTrend && doneDovs && doneMdist && doneStockUnit) resolve();
       };
 
       // ===== KPI (UI-ready) =====
@@ -491,12 +464,10 @@ export class AppComponent implements OnInit {
             timestamp: Date.now(),
           };
           this.salesState.saveKpiData(snapshot);
-          console.log('[Preload Sales] KPI OK');
           doneKpi = true;
           tryFinish();
         },
-        error: (err) => {
-          console.error('[Preload Sales] KPI FAIL:', err);
+        error: () => {
           doneKpi = true;
           tryFinish();
         },
@@ -512,12 +483,10 @@ export class AppComponent implements OnInit {
             compare: !!salesFilter.compare,
             datasets,
           });
-          console.log('[Preload Sales] Trend Monthly OK');
           doneTrend = true;
           tryFinish();
         },
-        error: (err) => {
-          console.error('[Preload Sales] Trend Monthly FAIL:', err);
+        error: () => {
           doneTrend = true;
           tryFinish();
         },
@@ -532,12 +501,10 @@ export class AppComponent implements OnInit {
             year,
             datasets,
           });
-          console.log('[Preload Sales] DOvsSPK Monthly OK');
           doneDovs = true;
           tryFinish();
         },
-        error: (err) => {
-          console.error('[Preload Sales] DOvsSPK Monthly FAIL:', err);
+        error: () => {
           doneDovs = true;
           tryFinish();
         },
@@ -555,19 +522,26 @@ export class AppComponent implements OnInit {
             prevMonth: mResp?.data?.prevMonth,
             prevYear: mResp?.data?.prevYear,
           });
-          console.log('[Preload Sales] Model Distribution Monthly OK');
           doneMdist = true;
           tryFinish();
         },
-        error: (err) => {
-          console.error(
-            '[Preload Sales] Model Distribution Monthly FAIL:',
-            err
-          );
+        error: () => {
           doneMdist = true;
           tryFinish();
         },
       });
+
+      stockunit$.subscribe({
+        next: (mResp) => {
+          this.salesState.saveStockUnitRaw(mResp, salesFilter.companyId);
+          doneStockUnit = true;
+          tryFinish();
+        },
+        error: ()=> {
+          doneStockUnit = true;
+          tryFinish()
+        }
+      })
     });
   }
 
@@ -606,15 +580,9 @@ export class AppComponent implements OnInit {
         next: (res) => {
           // langsung pakai util state agar format & field aman
           this.asState.saveFromView(res);
-
-          // OPTIONAL: kalau mau clear snapshot saat kosong, bisa cek:
-          // if (!res?.data?.kpi_data?.selected) this.asState.clearSnapshot();
-
-          console.log('[Preload After-Sales] View OK');
           resolve();
         },
-        error: (err) => {
-          console.error('[Preload After-Sales] View FAIL:', err);
+        error: () => {
           // jangan blokir init
           resolve();
         },

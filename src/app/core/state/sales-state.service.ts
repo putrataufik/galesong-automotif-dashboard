@@ -83,11 +83,11 @@ export interface BranchComparison {
 /** Filter yang dikirim ke API */
 export interface SalesFilter {
   companyId: string;
-  branchId: string;           // 'all-branch' atau kode cabang
-  useCustomDate: boolean;     // true => pakai selectedDate
+  branchId: string;            // 'all-branch' atau kode cabang
+  useCustomDate: boolean;      // true => pakai selectedDate
   compare: boolean;
-  year: string | null;        // saat useCustomDate=false
-  month: string | null;       // '01'..'12' atau null (year-only)
+  year: string | null;         // saat useCustomDate=false
+  month: string | null;        // '01'..'12' atau null (year-only)
   selectedDate: string | null; // YYYY-MM-DD saat useCustomDate=true
 }
 
@@ -147,6 +147,41 @@ export interface ModelDistributionMonthlySnapshot {
 }
 
 /* ============================================================
+   NEW TYPES — STOCK UNIT RAW (disimpan di state)
+   ============================================================ */
+
+export interface RawStockUnitDetail {
+  tglsjln: string;
+  kgudang: string;
+  thnprod: string;
+  warna: string;
+  hargabeli: string;
+  ngudang: string;
+  tymotor: string;
+  notes: string;
+}
+export interface RawStockUnitGroup {
+  kgudang: string;
+  ngudang: string;
+  count: number;
+  detail: RawStockUnitDetail[];
+}
+export interface StockUnitRawResponse {
+  status: string;
+  message: string;
+  data: RawStockUnitGroup[];
+}
+
+/** Snapshot Stock Unit RAW */
+export interface StockUnitRawSnapshot {
+  key: string;                       // cache key (single / per company)
+  data: RawStockUnitGroup[];         // simpan array group (hemat tapi tetap RAW)
+  status: string;
+  message: string;
+  timestamp: number;
+}
+
+/* ============================================================
    STATE ROOT
    ============================================================ */
 
@@ -158,6 +193,9 @@ export interface SalesState {
   trendMonthly: SalesTrendMonthlySnapshot | null;
   doVsSpkMonthly: DoVsSpkMonthlySnapshot | null;
   modelDistributionMonthly: ModelDistributionMonthlySnapshot | null;
+
+  // NEW: stock unit RAW
+  stockUnitRaw: StockUnitRawSnapshot | null;
 
   lastUpdated: number | null;
 }
@@ -183,6 +221,8 @@ export const initialSalesState: SalesState = {
   trendMonthly: null,
   doVsSpkMonthly: null,
   modelDistributionMonthly: null,
+
+  stockUnitRaw: null, // NEW
 
   lastUpdated: null,
 };
@@ -480,6 +520,39 @@ export class SalesStateService {
     return m.key === this.buildModelDistKey(companyId, year, month, compare);
   }
 
+  /* =============== NEW — STOCK UNIT RAW (no params) =============== */
+
+  // NOTE: jika nanti stok perlu per-company, ganti implementasi key ini.
+  private buildStockKey(companyId?: string) {
+    // return `stock_${companyId ?? 'all'}`; // versi per-company
+    return 'stock_all';                     // versi single/global
+  }
+
+  saveStockUnitRaw(resp: StockUnitRawResponse, companyId?: string) {
+    const snap: StockUnitRawSnapshot = {
+      key: this.buildStockKey(companyId),
+      data: Array.isArray(resp?.data) ? resp.data : [],
+      status: String(resp?.status ?? ''),
+      message: String(resp?.message ?? ''),
+      timestamp: Date.now(),
+    };
+    this.patch({ stockUnitRaw: snap });
+  }
+
+  getStockUnitRaw(): StockUnitRawSnapshot | null {
+    return this._state().stockUnitRaw ?? null;
+  }
+
+  clearStockUnitRaw() {
+    this.patch({ stockUnitRaw: null });
+  }
+
+  isStockUnitCacheValid(companyId?: string): boolean {
+    const s = this._state().stockUnitRaw;
+    if (!s) return false;
+    return s.key === this.buildStockKey(companyId);
+  }
+
   /* =============== EXECUTIVE SUMMARY-LIKE SNAPSHOT =============== */
 
   getCurrentPeriodSummary():
@@ -576,6 +649,8 @@ export class SalesStateService {
         trendMonthly: parsed.trendMonthly ?? null,
         doVsSpkMonthly: parsed.doVsSpkMonthly ?? null,
         modelDistributionMonthly: parsed.modelDistributionMonthly ?? null,
+
+        stockUnitRaw: parsed.stockUnitRaw ?? null, // NEW
 
         lastUpdated: parsed.lastUpdated ?? null,
       };

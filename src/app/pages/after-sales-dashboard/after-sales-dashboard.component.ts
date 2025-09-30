@@ -43,7 +43,6 @@ import {
 } from './after-sales.utils';
 import { getPeriodDisplayName as utilPeriodName} from '../pages.utils';
 
-
 @Component({
   selector: 'app-after-sales-dashboard',
   standalone: true,

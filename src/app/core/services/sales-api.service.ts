@@ -25,21 +25,6 @@ const BRANCH_CODE_MAP: Record<string, string> = {
   '0055': 'SUNGGUMINASA',
 };
 
-const MONTH_LABELS: string[] = [
-  'JAN',
-  'FEB',
-  'MAR',
-  'APR',
-  'MEI',
-  'JUN',
-  'JUL',
-  'AGU',
-  'SEP',
-  'OKT',
-  'NOV',
-  'DES',
-];
-
 function branchNameFromCode(code?: string): string {
   return branchNameFromMap(BRANCH_CODE_MAP, code);
 }
@@ -155,6 +140,32 @@ export interface SalesModelDistributionMonthlyResponse {
     prevMonth?: ModelDistributionBlock;
     prevYear?: ModelDistributionBlock;
   };
+}
+
+// ==== Stock Unit RAW (tanpa params) ====
+
+export interface RawStockUnitDetail {
+  tglsjln: string; // "2025-09-27"
+  kgudang: string; // "0001"
+  thnprod: string; // "2025" | "0" | "202"
+  warna: string; // "WHT  " (bisa ada padding)
+  hargabeli: string; // "342068188.00"
+  ngudang: string; // "SHOWROOM UNIT PETTARANI"
+  tymotor: string; // "CRT N LINE 2TR" (bisa ada padding)
+  notes:string
+}
+
+export interface RawStockUnitGroup {
+  kgudang: string; // "0001"
+  ngudang: string; // "SHOWROOM UNIT PETTARANI"
+  count: number; // 11
+  detail: RawStockUnitDetail[];
+}
+
+export interface StockUnitRawResponse {
+  status: string; // "success" | ...
+  message: string; // "berhasil mengambil data"
+  data: RawStockUnitGroup[];
 }
 
 // ==============================
@@ -283,6 +294,16 @@ export class SalesApiService extends BaseApiService {
         headers: this.authHeaders,
         params: this.buildParams(params),
       })
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  getStockUnitRaw(companyId: string): Observable<StockUnitRawResponse> {
+    const endpoint = 'getStockUnit';
+    const url = `${this.baseUrlOf(companyId)}/${endpoint}`;
+    return this.http
+      .get<any>(url, {
+        headers: this.authHeaders,
+      })  
       .pipe(catchError((err) => this.handleError(err)));
   }
 

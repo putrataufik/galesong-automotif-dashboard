@@ -8,13 +8,14 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { formatCompactNumber } from '../../utils/formatCurrency';
+import { TooltipDirective } from '../../directive/tooltip.directive';
 
 let __kpiCardAsUid = 0;
 
 @Component({
   selector: 'app-kpi-card-as',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TooltipDirective],
   templateUrl: './kpi-card-as.component.html',
   styleUrl: './kpi-card-as.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,7 +23,7 @@ let __kpiCardAsUid = 0;
 export class KpiCardAsComponent {
   // ===== Main (selected period) =====
   @Input() title: string = '';
-  @Input() headerProgress: string ='';
+  @Input() headerProgress: string = '';
   @Input() headerColor: string =
     'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
   @Input() realisasi: number = 0;
@@ -196,5 +197,83 @@ export class KpiCardAsComponent {
       this.showInfo = false;
       this.cdr.markForCheck();
     }
+  }
+
+  // ======== TOOLTIP TEXTS ========
+  get titleTooltip(): string {
+    return `${
+      this.title
+    }\nRingkasan performa periode berjalan. Lihat progress, deviasi dari target, rata-rata per ${
+      this.isUnit ? 'mekanik' : 'unit'
+    }, dan estimasi kebutuhan harian (Harapan Target).`;
+  }
+
+  get progressTooltip(): string {
+    const pct = this.formatPercentage(this.percentage);
+    return `Progress ${pct}\nRealisasi dibanding Target.\n${this.formatValue(
+      this.realisasi
+    )} tercapai dari ${this.formatValue(this.target)}.`;
+  }
+
+  get deviationTooltip(): string {
+    const dev = this.grandTotal;
+    const arah = dev >= 0 ? 'di atas' : 'di bawah';
+    return `Deviasi Target: ${this.formatValue(
+      dev
+    )}\nSelisih Realisasi terhadap Target (positif = ${arah} target).`;
+  }
+
+  get rataRataTooltip(): string {
+    const basis = this.isUnit ? 'mekanik' : 'unit';
+    return `Rata-rata: ${this.formatRataRataDisplay(
+      this.rataRata
+    )}\nRealisasi dibagi jumlah ${basis} (indikasi produktivitas).`;
+  }
+
+  get harapanTooltip(): string {
+    if (!this.showHarapanTarget) {
+      return 'Harapan Target ditampilkan saat mode aktif & masih ada sisa hari kerja.';
+    }
+    const sisa = this.sisaHariKerja ?? 0;
+    return `Harapan Target: ${this.formatValue(
+      this.harapanTarget
+    )}${this.getUnitSuffix()} / hari\nKebutuhan rata-rata per hari selama ${sisa} hari kerja tersisa agar target tercapai.`;
+  }
+
+  // Compare blocks
+  getPrevMProgressTip(): string {
+    const pct = this.formatPercentage(this.prevMPercentage);
+    return `${this.prevMPeriod}\nProgress ${pct} = ${this.formatValue(
+      this.prevMRealisasi
+    )} / ${this.formatValue(this.prevMTarget)}.`;
+  }
+  getPrevMDeviationTip(): string {
+    return `${this.prevMPeriod}\nDeviasi: ${this.formatValue(
+      this.prevMDeviation
+    )} (Realisasi - Target).`;
+  }
+  getPrevMRataTip(): string {
+    const basis = this.isUnit ? 'mekanik' : 'unit';
+    return `${this.prevMPeriod}\nRata-rata: ${this.formatRataRataDisplay(
+      this.prevMRataRata
+    )} (dibagi ${basis}).`;
+  }
+
+  getPrevYProgressTip(): string {
+    const pct = this.formatPercentage(this.prevYPercentage);
+    return `${this.prevYPeriod}\nProgress ${pct} = ${this.formatValue(
+      this.prevYRealisasi
+    )} / ${this.formatValue(this.prevYTarget)}.`;
+  }
+  getPrevYDeviationTip(): string {
+    return `${this.prevYPeriod}\nDeviasi: ${this.formatValue(
+      this.prevYDeviation
+    )} (Realisasi - Target).`;
+  }
+  getPrevYRataTip(): string {
+    const basis = this.isUnit ? 'mekanik' : 'unit';
+    return `${this.prevYPeriod}\nRata-rata: ${this.formatRataRataDisplay(
+      this.prevYRataRata
+    )} (dibagi ${basis}).`;
   }
 }

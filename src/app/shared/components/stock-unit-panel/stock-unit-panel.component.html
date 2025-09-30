@@ -1,0 +1,224 @@
+<div class="card shadow-sm border-0" id="stockCard">
+  <!-- Header card: judul tengah + total + tombol info -->
+  <div
+    class="card-body py-2 position-relative d-flex justify-content-center align-items-center border-bottom"
+  >
+    <!-- Tombol info (ikon i) -->
+    <button
+      type="button"
+      class="btn btn-sm btn-link text-muted position-absolute"
+      style="right: 0.35rem; top: 0.2rem"
+      (click)="toggleInfo(); $event.stopPropagation()"
+      [attr.aria-expanded]="infoOpen()"
+      aria-label="Informasi"
+      title="Informasi"
+    >
+      <i class="bi bi-info-circle"></i>
+    </button>
+
+    <!-- === POPOVER === -->
+    <div
+      *ngIf="infoOpen()"
+      class="info-popover"
+      role="tooltip"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="fw-semibold mb-1">Informasi</div>
+      <div class="small text-muted">
+        Menampilkan daftar stok per gudang. Klik header gudang untuk
+        membuka/menutup rincian unit.
+      </div>
+
+      <div class="mt-2">
+        <div class="fw-semibold mb-1">Legend</div>
+
+        <div
+          class="d-grid align-items-center"
+          style="
+            grid-template-columns: auto 1fr;
+            column-gap: 0.5rem;
+            row-gap: 0.25rem;
+          "
+        >
+          <span class="legend-swatch bg-success"></span>
+          <span class="small">0–30 hari</span>
+          <span class="legend-swatch bg-info"></span>
+          <span class="small">31–60 hari</span>
+          <span class="legend-swatch bg-warning"></span>
+          <span class="small">61–90 hari</span>
+          <span class="legend-swatch bg-danger"></span>
+          <span class="small">&gt; 90 hari</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <div class="fw-semibold" style="font-size: 0.95rem">Stock Unit</div>
+      <div class="text-muted" style="font-size: 0.8rem">
+        ( {{ totalUnits() | number : "1.0-0" }} total )
+      </div>
+    </div>
+  </div>
+
+  <!-- Body card: loading/error/accordion -->
+  <div class="card-body p-2">
+    <!-- LOADING / ERROR -->
+    <div *ngIf="loading" class="text-muted small px-1 py-2">
+      Memuat stok unit…
+    </div>
+    <div *ngIf="!loading && error" class="text-danger small px-1 py-2">
+      {{ error }}
+    </div>
+
+    <!-- ACCORDION (tanpa Bootstrap JS) -->
+    <div
+      *ngIf="!loading && !error"
+      class="accordion d-flex flex-column gap-1"
+      id="stockAccordion"
+    >
+      <div
+        class="accordion-item"
+        *ngFor="let gw of viewGroups(); let i = index; trackBy: trackGroup"
+      >
+        <h2 class="accordion-header" [id]="'hdr_' + safeId(gw.code)">
+          <button
+            type="button"
+            class="accordion-button"
+            [class.collapsed]="!isExpanded(gw)"
+            [attr.aria-expanded]="isExpanded(gw)"
+            [attr.aria-controls]="'gw_' + safeId(gw.code)"
+            (click)="toggleGroup(gw)"
+          >
+            <div class="d-flex w-100 align-items-center gap-2">
+              <span class="fw-semibold">{{ gw.name }}</span>
+              <span class="text-muted">({{ gw.count }} unit)</span>
+
+              <span class="ms-auto d-flex gap-1">
+                <span class="badge bg-success" title="0–30 hari">{{
+                  gw.bucketCounts["0-30"] || 0
+                }}</span>
+                <span class="badge bg-info" title="31–60 hari">{{
+                  gw.bucketCounts["31-60"] || 0
+                }}</span>
+                <span class="badge bg-warning" title="61–90 hari">{{
+                  gw.bucketCounts["61-90"] || 0
+                }}</span>
+                <span class="badge bg-danger" title=">90 hari">{{
+                  gw.bucketCounts[">90"] || 0
+                }}</span>
+              </span>
+            </div>
+          </button>
+        </h2>
+
+        <div
+          class="accordion-collapse"
+          [id]="'gw_' + safeId(gw.code)"
+          role="region"
+          [attr.aria-labelledby]="'hdr_' + safeId(gw.code)"
+          [class.show]="isExpanded(gw)"
+          [style.maxHeight]="isExpanded(gw) ? '1000vh' : '0px'"
+          [style.overflow]="isExpanded(gw) ? 'visible' : 'hidden'"
+          style="transition: max-height 0.25s ease"
+        >
+          <div class="accordion-body p-2">
+            <div class="table-responsive table-scroll">
+              <table class="table table-sm align-middle">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>Warna</th>
+                    <th>Tahun</th>
+                    <th>Tgl Masuk</th>
+                    <th>Umur</th>
+                    <th>Harga</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let u of gw.units; trackBy: trackUnit">
+                    <td [attr.data-label]="'Model'">{{ u.model }}</td>
+                    <td [attr.data-label]="'Warna'">{{ u.warna }}</td>
+                    <td [attr.data-label]="'Tahun'">{{ u.thnprod || "—" }}</td>
+                    <td [attr.data-label]="'Tgl Masuk'">
+                      {{ u.tglsjln || "—" }}
+                    </td>
+                    <td [attr.data-label]="'Umur'">
+                      <span
+                        class="badge"
+                        [ngClass]="{
+                          'bg-success': u.bucket === '0-30',
+                          'bg-info': u.bucket === '31-60',
+                          'bg-warning': u.bucket === '61-90',
+                          'bg-danger': u.bucket === '>90',
+                          'bg-secondary': u.bucket === 'unknown'
+                        }"
+                        >{{ u.ageText }}</span
+                      >
+                    </td>
+                    <td [attr.data-label]="'Harga'">
+                      Rp {{ u.harga | number : "1.0-0" }}
+                    </td>
+                    <td class="">
+                      <span class="notes-anchor">
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-link p-0 note-btn"
+                          [attr.aria-controls]="'note_' + u.id"
+                          [attr.aria-expanded]="openNoteId() === u.id"
+                          (click)="toggleNote(u.id); $event.stopPropagation()"
+                          [title]="
+                            u.notes ? 'Lihat catatan' : 'Tidak ada catatan'
+                          "
+                        >
+                          <i
+                            class="bi"
+                            [ngClass]="
+                              u.notes ? 'bi-journal-text' : 'bi-journal-x'
+                            "
+                          ></i>
+                        </button>
+
+                        <!-- Popover catatan -->
+                        <div
+                          *ngIf="openNoteId() === u.id"
+                          class="notes-popover"
+                          [id]="'note_' + u.id"
+                          role="tooltip"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <div class="notes-popover-body">
+                            <div class="fw-semibold small mb-1">Catatan</div>
+                            <div class="small text-muted" *ngIf="!u.notes">
+                              Tidak ada catatan.
+                            </div>
+                            <div class="small" *ngIf="u.notes">
+                              {{ u.notes }}
+                            </div>
+                          </div>
+                        </div>
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr *ngIf="gw.units.length === 0">
+                    <td colspan="6" class="text-center text-muted small py-3">
+                      Tidak ada unit pada kelompok ini.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        *ngIf="viewGroups().length === 0"
+        class="text-center text-muted small py-4"
+      >
+        Tidak ada data stok yang cocok.
+      </div>
+    </div>
+  </div>
+</div>

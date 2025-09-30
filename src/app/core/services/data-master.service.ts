@@ -82,10 +82,7 @@ export class DataMasterService {
   constructor() {
     const cached = this.readCache();
     if (cached) {
-      console.log('[MASTER][CACHE] ditemukan cache, savedAt=', new Date(cached.savedAt).toISOString());
       this._data.set(cached.data);
-    } else {
-      console.log('[MASTER][CACHE] belum ada cache di key:', this.STORAGE_KEY);
     }
   }
 
@@ -103,7 +100,6 @@ export class DataMasterService {
     if (!force) {
       const cached = this.readCache();
       if (cached) {
-        console.log('[MASTER] menggunakan data dari cache (tanpa TTL).');
         this._data.set(cached.data);
         return;
       }
@@ -125,14 +121,6 @@ export class DataMasterService {
       };
 
       const res = await firstValueFrom(forkJoin(req));
-
-      // === DEBUG: payload mentah dari server ===
-      console.log('[MASTER][RAW][branches]', res.branches);
-      console.log('[MASTER][RAW][companies]', res.companies);
-      console.log('[MASTER][RAW][jobLevels]', res.jobLevels);
-      console.log('[MASTER][RAW][organizations]', res.organizations);
-      console.log('[MASTER][RAW][qualifications]', res.qualifications);
-      console.log('[MASTER][RAW][workAreas]', res.workAreas);
 
       // Normalisasi sumber → array mentah
       const rawBranches = this.asArray(res.branches);
@@ -176,14 +164,6 @@ export class DataMasterService {
         name: String(x?.name ?? ''),
       }));
 
-      // === DEBUG: hasil normalisasi
-      console.log('[MASTER][NORM] branches:', branches.length, 'sample:', branches[0]);
-      console.log('[MASTER][NORM] companies:', companies.length, 'sample:', companies[0]);
-      console.log('[MASTER][NORM] jobLevels:', jobLevels.length, 'sample:', jobLevels[0]);
-      console.log('[MASTER][NORM] organizations:', organizations.length, 'sample:', organizations[0]);
-      console.log('[MASTER][NORM] qualifications:', qualifications.length, 'sample:', qualifications[0]);
-      console.log('[MASTER][NORM] workAreas:', workAreas.length, 'sample:', workAreas[0]);
-
       const data: MasterData = {
         branches,
         companies,
@@ -197,13 +177,11 @@ export class DataMasterService {
       this._data.set(data);
       this.writeCache(data);
 
-      // Verifikasi cache
-      const saved = this.readCache();
-      console.log('[MASTER][CACHE][VERIFY] tersimpan?', !!saved, saved);
+      // Verifikasi cache (opsional)
+      this.readCache();
     } catch (e: any) {
       const msg = this.humanizeHttpError(e);
       this._error.set(msg);
-      console.error('[MASTER] Gagal memuat master:', e);
     } finally {
       this._loading.set(false);
     }
@@ -229,12 +207,11 @@ export class DataMasterService {
 
   // ===== Debug util =====
   debugDumpCache(): void {
-    const raw = localStorage.getItem(this.STORAGE_KEY);
-    console.log('[MASTER][CACHE][DUMP]', raw ? JSON.parse(raw) : '(tidak ada)');
+    // Dibersihkan dari logging; simpan fungsi jika dipakai oleh pihak lain.
+    void 0;
   }
   clearCache(): void {
     localStorage.removeItem(this.STORAGE_KEY);
-    console.log('[MASTER][CACHE] dihapus');
   }
 
   // ===== Private helpers =====
@@ -246,9 +223,8 @@ export class DataMasterService {
     };
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(env));
-      console.log('[MASTER][CACHE] write ok ke key:', this.STORAGE_KEY);
-    } catch (err) {
-      console.warn('[MASTER][CACHE] gagal menulis ke localStorage:', err);
+    } catch {
+      // silent
     }
   }
 
@@ -258,12 +234,10 @@ export class DataMasterService {
       if (!raw) return null;
       const parsed = JSON.parse(raw) as CacheEnvelope;
       if (parsed.version !== this.VERSION) {
-        console.log('[MASTER][CACHE] versi beda, abaikan:', parsed.version, '!=', this.VERSION);
         return null;
       }
       return parsed;
-    } catch (err) {
-      console.warn('[MASTER][CACHE] gagal parse cache:', err);
+    } catch {
       return null;
     }
   }
