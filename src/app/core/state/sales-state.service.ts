@@ -7,8 +7,11 @@ import { isPlatformBrowser } from '@angular/common';
    ============================================================ */
 
 export type UiKpiPoint = { value: number; period: string };
-export type UiKpiBranchPoint = UiKpiPoint & { code: string; branchName: string };
-export type UiKpiModelPoint  = UiKpiPoint & { name: string };
+export type UiKpiBranchPoint = UiKpiPoint & {
+  code: string;
+  branchName: string;
+};
+export type UiKpiModelPoint = UiKpiPoint & { name: string };
 
 export interface UiKpis {
   totalUnitSales?: {
@@ -34,13 +37,13 @@ export interface UiKpis {
     prevMonth?: UiKpiPoint;
     prevYear?: UiKpiPoint;
     prevDate?: UiKpiPoint;
-  }
+  };
   totalHotProspek?: {
     selected?: UiKpiPoint;
     prevMonth?: UiKpiPoint;
     prevYear?: UiKpiPoint;
     prevDate?: UiKpiPoint;
-  }
+  };
   topBranch?: {
     selected?: UiKpiBranchPoint;
     prevMonth?: UiKpiBranchPoint;
@@ -62,7 +65,7 @@ export interface KpiComparison {
   previous: number;
   change: number;
   changePercent: number;
-  period: string;         // current period label (formatted)
+  period: string; // current period label (formatted)
   previousPeriod: string; // previous period label (formatted)
 }
 
@@ -83,11 +86,11 @@ export interface BranchComparison {
 /** Filter yang dikirim ke API */
 export interface SalesFilter {
   companyId: string;
-  branchId: string;            // 'all-branch' atau kode cabang
-  useCustomDate: boolean;      // true => pakai selectedDate
+  branchId: string; // 'all-branch' atau kode cabang
+  useCustomDate: boolean; // true => pakai selectedDate
   compare: boolean;
-  year: string | null;         // saat useCustomDate=false
-  month: string | null;        // '01'..'12' atau null (year-only)
+  year: string | null; // saat useCustomDate=false
+  month: string | null; // '01'..'12' atau null (year-only)
   selectedDate: string | null; // YYYY-MM-DD saat useCustomDate=true
 }
 
@@ -107,7 +110,7 @@ export type RawTrendDataset = { label: string; data: number[] };
 
 /** Sales Trend Monthly */
 export interface SalesTrendMonthlySnapshot {
-  key: string;                 // cache key (company-year-compare)
+  key: string; // cache key (company-year-compare)
   companyId: string;
   year: string;
   compare: boolean;
@@ -117,7 +120,7 @@ export interface SalesTrendMonthlySnapshot {
 
 /** DO vs SPK Monthly */
 export interface DoVsSpkMonthlySnapshot {
-  key: string;                 // cache key (company-year)
+  key: string; // cache key (company-year)
   companyId: string;
   year: string;
   datasets: RawTrendDataset[]; // RAW from API
@@ -130,15 +133,15 @@ export interface ModelDistributionItem {
   value: number;
 }
 export interface ModelDistributionBlock {
-  period: string;  // e.g. "2025-09"
-  label: string;   // e.g. "Sep 2025"
+  period: string; // e.g. "2025-09"
+  label: string; // e.g. "Sep 2025"
   items: ModelDistributionItem[];
 }
 export interface ModelDistributionMonthlySnapshot {
-  key: string;                 // cache key (company-year-month-compare)
+  key: string; // cache key (company-year-month-compare)
   companyId: string;
-  year: string;                // "2025"
-  month: string;               // "01".."12"
+  year: string; // "2025"
+  month: string; // "01".."12"
   compare: boolean;
   current?: ModelDistributionBlock;
   prevMonth?: ModelDistributionBlock;
@@ -174,8 +177,8 @@ export interface StockUnitRawResponse {
 
 /** Snapshot Stock Unit RAW */
 export interface StockUnitRawSnapshot {
-  key: string;                       // cache key (single / per company)
-  data: RawStockUnitGroup[];         // simpan array group (hemat tapi tetap RAW)
+  key: string; // cache key (single / per company)
+  data: RawStockUnitGroup[]; // simpan array group (hemat tapi tetap RAW)
   status: string;
   message: string;
   timestamp: number;
@@ -194,10 +197,41 @@ export interface SalesState {
   doVsSpkMonthly: DoVsSpkMonthlySnapshot | null;
   modelDistributionMonthly: ModelDistributionMonthlySnapshot | null;
 
+  doByBranch: DoByBranchSnapshot | null;
   // NEW: stock unit RAW
   stockUnitRaw: StockUnitRawSnapshot | null;
 
   lastUpdated: number | null;
+}
+
+/* =============== NEW — DO BY BRANCH (UI-ready) =============== */
+
+export interface UiDoByBranchItem {
+  branchName: string;
+  code: string;
+  value: number;
+}
+export interface UiDoByBranchBlock {
+  period: string;
+  label: string;
+  items: UiDoByBranchItem[];
+}
+
+export interface DoByBranchSnapshot {
+  key: string; // cache key unik
+  companyId: string;
+  branchId: string; // ikutkan untuk keamanan, walau biasanya 'all-branch'
+  useCustomDate: boolean;
+  compare: boolean;
+  year: string | null;
+  month: string | null; // selalu 2 digit atau null
+  selectedDate: string | null;
+
+  current?: UiDoByBranchBlock;
+  prevMonth?: UiDoByBranchBlock;
+  prevYear?: UiDoByBranchBlock;
+
+  timestamp: number;
 }
 
 /* ============================================================
@@ -210,7 +244,7 @@ export const defaultSalesFilter: SalesFilter = {
   useCustomDate: true,
   compare: true,
   year: null,
-  month: null,      // null = year-only
+  month: null, // null = year-only
   selectedDate: new Date().toISOString().slice(0, 10),
 };
 
@@ -221,6 +255,8 @@ export const initialSalesState: SalesState = {
   trendMonthly: null,
   doVsSpkMonthly: null,
   modelDistributionMonthly: null,
+
+  doByBranch: null,
 
   stockUnitRaw: null, // NEW
 
@@ -310,7 +346,10 @@ export class SalesStateService {
     this.patch({ filter: null });
   }
 
-  updateFilterField<K extends keyof SalesFilter>(field: K, value: SalesFilter[K]) {
+  updateFilterField<K extends keyof SalesFilter>(
+    field: K,
+    value: SalesFilter[K]
+  ) {
     const currentFilter = this.getCurrentFilter();
     this.saveFilter({
       ...currentFilter,
@@ -344,7 +383,12 @@ export class SalesStateService {
   /* =============== KPI COMPARISON HELPERS =============== */
 
   getKpiComparison(
-    metricType: 'totalUnitSales' | 'totalSPK' | 'totalDO' | 'totalProspek' | 'totalHotProspek',
+    metricType:
+      | 'totalUnitSales'
+      | 'totalSPK'
+      | 'totalDO'
+      | 'totalProspek'
+      | 'totalHotProspek',
     comparisonPeriod: ComparisonPeriod
   ): KpiComparison | null {
     const kpis = this.getKpis();
@@ -356,7 +400,8 @@ export class SalesStateService {
     const current = Number(metric.selected.value ?? 0);
     const previous = Number(metric[comparisonPeriod]!.value ?? 0);
     const change = current - previous;
-    const changePercent = previous === 0 ? (current === 0 ? 0 : 100) : (change / previous) * 100;
+    const changePercent =
+      previous === 0 ? (current === 0 ? 0 : 100) : (change / previous) * 100;
 
     return {
       current,
@@ -368,24 +413,33 @@ export class SalesStateService {
     };
   }
 
-  getTopModelComparison(comparisonPeriod: ComparisonPeriod): ModelComparison | null {
+  getTopModelComparison(
+    comparisonPeriod: ComparisonPeriod
+  ): ModelComparison | null {
     const kpis = this.getKpis();
-    if (!kpis?.topModel?.selected || !kpis.topModel[comparisonPeriod]) return null;
+    if (!kpis?.topModel?.selected || !kpis.topModel[comparisonPeriod])
+      return null;
 
     const sel = kpis.topModel.selected!;
     const prev = kpis.topModel[comparisonPeriod]!;
 
     return {
       current: { name: String(sel.name ?? ''), value: Number(sel.value ?? 0) },
-      previous: { name: String(prev.name ?? ''), value: Number(prev.value ?? 0) },
+      previous: {
+        name: String(prev.name ?? ''),
+        value: Number(prev.value ?? 0),
+      },
       period: String(sel.period ?? ''),
       previousPeriod: String(prev.period ?? ''),
     };
   }
 
-  getTopBranchComparison(comparisonPeriod: ComparisonPeriod): BranchComparison | null {
+  getTopBranchComparison(
+    comparisonPeriod: ComparisonPeriod
+  ): BranchComparison | null {
     const kpis = this.getKpis();
-    if (!kpis?.topBranch?.selected || !kpis.topBranch[comparisonPeriod]) return null;
+    if (!kpis?.topBranch?.selected || !kpis.topBranch[comparisonPeriod])
+      return null;
 
     const sel = kpis.topBranch.selected!;
     const prev = kpis.topBranch[comparisonPeriod]!;
@@ -431,12 +485,24 @@ export class SalesStateService {
 
   /* =============== NEW — GRAFIK: SALES TREND MONTHLY =============== */
 
-  private buildTrendMonthlyKey(companyId: string, year: string, compare: boolean) {
+  private buildTrendMonthlyKey(
+    companyId: string,
+    year: string,
+    compare: boolean
+  ) {
     return `trend_${companyId}_${year}_${compare}`;
   }
 
-  saveTrendMonthly(snap: Omit<SalesTrendMonthlySnapshot, 'key' | 'timestamp'> & { timestamp?: number }) {
-    const key = this.buildTrendMonthlyKey(snap.companyId, snap.year, snap.compare);
+  saveTrendMonthly(
+    snap: Omit<SalesTrendMonthlySnapshot, 'key' | 'timestamp'> & {
+      timestamp?: number;
+    }
+  ) {
+    const key = this.buildTrendMonthlyKey(
+      snap.companyId,
+      snap.year,
+      snap.compare
+    );
     const full: SalesTrendMonthlySnapshot = {
       ...snap,
       key,
@@ -453,7 +519,11 @@ export class SalesStateService {
     this.patch({ trendMonthly: null });
   }
 
-  isTrendCacheValid(companyId: string, year: string, compare: boolean): boolean {
+  isTrendCacheValid(
+    companyId: string,
+    year: string,
+    compare: boolean
+  ): boolean {
     const t = this._state().trendMonthly;
     if (!t) return false;
     return t.key === this.buildTrendMonthlyKey(companyId, year, compare);
@@ -465,7 +535,11 @@ export class SalesStateService {
     return `dovsspk_${companyId}_${year}`;
   }
 
-  saveDoVsSpkMonthly(snap: Omit<DoVsSpkMonthlySnapshot, 'key' | 'timestamp'> & { timestamp?: number }) {
+  saveDoVsSpkMonthly(
+    snap: Omit<DoVsSpkMonthlySnapshot, 'key' | 'timestamp'> & {
+      timestamp?: number;
+    }
+  ) {
     const key = this.buildDoVsSpkKey(snap.companyId, snap.year);
     const full: DoVsSpkMonthlySnapshot = {
       ...snap,
@@ -491,13 +565,27 @@ export class SalesStateService {
 
   /* =============== NEW — GRAFIK: MODEL DISTRIBUTION MONTHLY =============== */
 
-  private buildModelDistKey(companyId: string, year: string, month: string, compare: boolean) {
+  private buildModelDistKey(
+    companyId: string,
+    year: string,
+    month: string,
+    compare: boolean
+  ) {
     const mm = String(month).padStart(2, '0');
     return `modeldist_${companyId}_${year}_${mm}_${compare}`;
   }
 
-  saveModelDistributionMonthly(snap: Omit<ModelDistributionMonthlySnapshot, 'key' | 'timestamp'> & { timestamp?: number }) {
-    const key = this.buildModelDistKey(snap.companyId, snap.year, snap.month, snap.compare);
+  saveModelDistributionMonthly(
+    snap: Omit<ModelDistributionMonthlySnapshot, 'key' | 'timestamp'> & {
+      timestamp?: number;
+    }
+  ) {
+    const key = this.buildModelDistKey(
+      snap.companyId,
+      snap.year,
+      snap.month,
+      snap.compare
+    );
     const full: ModelDistributionMonthlySnapshot = {
       ...snap,
       key,
@@ -514,7 +602,12 @@ export class SalesStateService {
     this.patch({ modelDistributionMonthly: null });
   }
 
-  isModelDistributionCacheValid(companyId: string, year: string, month: string, compare: boolean): boolean {
+  isModelDistributionCacheValid(
+    companyId: string,
+    year: string,
+    month: string,
+    compare: boolean
+  ): boolean {
     const m = this._state().modelDistributionMonthly;
     if (!m) return false;
     return m.key === this.buildModelDistKey(companyId, year, month, compare);
@@ -525,7 +618,7 @@ export class SalesStateService {
   // NOTE: jika nanti stok perlu per-company, ganti implementasi key ini.
   private buildStockKey(companyId?: string) {
     // return `stock_${companyId ?? 'all'}`; // versi per-company
-    return 'stock_all';                     // versi single/global
+    return 'stock_all'; // versi single/global
   }
 
   saveStockUnitRaw(resp: StockUnitRawResponse, companyId?: string) {
@@ -553,20 +646,69 @@ export class SalesStateService {
     return s.key === this.buildStockKey(companyId);
   }
 
+  /* =============== NEW — DO BY BRANCH CACHE =============== */
+
+  private buildDoByBranchKey(f: SalesFilter) {
+    const mm = f.month == null ? 'null' : String(f.month).padStart(2, '0');
+    // Sertakan semua komponen filter yang memengaruhi hasil
+    return [
+      'dobranch',
+      f.companyId,
+      f.branchId ?? 'all-branch',
+      f.useCustomDate,
+      f.compare,
+      f.year ?? 'null',
+      mm,
+      f.selectedDate ?? 'null',
+    ].join('_');
+  }
+
+  saveDoByBranch(
+    snap: Omit<DoByBranchSnapshot, 'key' | 'timestamp'> & { timestamp?: number }
+  ) {
+    const key = this.buildDoByBranchKey({
+      companyId: snap.companyId,
+      branchId: snap.branchId,
+      useCustomDate: snap.useCustomDate,
+      compare: snap.compare,
+      year: snap.year,
+      month: snap.month,
+      selectedDate: snap.selectedDate,
+    });
+    const full: DoByBranchSnapshot = {
+      ...snap,
+      key,
+      timestamp: snap.timestamp ?? Date.now(),
+    };
+    this.patch({ doByBranch: full });
+  }
+
+  getDoByBranch(): DoByBranchSnapshot | null {
+    return this._state().doByBranch ?? null;
+  }
+
+  clearDoByBranch() {
+    this.patch({ doByBranch: null });
+  }
+
+  isDoByBranchCacheValid(filter: SalesFilter): boolean {
+    const d = this._state().doByBranch;
+    if (!d) return false;
+    return d.key === this.buildDoByBranchKey(filter);
+  }
+
   /* =============== EXECUTIVE SUMMARY-LIKE SNAPSHOT =============== */
 
-  getCurrentPeriodSummary():
-    | {
-        totalUnitSales: number;
-        totalSPK: number;
-        totalDO: number;
-        totalProspek: number;
-        totalHotProspek: number;
-        topModel: string;
-        topBranch: string;
-        period: string;
-      }
-    | null {
+  getCurrentPeriodSummary(): {
+    totalUnitSales: number;
+    totalSPK: number;
+    totalDO: number;
+    totalProspek: number;
+    totalHotProspek: number;
+    topModel: string;
+    topBranch: string;
+    period: string;
+  } | null {
     const kpis = this.getKpis();
     if (!kpis?.totalUnitSales?.selected) return null;
 
@@ -649,6 +791,7 @@ export class SalesStateService {
         trendMonthly: parsed.trendMonthly ?? null,
         doVsSpkMonthly: parsed.doVsSpkMonthly ?? null,
         modelDistributionMonthly: parsed.modelDistributionMonthly ?? null,
+        doByBranch: parsed.doByBranch ?? null,
 
         stockUnitRaw: parsed.stockUnitRaw ?? null, // NEW
 

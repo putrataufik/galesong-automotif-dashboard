@@ -96,7 +96,7 @@ export class DataMasterService {
    * - force=false → pakai cache jika ada.
    * - force=true  → abaikan cache, fetch baru dan overwrite.
    */
-  async loadAll(force = false): Promise<void> {
+  async loadAllDataMaster(force = false): Promise<void> {
     if (!force) {
       const cached = this.readCache();
       if (cached) {
@@ -188,12 +188,12 @@ export class DataMasterService {
   }
 
   refresh() {
-    return this.loadAll(true);
+    return this.loadAllDataMaster(true);
   }
 
   async ensureLoaded() {
     if (!this.isLoaded()) {
-      await this.loadAll(false);
+      await this.loadAllDataMaster(false);
     }
   }
 

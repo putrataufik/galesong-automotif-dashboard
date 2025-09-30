@@ -213,7 +213,7 @@ export class AppComponent implements OnInit {
 
       try {
         // TTL opsional: 30 hari (ganti sesuai kebutuhan)
-        await this.dm.loadAll(true);
+        await this.dm.loadAllDataMaster(true);
       } catch {
         // fallback: jika belum ada cache sama sekali, biarkan lanjut; UI bisa handle kosong
       }
@@ -284,9 +284,7 @@ export class AppComponent implements OnInit {
         mainFilter.month!, // "MM"
         !!mainFilter.compare
       );
-      const stockunit$ = this.salesApi.getStockUnitRaw(
-        mainFilter.companyId
-      );
+      const stockunit$ = this.salesApi.getStockUnitRaw(mainFilter.companyId);
 
       // ====== Flags selesai ======
       let doneSales = false;
@@ -399,7 +397,6 @@ export class AppComponent implements OnInit {
         },
       });
     });
-
   }
 
   private async preloadSalesDashboardData(): Promise<void> {
@@ -440,9 +437,10 @@ export class AppComponent implements OnInit {
         month,
         !!salesFilter.compare
       );
-      const stockunit$ = this.salesApi.getStockUnitRaw(
-        salesFilter.companyId
-      )
+      const stockunit$ = this.salesApi.getStockUnitRaw(salesFilter.companyId);
+
+      // ✅ NEW: DO per Cabang (UI-ready: branchName sudah dipetakan di service)
+      const doBranch$ = this.salesApi.getDoByBranchView(salesFilter);
 
       // ===== flags selesai =====
       let doneKpi = false;
@@ -450,9 +448,19 @@ export class AppComponent implements OnInit {
       let doneDovs = false;
       let doneMdist = false;
       let doneStockUnit = false;
+      let doneDoBranch = false; // ✅ NEW
 
       const tryFinish = () => {
-        if (doneKpi && doneTrend && doneDovs && doneMdist && doneStockUnit) resolve();
+        if (
+          doneKpi &&
+          doneTrend &&
+          doneDovs &&
+          doneMdist &&
+          doneStockUnit &&
+          doneDoBranch
+        ) {
+          resolve();
+        }
       };
 
       // ===== KPI (UI-ready) =====
@@ -531,17 +539,50 @@ export class AppComponent implements OnInit {
         },
       });
 
+      // ===== Stock Unit RAW =====
       stockunit$.subscribe({
-        next: (mResp) => {
-          this.salesState.saveStockUnitRaw(mResp, salesFilter.companyId);
+        next: (sResp) => {
+          this.salesState.saveStockUnitRaw(sResp, salesFilter.companyId);
           doneStockUnit = true;
           tryFinish();
         },
-        error: ()=> {
+        error: () => {
           doneStockUnit = true;
-          tryFinish()
-        }
-      })
+          tryFinish();
+        },
+      });
+
+      // ===== ✅ NEW: DO per Cabang (cache snapshot) =====
+      doBranch$.subscribe({
+        next: (resp) => {
+          const cur = resp?.data?.doByBranch?.current;
+          const pm = resp?.data?.doByBranch?.prevMonth;
+          const py = resp?.data?.doByBranch?.prevYear;
+
+          this.salesState.saveDoByBranch({
+            companyId: salesFilter.companyId,
+            branchId: salesFilter.branchId,
+            useCustomDate: salesFilter.useCustomDate,
+            compare: !!salesFilter.compare,
+            year: salesFilter.year,
+            month:
+              salesFilter.month == null
+                ? null
+                : String(salesFilter.month).padStart(2, '0'),
+            selectedDate: salesFilter.selectedDate,
+            current: cur,
+            prevMonth: pm,
+            prevYear: py,
+          });
+
+          doneDoBranch = true;
+          tryFinish();
+        },
+        error: () => {
+          doneDoBranch = true;
+          tryFinish();
+        },
+      });
     });
   }
 
@@ -617,14 +658,6 @@ export class AppComponent implements OnInit {
       '[data-bs-toggle="tooltip"]'
     );
     tooltipTriggerList.forEach((el) => el.removeAttribute('data-bs-toggle'));
-  }
-
-  toggleSidebar(): void {
-    // no-op (mobile pakai top nav)
-  }
-
-  closeSidebar(): void {
-    // no-op
   }
 
   private checkIfMobile(): void {

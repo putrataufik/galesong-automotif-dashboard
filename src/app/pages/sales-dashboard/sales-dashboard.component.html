@@ -15,13 +15,22 @@
     <div class="col-12">
       <nav aria-label="Filter breadcrumb">
         <ol class="breadcrumb mb-0 bg-light rounded">
-          <li class="breadcrumb-item"><i class="bi bi-funnel me-1"></i>Filter</li>
-          <li class="breadcrumb-item"><strong>{{ getCompanyDisplayName(currentFilter.company) }}</strong></li>
-          <li class="breadcrumb-item">{{ getBranchDisplayName(currentFilter.branch) }}</li>
-          <li class="breadcrumb-item">{{ getCategoryDisplayName(currentFilter.category) }}</li>
+          <li class="breadcrumb-item">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </li>
+          <li class="breadcrumb-item">
+            <strong>{{ getCompanyDisplayName(currentFilter.company) }}</strong>
+          </li>
+          <li class="breadcrumb-item">
+            {{ getBranchDisplayName(currentFilter.branch) }}
+          </li>
+          <li class="breadcrumb-item">
+            {{ getCategoryDisplayName(currentFilter.category) }}
+          </li>
           <li class="breadcrumb-item" aria-current="page">
             {{ getPeriodDisplayName() }}
-            @if (currentFilter.compare) { | <span class="breadcrumb-item active">Komparasi Data</span> }
+            @if (currentFilter.compare) { |
+            <span class="breadcrumb-item active">Komparasi Data</span> }
           </li>
         </ol>
       </nav>
@@ -29,224 +38,285 @@
   </div>
 
   <!-- ===================== SALES SECTION ===================== -->
-  @if (currentFilter.category === 'sales' || currentFilter.category === 'all-category') {
-    @if (hasData()) {
-      @if (salesKpi(); as sales) {
-        <div class="row g-2 mb-2">
-          <div class="col-12">
-            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-speedometer2 me-2 fs-5" style="color: #2563eb"></i>
-                <h6 class="mb-0 fw-bold text-dark">Sales Performance</h6>
-              </div>
-            </div>
-          </div>
-
-          <!-- KPI cards (dipertahankan seperti semula) -->
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <app-kpi-card
-              [title]="'Total SPK'"
-              dataType="unit"
-              [subtitle]="currentFilter.compare ? '' : 'Surat Pemesanan Kendaraan'"
-              info="Jumlah surat pemesanan kendaraan (SPK) pada periode terpilih."
-              [period]="sales.totalSPK?.selected?.period ?? undefined"
-              [value]="sales.totalSPK?.selected?.value ?? 0"
-              [compareMode]="currentFilter.compare"
-              unitLabel="unit"
-              [prevYearValue]="sales.totalSPK?.prevYear?.value ?? sales.totalSPK?.prevDate?.value ?? 0"
-              [prevYearSubtitle]="sales.totalSPK?.prevYear?.period ?? sales.totalSPK?.prevDate?.period ?? undefined"
-              [prevMonthValue]="sales.totalSPK?.prevMonth?.value ?? 0"
-              [prevMonthSubtitle]="sales.totalSPK?.prevMonth?.period ?? undefined"
-            />
-          </div>
-
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <app-kpi-card
-              [title]="'Total DO'"
-              dataType="unit"
-              [subtitle]="currentFilter.compare ? '' : 'Delivery Order'"
-              info="Jumlah unit yang telah dibuatkan Delivery Order pada periode terpilih."
-              [period]="sales.totalDO?.selected?.period ?? undefined"
-              [value]="sales.totalDO?.selected?.value ?? 0"
-              [compareMode]="currentFilter.compare"
-              unitLabel="unit"
-              [prevYearValue]="sales.totalDO?.prevYear?.value ?? sales.totalDO?.prevDate?.value ?? 0"
-              [prevYearSubtitle]="sales.totalDO?.prevYear?.period ?? sales.totalDO?.prevDate?.period ?? undefined"
-              [prevMonthValue]="sales.totalDO?.prevMonth?.value ?? 0"
-              [prevMonthSubtitle]="sales.totalDO?.prevMonth?.period ?? undefined"
-            />
-          </div>
-
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <app-kpi-card
-              [title]="'Total Prospek'"
-              dataType="unit"
-              [subtitle]="currentFilter.compare ? '' : 'Prospek Penjualan'"
-              info="Jumlah unit yang telah dibuatkan Prospek Penjualan pada periode terpilih."
-              [period]="sales.totalProspect?.selected?.period ?? undefined"
-              [value]="sales.totalProspect?.selected?.value ?? 0"
-              [compareMode]="currentFilter.compare"
-              unitLabel="unit"
-              [prevYearValue]="sales.totalProspect?.prevYear?.value ?? sales.totalProspect?.prevDate?.value ?? 0"
-              [prevYearSubtitle]="sales.totalProspect?.prevYear?.period ?? sales.totalProspect?.prevDate?.period ?? undefined"
-              [prevMonthValue]="sales.totalProspect?.prevMonth?.value ?? 0"
-              [prevMonthSubtitle]="sales.totalProspect?.prevMonth?.period ?? undefined"
-            />
-          </div>
-
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <app-kpi-card
-              [title]="'Total Hot Prospek'"
-              dataType="unit"
-              [subtitle]="currentFilter.compare ? '' : 'Prospek Penjualan'"
-              info="Jumlah hot prospek pada periode terpilih."
-              [period]="sales.totalHotProspect?.selected?.period ?? undefined"
-              [value]="sales.totalHotProspect?.selected?.value ?? 0"
-              [compareMode]="currentFilter.compare"
-              unitLabel="unit"
-              [prevYearValue]="sales.totalHotProspect?.prevYear?.value ?? sales.totalHotProspect?.prevDate?.value ?? 0"
-              [prevYearSubtitle]="sales.totalHotProspect?.prevYear?.period ?? sales.totalHotProspect?.prevDate?.period ?? undefined"
-              [prevMonthValue]="sales.totalHotProspect?.prevMonth?.value ?? 0"
-              [prevMonthSubtitle]="sales.totalHotProspect?.prevMonth?.period ?? undefined"
-            />
-          </div>
-
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <app-kpi-card
-              title="Model Favorit"
-              [value]="sales.topModel?.selected?.name ?? 0"
-              [subtitle]="sales.topModel?.selected?.value + ' unit'"
-              dataType="unit"
-              info="Model dengan penjualan tertinggi pada periode terpilih."
-              [period]="sales.topModel?.selected?.period ?? undefined"
-              [compareMode]="currentFilter.compare"
-              unitLabel="unit"
-              [prevYearValue]="sales.topModel?.prevYear?.name ?? null"
-              [prevYearSubtitle]="sales.topModel?.prevYear?.period ?? undefined"
-              [prevYearName]="sales.topModel?.prevYear?.value + ' unit'"
-              [prevMonthValue]="sales.topModel?.prevMonth?.name ?? null"
-              [prevMonthSubtitle]="sales.topModel?.prevMonth?.period ?? undefined"
-              [prevMonthName]="sales.topModel?.prevMonth?.value + ' unit'"
-            />
-          </div>
-
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-            <app-kpi-card
-              [title]="'Cabang Penjualan Tertinggi'"
-              dataType="unit"
-              info="Cabang dengan penjualan tertinggi pada periode terpilih."
-              [period]="sales.topBranch?.selected?.period ?? undefined"
-              [value]="sales.topBranch?.selected?.branchName ?? 0"
-              [subtitle]="sales.topBranch?.selected?.value + ' unit'"
-              [compareMode]="currentFilter.compare"
-              unitLabel="unit"
-              [prevYearValue]="sales.topBranch?.prevYear?.branchName ?? null"
-              [prevYearSubtitle]="sales.topBranch?.prevYear?.period ?? undefined"
-              [prevYearName]="sales.topBranch?.prevYear?.value + ' unit'"
-              [prevMonthValue]="sales.topBranch?.prevMonth?.branchName ?? null"
-              [prevMonthSubtitle]="sales.topBranch?.prevMonth?.period ?? undefined"
-              [prevMonthName]="sales.topBranch?.prevMonth?.value + ' unit'"
-            />
-          </div>
-        </div>
-      }
-
-      <div class="row g-3 align-items-stretch">
-        <!-- Stock Unit Panel -->
-        <section class="col-12 col-sm-12 col-lg-4">
-          <ng-container *ngIf="stockGroups() as _groups">
-            <ng-container *ngIf="_groups.length > 0">
-              <!-- UX guard: loading hanya true saat belum ada data -->
-              <app-stock-unit-panel
-                [groups]="_groups"
-                [loading]="stockLoading() && !_groups.length ? true : false"
-                [error]="stockError()"
-              >
-              </app-stock-unit-panel>
-            </ng-container>
-          </ng-container>
-        </section>
-
-        <!-- Trend Unit Terjual -->
-        <section class="col-12 col-sm-6 col-lg-4">
-          @let series = trendLineSeries(); @if (series.length) {
-            <app-line-chart-card
-              class="h-100"
-              [title]="'Trend Unit Terjual per Bulan'"
-              [labels]="MONTH_LABELS"
-              [datasets]="series"
-              [showLegend]="true"
-              [height]="307"
-              xtitle="Bulan"
-              ytitle="Unit"
-            ></app-line-chart-card>
-          } @else {
-            <div class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center">
-              Tidak ada data tren untuk periode ini.
-            </div>
-          }
-        </section>
-
-        <!-- DO vs SPK -->
-        <section class="col-12 col-sm-6 col-lg-4">
-          @let series2 = doSpkLineSeries(); @if (series2.length) {
-            <app-line-chart-card
-              class="h-100"
-              [title]="'DO vs SPK per Bulan'"
-              [labels]="MONTH_LABELS"
-              [datasets]="series2"
-              [showLegend]="true"
-              [height]="307"
-              xtitle="Bulan"
-              ytitle="Jumlah"
-            ></app-line-chart-card>
-          } @else {
-            <div class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center">
-              Tidak ada data DO vs SPK untuk periode ini.
-            </div>
-          }
-        </section>
-
-        <!-- Model Distribution -->
-        <section class="col-12 col-sm-12 col-lg-4">
-          @let items = modelDistItems(); @if (items.length) {
-            <app-yoy-progress-list
-              [title]="'Proporsi Penjualan per Model'"
-              [unit]="'Unit'"
-              [items]="items"
-              [maxRows]="100"
-              [compare]="currentFilter.compare ?? false"
-              [labelCurr]="modelLabelCurr()"
-              [labelPrevY]="modelLabelPrevY()"
-              [labelPrevM]="modelLabelPrevM()"
-            ></app-yoy-progress-list>
-          } @else {
-            <div class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center">
-              Tidak ada data distribusi model untuk periode ini.
-            </div>
-          }
-        </section>
-      </div>
-    }
-  }
-
-  <!-- Empty State -->
-  @if (!hasData() && !loading()) {
-    <div class="row">
-      <div class="col-12">
-        <div class="text-center py-5">
-          @if (error()) {
-            <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3"></i>
-            <h6 class="text-muted mb-0">{{ error() }}</h6>
-          } @else {
-            <i class="bi bi-bar-chart text-muted fs-1 mb-3"></i>
-            <h6 class="text-muted mb-0">
-              Belum ada data untuk ditampilkan. Silakan pilih filter dan klik cari.
-            </h6>
-          }
+  @if (currentFilter.category === 'sales' || currentFilter.category ===
+  'all-category') { @if (hasData()) { @if (salesKpi(); as sales) {
+  <div class="row g-2 mb-2">
+    <div class="col-12">
+      <div
+        class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 my-3"
+      >
+        <div class="d-flex align-items-center">
+          <i class="bi bi-speedometer2 me-2 fs-5" style="color: #2563eb"></i>
+          <h6 class="mb-0 fw-bold text-dark">Sales Performance</h6>
         </div>
       </div>
     </div>
+
+    <!-- KPI cards (dipertahankan seperti semula) -->
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total SPK'"
+        dataType="unit"
+        [subtitle]="currentFilter.compare ? '' : 'Surat Pemesanan Kendaraan'"
+        info="Jumlah surat pemesanan kendaraan (SPK) pada periode terpilih."
+        [period]="sales.totalSPK?.selected?.period ?? undefined"
+        [value]="sales.totalSPK?.selected?.value ?? 0"
+        [compareMode]="currentFilter.compare"
+        unitLabel="unit"
+        [prevYearValue]="
+          sales.totalSPK?.prevYear?.value ??
+          sales.totalSPK?.prevDate?.value ??
+          0
+        "
+        [prevYearSubtitle]="
+          sales.totalSPK?.prevYear?.period ??
+          sales.totalSPK?.prevDate?.period ??
+          undefined
+        "
+        [prevMonthValue]="sales.totalSPK?.prevMonth?.value ?? 0"
+        [prevMonthSubtitle]="sales.totalSPK?.prevMonth?.period ?? undefined"
+      />
+    </div>
+
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total DO'"
+        dataType="unit"
+        [subtitle]="currentFilter.compare ? '' : 'Delivery Order'"
+        info="Jumlah unit yang telah dibuatkan Delivery Order pada periode terpilih."
+        [period]="sales.totalDO?.selected?.period ?? undefined"
+        [value]="sales.totalDO?.selected?.value ?? 0"
+        [compareMode]="currentFilter.compare"
+        unitLabel="unit"
+        [prevYearValue]="
+          sales.totalDO?.prevYear?.value ?? sales.totalDO?.prevDate?.value ?? 0
+        "
+        [prevYearSubtitle]="
+          sales.totalDO?.prevYear?.period ??
+          sales.totalDO?.prevDate?.period ??
+          undefined
+        "
+        [prevMonthValue]="sales.totalDO?.prevMonth?.value ?? 0"
+        [prevMonthSubtitle]="sales.totalDO?.prevMonth?.period ?? undefined"
+      />
+    </div>
+
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total Prospek'"
+        dataType="unit"
+        [subtitle]="currentFilter.compare ? '' : 'Prospek Penjualan'"
+        info="Jumlah unit yang telah dibuatkan Prospek Penjualan pada periode terpilih."
+        [period]="sales.totalProspect?.selected?.period ?? undefined"
+        [value]="sales.totalProspect?.selected?.value ?? 0"
+        [compareMode]="currentFilter.compare"
+        unitLabel="unit"
+        [prevYearValue]="
+          sales.totalProspect?.prevYear?.value ??
+          sales.totalProspect?.prevDate?.value ??
+          0
+        "
+        [prevYearSubtitle]="
+          sales.totalProspect?.prevYear?.period ??
+          sales.totalProspect?.prevDate?.period ??
+          undefined
+        "
+        [prevMonthValue]="sales.totalProspect?.prevMonth?.value ?? 0"
+        [prevMonthSubtitle]="
+          sales.totalProspect?.prevMonth?.period ?? undefined
+        "
+      />
+    </div>
+
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Total Hot Prospek'"
+        dataType="unit"
+        [subtitle]="currentFilter.compare ? '' : 'Prospek Penjualan'"
+        info="Jumlah hot prospek pada periode terpilih."
+        [period]="sales.totalHotProspect?.selected?.period ?? undefined"
+        [value]="sales.totalHotProspect?.selected?.value ?? 0"
+        [compareMode]="currentFilter.compare"
+        unitLabel="unit"
+        [prevYearValue]="
+          sales.totalHotProspect?.prevYear?.value ??
+          sales.totalHotProspect?.prevDate?.value ??
+          0
+        "
+        [prevYearSubtitle]="
+          sales.totalHotProspect?.prevYear?.period ??
+          sales.totalHotProspect?.prevDate?.period ??
+          undefined
+        "
+        [prevMonthValue]="sales.totalHotProspect?.prevMonth?.value ?? 0"
+        [prevMonthSubtitle]="
+          sales.totalHotProspect?.prevMonth?.period ?? undefined
+        "
+      />
+    </div>
+
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        title="Model Favorit"
+        [value]="sales.topModel?.selected?.name ?? 0"
+        [subtitle]="sales.topModel?.selected?.value + ' unit'"
+        dataType="unit"
+        info="Model dengan penjualan tertinggi pada periode terpilih."
+        [period]="sales.topModel?.selected?.period ?? undefined"
+        [compareMode]="currentFilter.compare"
+        unitLabel="unit"
+        [prevYearValue]="sales.topModel?.prevYear?.name ?? null"
+        [prevYearSubtitle]="sales.topModel?.prevYear?.period ?? undefined"
+        [prevYearName]="sales.topModel?.prevYear?.value + ' unit'"
+        [prevMonthValue]="sales.topModel?.prevMonth?.name ?? null"
+        [prevMonthSubtitle]="sales.topModel?.prevMonth?.period ?? undefined"
+        [prevMonthName]="sales.topModel?.prevMonth?.value + ' unit'"
+      />
+    </div>
+
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <app-kpi-card
+        [title]="'Cabang Penjualan Tertinggi'"
+        dataType="unit"
+        info="Cabang dengan penjualan tertinggi pada periode terpilih."
+        [period]="sales.topBranch?.selected?.period ?? undefined"
+        [value]="sales.topBranch?.selected?.branchName ?? 0"
+        [subtitle]="sales.topBranch?.selected?.value + ' unit'"
+        [compareMode]="currentFilter.compare"
+        unitLabel="unit"
+        [prevYearValue]="sales.topBranch?.prevYear?.branchName ?? null"
+        [prevYearSubtitle]="sales.topBranch?.prevYear?.period ?? undefined"
+        [prevYearName]="sales.topBranch?.prevYear?.value + ' unit'"
+        [prevMonthValue]="sales.topBranch?.prevMonth?.branchName ?? null"
+        [prevMonthSubtitle]="sales.topBranch?.prevMonth?.period ?? undefined"
+        [prevMonthName]="sales.topBranch?.prevMonth?.value + ' unit'"
+      />
+    </div>
+  </div>
+  }
+
+  <div class="row g-3 align-items-stretch">
+    <!-- Stock Unit Panel -->
+    <section class="col-12 col-sm-12 col-lg-4">
+      <ng-container *ngIf="stockGroups() as _groups">
+        <ng-container *ngIf="_groups.length > 0">
+          <!-- UX guard: loading hanya true saat belum ada data -->
+          <app-stock-unit-panel
+            [groups]="_groups"
+            [loading]="stockLoading() && !_groups.length ? true : false"
+            [error]="stockError()"
+          >
+          </app-stock-unit-panel>
+        </ng-container>
+      </ng-container>
+    </section>
+
+    <!-- Trend Unit Terjual -->
+    <section class="col-12 col-sm-6 col-lg-4">
+      @let series = trendLineSeries(); @if (series.length) {
+      <app-line-chart-card
+        class="h-100"
+        [title]="'Trend Unit Terjual per Bulan (' + getPeriodDisplayName() + ')'"
+        [labels]="MONTH_LABELS"
+        [datasets]="series"
+        [showLegend]="true"
+        [height]="307"
+        xtitle="Bulan"
+        ytitle="Unit"
+      ></app-line-chart-card>
+      } @else {
+      <div
+        class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+      >
+        Tidak ada data tren untuk periode ini.
+      </div>
+      }
+    </section>
+
+    <!-- DO vs SPK -->
+    <section class="col-12 col-sm-6 col-lg-4">
+      @let series2 = doSpkLineSeries(); @if (series2.length) {
+      <app-line-chart-card
+        class="h-100"
+        [title]="'DO vs SPK per Bulan (' + getPeriodDisplayName() + ')'"
+        [labels]="MONTH_LABELS"
+        [datasets]="series2"
+        [showLegend]="true"
+        [height]="307"
+        xtitle="Bulan"
+        ytitle="Jumlah"
+      ></app-line-chart-card>
+      } @else {
+      <div
+        class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+      >
+        Tidak ada data DO vs SPK untuk periode ini.
+      </div>
+      }
+    </section>
+
+    <!-- Model Distribution -->
+    <section class="col-12 col-sm-12 col-lg-4">
+      @let items = modelDistItems(); @if (items.length) {
+      <app-yoy-progress-list
+        [title]="'Proporsi Penjualan per Model (' + getPeriodDisplayName() + ')'"
+        [unit]="'Unit'"
+        [items]="items"
+        [maxRows]="100"
+        [compare]="currentFilter.compare ?? false"
+        [labelCurr]="modelLabelCurr()"
+        [labelPrevY]="modelLabelPrevY()"
+        [labelPrevM]="modelLabelPrevM()"
+      ></app-yoy-progress-list>
+      } @else {
+      <div
+        class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+      >
+        Tidak ada data distribusi model untuk periode ini.
+      </div>
+      }
+    </section>
+
+    <section class="col-12 col-sm-12 col-lg-4">
+  @if (doBranchLoading()) {
+    <div class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center">
+      Memuat DO per Cabang…
+    </div>
+  } @else if (doBranchError()) {
+    <div class="alert alert-warning mb-0">{{ doBranchError() }}</div>
+  } @else {
+    <app-bar-chart-card
+      [title]="'DO per Cabang (' + getPeriodDisplayName() + ')'"
+      [chartData]="doBranchChartData() || { labels: [], data: [] }"
+      [horizontal]="true"
+      [xTitle]="'Unit DO'"
+      [showLegend]="false"
+      [height]="234"
+      [chartType]="'unit'">
+    </app-bar-chart-card>
+  }
+</section>
+
+  </div>
+  } }
+
+  <!-- Empty State -->
+  @if (!hasData() && !loading()) {
+  <div class="row">
+    <div class="col-12">
+      <div class="text-center py-5">
+        @if (error()) {
+        <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3"></i>
+        <h6 class="text-muted mb-0">{{ error() }}</h6>
+        } @else {
+        <i class="bi bi-bar-chart text-muted fs-1 mb-3"></i>
+        <h6 class="text-muted mb-0">
+          Belum ada data untuk ditampilkan. Silakan pilih filter dan klik cari.
+        </h6>
+        }
+      </div>
+    </div>
+  </div>
   }
 </div>
 
@@ -254,7 +324,11 @@
 <div class="global-loading-overlay" *ngIf="loading()">
   <div class="loader-box">
     <div class="spinner-with-logo mb-3" aria-label="Loading">
-      <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+      <div
+        class="spinner-border text-primary"
+        role="status"
+        aria-hidden="true"
+      ></div>
       <img src="/favicon.ico" alt="Loading" class="spinner-logo" />
     </div>
     <div class="loading-text">{{ loadingMessage() }}</div>

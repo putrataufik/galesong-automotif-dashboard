@@ -168,6 +168,58 @@ export interface StockUnitRawResponse {
   data: RawStockUnitGroup[];
 }
 
+/* ============================================================
+   NEW: DO per Cabang (RAW & UI)
+   ============================================================ */
+
+// RAW dari backend sesuai contoh kamu
+export interface DoByBranchItemRaw {
+  branchCode: string; // "0050"
+  value: number;
+}
+export interface DoByBranchBlockRaw {
+  period: string; // "2025-08"
+  label: string;  // "Aug 2025"
+  items: DoByBranchItemRaw[];
+}
+export interface DoByBranchRawResponse {
+  status: string;
+  message: string;
+  data: {
+    DOperCabang?: {
+      data?: {
+        current?: DoByBranchBlockRaw;
+        prevMonth?: DoByBranchBlockRaw;
+        prevYear?: DoByBranchBlockRaw;
+      };
+    };
+  };
+}
+
+// UI response: sudah pakai branchName (kode ikut disertakan untuk debugging/filter)
+export interface UiDoByBranchItem {
+  branchName: string;
+  code: string;
+  value: number;
+}
+export interface UiDoByBranchBlock {
+  period: string;
+  label: string;
+  items: UiDoByBranchItem[];
+}
+export interface UiDoByBranchResponse {
+  status: string;
+  message: string;
+  data: {
+    doByBranch: {
+      current?: UiDoByBranchBlock;
+      prevMonth?: UiDoByBranchBlock;
+      prevYear?: UiDoByBranchBlock;
+    };
+    request: any;
+  };
+}
+
 // ==============================
 // Service
 // ==============================
@@ -305,6 +357,50 @@ export class SalesApiService extends BaseApiService {
         headers: this.authHeaders,
       })  
       .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  /* ============================================================
+     NEW: Public API for DO per Cabang
+     ============================================================ */
+
+  /**
+   * RAW: ambil DO per cabang (SUMMARY)
+   * Contoh endpoint backend:
+   *   /SUMMARY/{company}/getDoByBranch
+   * Namun kita tetap pakai baseUrlOf(company) agar konsisten
+   * (kalau ada baseSummaryUrlOf di BaseApiService, ganti ke sana).
+   */
+  getDoByBranchRaw(filter: SalesFilter): Observable<DoByBranchRawResponse> {
+    const company = filter.companyId;
+
+    // validasi light: reuse validateFilter (izinkan year-only)
+    const validationError = this.validateFilter(filter);
+    if (validationError) {
+      return throwError(() => new Error(validationError));
+    }
+
+    const endpoint = 'getDoByBranch';
+    // Jika punya summary base url:
+    // const url = `${this.baseSummaryUrlOf(company)}/${endpoint}`;
+    const url = `${this.baseUrlOf(company)}/${endpoint}`;
+
+    const params = this.buildDoByBranchParams(filter);
+
+    return this.http
+      .get<DoByBranchRawResponse>(url, {
+        headers: this.authHeaders,
+        params: this.buildParams(params),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  /**
+   * UI-ready: DO per cabang dengan branchName
+   */
+  getDoByBranchView(filter: SalesFilter): Observable<UiDoByBranchResponse> {
+    return this.getDoByBranchRaw(filter).pipe(
+      map((raw) => this.toUiDoByBranchResponse(raw))
+    );
   }
 
   /**
@@ -471,6 +567,43 @@ export class SalesApiService extends BaseApiService {
     };
   }
 
+  /* ============================================================
+     Adapter: DO per Cabang RAW -> UI (branchName)
+     ============================================================ */
+
+  private mapDoByBranchBlockRawToUi(
+    block?: DoByBranchBlockRaw
+  ): UiDoByBranchBlock | undefined {
+    if (!block) return undefined;
+    const items: UiDoByBranchItem[] = (block.items ?? []).map((it) => ({
+      branchName: branchNameFromCode(it.branchCode),
+      code: String(it.branchCode ?? ''),
+      value: Number(it.value ?? 0),
+    }));
+    return {
+      period: String(block.period ?? ''),
+      label: String(block.label ?? ''),
+      items,
+    };
+    }
+
+  private toUiDoByBranchResponse(raw: DoByBranchRawResponse): UiDoByBranchResponse {
+    const dataNode = raw?.data?.DOperCabang?.data;
+    return {
+      status: String(raw?.status ?? ''),
+      message: String(raw?.message ?? ''),
+      data: {
+        doByBranch: {
+          current: this.mapDoByBranchBlockRawToUi(dataNode?.current),
+          prevMonth: this.mapDoByBranchBlockRawToUi(dataNode?.prevMonth),
+          prevYear: this.mapDoByBranchBlockRawToUi(dataNode?.prevYear),
+        },
+        // simpan echo request kalau backend menaruhnya; kalau tidak ada, null
+        request: (raw as any)?.data?.request ?? (raw as any)?.request ?? null,
+      },
+    };
+  }
+
   // ==============================
   // Helpers (params, validation, errors)
   // ==============================
@@ -512,6 +645,62 @@ export class SalesApiService extends BaseApiService {
       const mm = String(filter.month).padStart(2, '0');
       params['month'] = mm;
     }
+
+    return params;
+  }
+
+  /**
+   * Params builder khusus DO per cabang.
+   * Mengirim alias untuk kompatibilitas: branchId/branch, selectedDate/date/selected.
+   */
+  private buildDoByBranchParams(
+    filter: SalesFilter
+  ): Record<string, string | number> {
+    const params: Record<string, string | number> = {
+      useCustomDate: String(filter.useCustomDate),
+      compare: String(filter.compare),
+      // alias company kalau backend butuh
+      company: String(filter.companyId),
+    };
+
+    // branch param (pakai keduanya untuk aman)
+    if (filter.branchId && filter.branchId !== 'all-branch') {
+      params['branchId'] = filter.branchId;
+      params['branch'] = filter.branchId;
+    }
+
+    if (filter.useCustomDate) {
+      if (!filter.selectedDate) {
+        throw new Error('selectedDate is required when useCustomDate is true');
+      }
+      params['selectedDate'] = filter.selectedDate;
+      // alias
+      params['date'] = filter.selectedDate;
+      params['selected'] = filter.selectedDate;
+
+      // null-kan periodik
+      params['year'] = 'null';
+      params['month'] = 'null';
+      return params;
+    }
+
+    // mode year/month (year-only diperbolehkan)
+    if (!filter.year) {
+      throw new Error('year is required when useCustomDate is false');
+    }
+    params['year'] = filter.year;
+
+    if (filter.month == null) {
+      params['month'] = 'null';
+    } else {
+      const mm = String(filter.month).padStart(2, '0');
+      params['month'] = mm;
+    }
+
+    // kosongkan selected aliases
+    params['selectedDate'] = 'null';
+    params['date'] = 'null';
+    params['selected'] = 'null';
 
     return params;
   }

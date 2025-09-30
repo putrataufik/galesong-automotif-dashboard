@@ -11,11 +11,25 @@ import { getPeriodDisplayName as utilPeriodName } from '../pages.utils';
 import {
   getCompanyDisplayName as utilCompanyName,
   getCategoryDisplayName as utilCategoryName,
-  getBranchDisplayName as utilBranchName
+  getBranchDisplayName as utilBranchName,
 } from './sales.utils';
 import { StockUnitPanelComponent } from '../../shared/components/stock-unit-panel/stock-unit-panel.component';
+import { BarChartCardComponent } from "../../shared/components/bar-chart-card/bar-chart-card.component";
 
-const MONTH_LABELS: string[] = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
+const MONTH_LABELS: string[] = [
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MEI',
+  'JUN',
+  'JUL',
+  'AGU',
+  'SEP',
+  'OKT',
+  'NOV',
+  'DES',
+];
 
 @Component({
   selector: 'app-sales-dashboard',
@@ -26,8 +40,9 @@ const MONTH_LABELS: string[] = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU',
     FilterSalesDashboardComponent,
     LineChartCardComponent,
     YoyProgressListComponent,
-    StockUnitPanelComponent
-  ],
+    StockUnitPanelComponent,
+    BarChartCardComponent
+],
   templateUrl: './sales-dashboard.component.html',
   styleUrl: './sales-dashboard.component.css',
   providers: [SalesDashboardFacade],
@@ -76,6 +91,12 @@ export class SalesDashboardComponent implements OnInit {
   stockError = this.facade.stockError;
   stockGroups = this.facade.stockGroups;
 
+  // Expose DO per Cabang signals
+  doBranchLoading = this.facade.doBranchLoading;
+  doBranchError = this.facade.doBranchError;
+  doBranchChartData = this.facade.doBranchChartData;
+  doBranchPeriodLabel = this.facade.doBranchPeriodLabel;
+
   ngOnInit(): void {
     const saved = this.state.getCurrentFilter();
     if (saved) {
@@ -87,7 +108,7 @@ export class SalesDashboardComponent implements OnInit {
         useCustomDate: !!saved.useCustomDate,
         year: saved.year ?? this.currentFilter.year,
         month: saved.month ?? this.currentFilter.month,
-        selectedDate: saved.selectedDate ?? this.currentFilter.selectedDate
+        selectedDate: saved.selectedDate ?? this.currentFilter.selectedDate,
       };
     }
     this.facade.initFromState(this.currentFilter);
@@ -98,9 +119,15 @@ export class SalesDashboardComponent implements OnInit {
     this.facade.refreshAll(this.currentFilter);
   }
 
-  getCompanyDisplayName(company: string) { return utilCompanyName(company); }
-  getCategoryDisplayName(category: string) { return utilCategoryName(category); }
-  getBranchDisplayName(branch: string) { return utilBranchName(branch); }
+  getCompanyDisplayName(company: string) {
+    return utilCompanyName(company);
+  }
+  getCategoryDisplayName(category: string) {
+    return utilCategoryName(category);
+  }
+  getBranchDisplayName(branch: string) {
+    return utilBranchName(branch);
+  }
   getPeriodDisplayName(): string {
     return utilPeriodName({
       useCustomDate: this.currentFilter.useCustomDate,
