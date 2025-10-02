@@ -196,6 +196,19 @@ export class StockUnitPanelComponent implements OnChanges {
     );
   }
 
+  onNoteClick(u: { id: string; notes?: string | null }, ev: MouseEvent) {
+    // blokir bubbling selalu supaya klik ikon tidak mengakibatkan toggle accordion
+    ev.stopPropagation();
+
+    if (!u.notes) {
+      // tidak ada catatan: jangan apa-apa
+      return;
+    }
+
+    // ada catatan → toggle popover
+    this.toggleNote(u.id);
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['groups']) {
       this.rebuildViewModel(this.groups ?? []);

@@ -200,6 +200,7 @@ export interface SalesState {
   doByBranch: DoByBranchSnapshot | null;
   // NEW: stock unit RAW
   stockUnitRaw: StockUnitRawSnapshot | null;
+  doBySpv: DoBySpvSnapshot | null;
 
   lastUpdated: number | null;
 }
@@ -234,6 +235,39 @@ export interface DoByBranchSnapshot {
   timestamp: number;
 }
 
+/* =============== NEW — DO BY SPV (UI-ready) =============== */
+export interface UiDoBySpvSpvItem {
+  spvName: string;
+  value: number;
+}
+export interface UiDoBySpvBranchBlock {
+  branchCode: string;
+  branchName: string;
+  items: UiDoBySpvSpvItem[];
+}
+export interface UiDoBySpvBlock {
+  period: string;
+  label: string;
+  items: UiDoBySpvBranchBlock[];
+}
+export interface DoBySpvSnapshot {
+  key: string;
+  companyId: string;
+  branchId: string;
+  useCustomDate: boolean;
+  compare: boolean;
+  year: string | null;
+  month: string | null;
+  selectedDate: string | null;
+
+  current?: UiDoBySpvBlock;
+  prevMonth?: UiDoBySpvBlock;
+  prevYear?: UiDoBySpvBlock;
+  prevDate?: UiDoBySpvBlock;
+
+  timestamp: number;
+}
+
 /* ============================================================
    DEFAULTS
    ============================================================ */
@@ -259,6 +293,7 @@ export const initialSalesState: SalesState = {
   doByBranch: null,
 
   stockUnitRaw: null, // NEW
+  doBySpv: null,
 
   lastUpdated: null,
 };
@@ -697,6 +732,55 @@ export class SalesStateService {
     return d.key === this.buildDoByBranchKey(filter);
   }
 
+  /* =============== NEW — DO BY SPV CACHE =============== */
+  private buildDoBySpvKey(f: SalesFilter) {
+    const mm = f.month == null ? 'null' : String(f.month).padStart(2, '0');
+    return [
+      'dospv',
+      f.companyId,
+      f.branchId ?? 'all-branch',
+      f.useCustomDate,
+      f.compare,
+      f.year ?? 'null',
+      mm,
+      f.selectedDate ?? 'null',
+    ].join('_');
+  }
+
+  saveDoBySpv(
+    snap: Omit<DoBySpvSnapshot, 'key' | 'timestamp'> & { timestamp?: number }
+  ) {
+    const key = this.buildDoBySpvKey({
+      companyId: snap.companyId,
+      branchId: snap.branchId,
+      useCustomDate: snap.useCustomDate,
+      compare: snap.compare,
+      year: snap.year,
+      month: snap.month,
+      selectedDate: snap.selectedDate,
+    });
+    const full: DoBySpvSnapshot = {
+      ...snap,
+      key,
+      timestamp: snap.timestamp ?? Date.now(),
+    };
+    this.patch({ doBySpv: full });
+  }
+
+  getDoBySpv(): DoBySpvSnapshot | null {
+    return this._state().doBySpv ?? null;
+  }
+
+  clearDoBySpv() {
+    this.patch({ doBySpv: null });
+  }
+
+  isDoBySpvCacheValid(filter: SalesFilter): boolean {
+    const d = this._state().doBySpv;
+    if (!d) return false;
+    return d.key === this.buildDoBySpvKey(filter);
+  }
+
   /* =============== EXECUTIVE SUMMARY-LIKE SNAPSHOT =============== */
 
   getCurrentPeriodSummary(): {
@@ -794,6 +878,7 @@ export class SalesStateService {
         doByBranch: parsed.doByBranch ?? null,
 
         stockUnitRaw: parsed.stockUnitRaw ?? null, // NEW
+        doBySpv: parsed.doBySpv ?? null,
 
         lastUpdated: parsed.lastUpdated ?? null,
       };

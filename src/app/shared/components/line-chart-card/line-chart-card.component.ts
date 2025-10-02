@@ -137,8 +137,8 @@ export class LineChartCardComponent
           title: {
             display: !!this.title,
             text: this.title,
-            color: '#000000',
-            font: { size: 14, weight: 'bold' },
+            color: '#585858ff',
+            font: { size: 13, weight:'normal'},
           },
           tooltip: { mode: 'index', intersect: false },
           filler: { propagate: false },

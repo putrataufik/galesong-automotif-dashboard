@@ -1,0 +1,77 @@
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-3">
+    <div
+      class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 mb-2"
+    >
+      <h6 class="mb-0 title">
+        {{ title }}
+        <small *ngIf="subtitle" class="text-muted">— {{ subtitle }}</small>
+      </h6>
+    </div>
+
+    <ng-container *ngIf="displayRows.length; else emptyState">
+      <!--
+        Wrapper scroll vertikal.
+        - Jika [height] diisi (via @Input() height), kita set height tetap (fixed).
+        - Jika tidak diisi, fallback ke vrows-5 (≈ 5 baris terlihat).
+      -->
+      <div
+        class="table-vert-scroll"
+        [class.vrows-5]="!height"
+        [style.height]="height ? (typeof height === 'number' ? height + 'px' : height) : null"
+      >
+        <table
+          class="table table-sm table-borderless align-middle compact-table"
+        >
+          <thead>
+            <tr class="text-muted small">
+              <th class="col-idx">#</th>
+              <th class="col-name">Nama</th>
+              <th class="text-end">{{ labelCurr }}</th>
+
+              <!-- Kolom Prev Year/Date hanya muncul jika ada datanya -->
+              <th class="text-end" *ngIf="showPrevYD">
+                {{ headerPrevText }}
+              </th>
+
+              <!-- Kolom Prev Month hanya muncul jika ada datanya -->
+              <th class="text-end" *ngIf="showPrevM">
+                {{ labelPrevM }}
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let r of displayRows; let i = index; trackBy: trackByName">
+              <td class="col-idx text-muted">{{ i + 1 }}</td>
+
+              <td class="col-name text-truncate">{{ r.name }}</td>
+
+              <!-- Current selalu tampil -->
+              <td class="text-end fw-semibold">
+                {{ fmt(r.curr) }}
+                <span class="text-muted unit">{{ unit }}</span>
+              </td>
+
+              <!-- Prev Year/Date opsional -->
+              <td class="text-end" *ngIf="showPrevYD">
+                {{ fmt(hasPrevDate ? r.prevD : r.prevY) }}
+                <span class="text-muted unit">{{ unit }}</span>
+              </td>
+
+              <!-- Prev Month opsional -->
+              <td class="text-end" *ngIf="showPrevM">
+                {{ fmt(r.prevM) }}
+                <span class="text-muted unit">{{ unit }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+
+    <ng-template #emptyState>
+      <div class="text-muted small">Tidak ada data.</div>
+    </ng-template>
+  </div>
+</div>

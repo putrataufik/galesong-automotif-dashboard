@@ -216,11 +216,13 @@
       @let series = trendLineSeries(); @if (series.length) {
       <app-line-chart-card
         class="h-100"
-        [title]="'Trend Unit Terjual per Bulan (' + getPeriodDisplayName() + ')'"
+        [title]="
+          'Trend Unit Terjual per Bulan (' + getPeriodDisplayName() + ')'
+        "
         [labels]="MONTH_LABELS"
         [datasets]="series"
         [showLegend]="true"
-        [height]="307"
+        [height]="267"
         xtitle="Bulan"
         ytitle="Unit"
       ></app-line-chart-card>
@@ -242,7 +244,7 @@
         [labels]="MONTH_LABELS"
         [datasets]="series2"
         [showLegend]="true"
-        [height]="307"
+        [height]="267"
         xtitle="Bulan"
         ytitle="Jumlah"
       ></app-line-chart-card>
@@ -254,49 +256,80 @@
       </div>
       }
     </section>
-
-    <!-- Model Distribution -->
     <section class="col-12 col-sm-12 col-lg-4">
-      @let items = modelDistItems(); @if (items.length) {
-      <app-yoy-progress-list
-        [title]="'Proporsi Penjualan per Model (' + getPeriodDisplayName() + ')'"
+      @if (doBranchLoading()) {
+      <div
+        class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+      >
+        Memuat DO per Cabang…
+      </div>
+      } @else if (doBranchError()) {
+      <div class="alert alert-warning mb-0">{{ doBranchError() }}</div>
+      } @else {
+      <app-bar-chart-card
+        [title]="'DO per Cabang (' + getPeriodDisplayName() + ')'"
+        [chartData]="doBranchChartData() || { labels: [], data: [] }"
+        [horizontal]="true"
+        [xTitle]="'Unit DO'"
+        [showLegend]="false"
+        [height]="267"
+        [chartType]="'unit'"
+      >
+      </app-bar-chart-card>
+      }
+    </section>
+
+    <section class="col-12 col-sm-12 col-lg-3">
+      @if (doSpvLoading()) {
+      <div
+        class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+      >
+        Memuat DO per SPV…
+      </div>
+      } @else if (doSpvError()) {
+      <div class="alert alert-warning mb-0">{{ doSpvError() }}</div>
+      } @else {
+      <app-leaderboard-list-card
+        [title]="'DO per SPV'"
+        [subtitle]="getPeriodDisplayName()"
         [unit]="'Unit'"
-        [items]="items"
+        [rows]="doSpvItems()"
+        [labelCurr]="doSpvLabelCurr()"
+        [labelPrevY]="
+          currentFilter.useCustomDate ? doSpvLabelPrevD() : doSpvLabelPrevY()
+        "
+        [labelPrevM]="doSpvLabelPrevM()"
+        [maxRows]="20"
+        [height]="267"
+      >
+      </app-leaderboard-list-card>
+      }
+    </section>
+    <!-- Model Distribution -->
+    <section class="col-12 col-sm-12 col-lg-3">
+      @if (modelDistLoading()) {
+      <div
+        class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
+      >
+        Memuat distribusi model…
+      </div>
+      } @else if (modelDistError()) {
+      <div class="alert alert-warning mb-0">{{ modelDistError() }}</div>
+      } @else {
+      <app-leaderboard-list-card
+        [title]="'Proporsi Penjualan per Model'"
+        [subtitle]="getPeriodDisplayName()"
+        [unit]="'Unit'"
+        [rows]="modelDistItems()"
         [maxRows]="100"
         [compare]="currentFilter.compare ?? false"
         [labelCurr]="modelLabelCurr()"
         [labelPrevY]="modelLabelPrevY()"
         [labelPrevM]="modelLabelPrevM()"
-      ></app-yoy-progress-list>
-      } @else {
-      <div
-        class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center"
       >
-        Tidak ada data distribusi model untuk periode ini.
-      </div>
+      </app-leaderboard-list-card>
       }
     </section>
-
-    <section class="col-12 col-sm-12 col-lg-4">
-  @if (doBranchLoading()) {
-    <div class="card border-0 shadow-sm p-3 h-100 d-flex align-items-center justify-content-center">
-      Memuat DO per Cabang…
-    </div>
-  } @else if (doBranchError()) {
-    <div class="alert alert-warning mb-0">{{ doBranchError() }}</div>
-  } @else {
-    <app-bar-chart-card
-      [title]="'DO per Cabang (' + getPeriodDisplayName() + ')'"
-      [chartData]="doBranchChartData() || { labels: [], data: [] }"
-      [horizontal]="true"
-      [xTitle]="'Unit DO'"
-      [showLegend]="false"
-      [height]="234"
-      [chartType]="'unit'">
-    </app-bar-chart-card>
-  }
-</section>
-
   </div>
   } }
 

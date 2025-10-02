@@ -67,6 +67,23 @@ export class SalesDashboardFacade {
   doBranchChartData = signal<ChartData | null>(null);
   doBranchPeriodLabel = signal<string>('');
 
+  // DO per SPV
+  doSpvLoading = signal(false);
+  doSpvError = signal<string | null>(null);
+  doSpvItems = signal<
+    Array<{
+      name: string;
+      curr: number;
+      prevM: number | null;
+      prevY: number | null;
+      prevD?: number | null;
+    }>
+  >([]);
+  doSpvLabelCurr = signal<string>('Current');
+  doSpvLabelPrevM = signal<string>('Prev Month');
+  doSpvLabelPrevY = signal<string>('Prev Year');
+  doSpvLabelPrevD = signal<string>('Prev Date');
+
   private readonly TREND_COLORS = ['#2563eb', '#ef4444', '#10b981', '#f59e0b'];
   private readonly DOSPK_COLORS = ['#f59e0b', '#10b981'];
 
@@ -121,7 +138,12 @@ export class SalesDashboardFacade {
       const cached = this.state.getModelDistributionMonthly();
       if (
         cached &&
-        this.state.isModelDistributionCacheValid(companyId, year, month, compare)
+        this.state.isModelDistributionCacheValid(
+          companyId,
+          year,
+          month,
+          compare
+        )
       ) {
         const cur = cached.current,
           pm = cached.prevMonth,
@@ -186,6 +208,27 @@ export class SalesDashboardFacade {
         this.fetchDoByBranch(currentUi);
       }
     }
+
+    {
+      const f = toSalesFilter(currentUi);
+      const cached = this.state.getDoBySpv();
+      if (cached && this.state.isDoBySpvCacheValid(f)) {
+        const { rows, labels } = this.buildSpvRowsFromBlocks(
+          cached.current,
+          cached.prevMonth,
+          cached.prevYear,
+          cached.prevDate
+        );
+        this.doSpvItems.set(rows);
+        this.doSpvLabelCurr.set(labels.curr);
+        this.doSpvLabelPrevM.set(labels.prevM);
+        this.doSpvLabelPrevY.set(labels.prevY);
+        this.doSpvLabelPrevD.set(labels.prevD);
+        this.doSpvLoading.set(false);
+      } else {
+        this.fetchDoBySpv(currentUi);
+      }
+    }
   }
 
   /* ============================================================
@@ -209,6 +252,7 @@ export class SalesDashboardFacade {
 
     // DO per Cabang di-trigger di luar forkJoin agar error bisa independen
     this.fetchDoByBranch(ui);
+    this.fetchDoBySpv(ui);
 
     const reqs = [
       // KPI
@@ -578,7 +622,9 @@ export class SalesDashboardFacade {
             compare: filter.compare,
             year: filter.year,
             month:
-              filter.month == null ? null : String(filter.month).padStart(2, '0'),
+              filter.month == null
+                ? null
+                : String(filter.month).padStart(2, '0'),
             selectedDate: filter.selectedDate,
             current: cur,
             prevMonth: pm,
@@ -596,14 +642,73 @@ export class SalesDashboardFacade {
       )
       .subscribe();
   }
+  private fetchDoBySpv(ui: AppFilter) {
+    this.doSpvLoading.set(true);
+    this.doSpvError.set(null);
+
+    const filter = toSalesFilter(ui);
+
+    this.api
+      .getDoBySpvView(filter)
+      .pipe(
+        tap((res) => {
+          const cur = res?.data?.doBySpv?.current;
+          const pm = res?.data?.doBySpv?.prevMonth;
+          const py = res?.data?.doBySpv?.prevYear;
+          const pd = res?.data?.doBySpv?.prevDate;
+
+          const { rows, labels } = this.buildSpvRowsFromBlocks(cur, pm, py, pd);
+          this.doSpvItems.set(rows);
+          this.doSpvLabelCurr.set(labels.curr);
+          this.doSpvLabelPrevM.set(labels.prevM);
+          this.doSpvLabelPrevY.set(labels.prevY);
+          this.doSpvLabelPrevD.set(labels.prevD);
+
+          // persist blok raw untuk cache
+          this.state.saveDoBySpv({
+            companyId: filter.companyId,
+            branchId: filter.branchId,
+            useCustomDate: filter.useCustomDate,
+            compare: filter.compare,
+            year: filter.year,
+            month:
+              filter.month == null
+                ? null
+                : String(filter.month).padStart(2, '0'),
+            selectedDate: filter.selectedDate,
+            current: cur,
+            prevMonth: pm,
+            prevYear: py,
+            prevDate: pd,
+            timestamp: Date.now(),
+          });
+        }),
+        catchError((err) => {
+          this.doSpvError.set(err?.message || 'Gagal memuat DO per SPV');
+          this.doSpvItems.set([]);
+          return of(null);
+        }),
+        finalize(() => this.doSpvLoading.set(false))
+      )
+      .subscribe();
+  }
 
   /* ============================================================
      Helper: compose MultiChartData DO per Cabang
      ============================================================ */
   private buildDoBranchChartFromBlocks(
-    cur?: { label?: string; items?: Array<{ branchName: string; value: number }> },
-    pm?: { label?: string; items?: Array<{ branchName: string; value: number }> },
-    py?: { label?: string; items?: Array<{ branchName: string; value: number }> },
+    cur?: {
+      label?: string;
+      items?: Array<{ branchName: string; value: number }>;
+    },
+    pm?: {
+      label?: string;
+      items?: Array<{ branchName: string; value: number }>;
+    },
+    py?: {
+      label?: string;
+      items?: Array<{ branchName: string; value: number }>;
+    }
   ): ChartData {
     const toMap = (items?: { branchName: string; value: number }[]) =>
       new Map((items ?? []).map((i) => [i.branchName, Number(i.value ?? 0)]));
@@ -613,10 +718,13 @@ export class SalesDashboardFacade {
     const mPY = toMap(py?.items);
 
     // domain label gabungan; urut desc by current
-    const labels = Array.from(new Set<string>([...mC.keys(), ...mPM.keys(), ...mPY.keys()]));
+    const labels = Array.from(
+      new Set<string>([...mC.keys(), ...mPM.keys(), ...mPY.keys()])
+    );
     labels.sort((a, b) => (mC.get(b) ?? 0) - (mC.get(a) ?? 0));
 
-    const v = (m: Map<string, number>) => labels.map((name) => m.get(name) ?? 0);
+    const v = (m: Map<string, number>) =>
+      labels.map((name) => m.get(name) ?? 0);
 
     const datasets: MultiChartData['datasets'] = [];
     if (cur) {
@@ -651,5 +759,81 @@ export class SalesDashboardFacade {
     if (!datasets.length) return { labels, data: [] };
 
     return { labels, datasets } as MultiChartData;
+  }
+  private buildSpvRowsFromBlocks(
+    cur?: {
+      label?: string;
+      items?: Array<{
+        branchName: string;
+        items: Array<{ spvName: string; value: number }>;
+      }>;
+    },
+    pm?: {
+      label?: string;
+      items?: Array<{
+        branchName: string;
+        items: Array<{ spvName: string; value: number }>;
+      }>;
+    },
+    py?: {
+      label?: string;
+      items?: Array<{
+        branchName: string;
+        items: Array<{ spvName: string; value: number }>;
+      }>;
+    },
+    pd?: {
+      label?: string;
+      items?: Array<{
+        branchName: string;
+        items: Array<{ spvName: string; value: number }>;
+      }>;
+    }
+  ) {
+    // Agregasi nilai per SPV dari banyak cabang untuk setiap periode
+    const agg = (block?: any) => {
+      const m = new Map<string, number>();
+      for (const b of block?.items ?? []) {
+        for (const it of b.items ?? []) {
+          const key = String(it.spvName ?? '');
+          m.set(key, (m.get(key) ?? 0) + Number(it.value ?? 0));
+        }
+      }
+      return m;
+    };
+
+    const mC = agg(cur),
+      mPM = agg(pm),
+      mPY = agg(py),
+      mPD = agg(pd);
+
+    const names = Array.from(
+      new Set<string>([
+        ...mC.keys(),
+        ...mPM.keys(),
+        ...mPY.keys(),
+        ...mPD.keys(),
+      ])
+    );
+
+    const rows = names
+      .map((name) => ({
+        name,
+        curr: mC.get(name) ?? 0,
+        prevM: mPM.has(name) ? mPM.get(name)! : null,
+        prevY: mPY.has(name) ? mPY.get(name)! : null,
+        prevD: mPD.has(name) ? mPD.get(name)! : null,
+      }))
+      .sort((a, b) => b.curr - a.curr || a.name.localeCompare(b.name));
+
+    return {
+      rows,
+      labels: {
+        curr: cur?.label ?? 'Current',
+        prevM: pm?.label ?? 'Prev Month',
+        prevY: py?.label ?? 'Prev Year',
+        prevD: pd?.label ?? 'Prev Date',
+      },
+    };
   }
 }

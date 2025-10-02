@@ -52,9 +52,9 @@
       </div>
     </div>
 
-    <div class="text-center">
-      <div class="fw-semibold" style="font-size: 0.95rem">Stock Unit</div>
-      <div class="text-muted" style="font-size: 0.8rem">
+    <div class="text-center title">
+      <div class="fw-semibold">Stock Unit</div>
+      <div class="text-muted">
         ( {{ totalUnits() | number : "1.0-0" }} total )
       </div>
     </div>
@@ -159,24 +159,24 @@
                     <td [attr.data-label]="'Harga'">
                       Rp {{ u.harga | number : "1.0-0" }}
                     </td>
-                    <td class="">
+                    <td [attr.data-label]="'Notes'">
                       <span class="notes-anchor">
                         <button
                           type="button"
                           class="btn btn-sm btn-link p-0 note-btn"
                           [attr.aria-controls]="'note_' + u.id"
                           [attr.aria-expanded]="openNoteId() === u.id"
-                          (click)="toggleNote(u.id); $event.stopPropagation()"
+                          [attr.aria-disabled]="!u.notes ? 'true' : null"
+                          (click)="onNoteClick(u, $event)"
                           [title]="
-                            u.notes ? 'Lihat catatan' : 'Tidak ada catatan'
+                            u.notes
+                              ? 'Klik untuk melihat catatan'
+                              : 'Tidak ada catatan'
                           "
                         >
-                          <i
-                            class="bi"
-                            [ngClass]="
-                              u.notes ? 'bi-journal-text' : 'bi-journal-x'
-                            "
-                          ></i>
+                          <span class="note-hint">{{
+                            u.notes ? "Lihat" : "Tidak ada"
+                          }}</span>
                         </button>
 
                         <!-- Popover catatan -->

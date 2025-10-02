@@ -29,6 +29,24 @@ function branchNameFromCode(code?: string): string {
   return branchNameFromMap(BRANCH_CODE_MAP, code);
 }
 
+function mapDoBySpvBlock(raw?: DoBySpvBlockRaw): UiDoBySpvBlock | undefined {
+  if (!raw) return undefined;
+  const items: UiDoBySpvBranchBlock[] = (raw.items ?? []).map(b => ({
+    branchCode: String(b.branchCode ?? ''),
+    branchName: branchNameFromCode(String(b.branchCode ?? '')),
+    items: (b.items ?? []).map(i => ({
+      spvName: String(i.spvName ?? ''),
+      value: Number(i.value ?? 0),
+    })),
+  }));
+  return {
+    period: String(raw.period ?? ''),
+    label: String(raw.label ?? ''),
+    items,
+  };
+}
+
+
 // ==============================
 // UI-friendly types (adapter)
 // ==============================
@@ -220,6 +238,62 @@ export interface UiDoByBranchResponse {
   };
 }
 
+// ========== DO by SPV RAW ==========
+export interface DoBySpvSpvItem {
+  spvName: string;
+  value: number;
+}
+export interface DoBySpvBranchBlockRaw {
+  branchCode: string;
+  items: DoBySpvSpvItem[];
+}
+export interface DoBySpvBlockRaw {
+  period: string;   // e.g. "01-10-2025" atau "2025-08"
+  label: string;    // e.g. "1 Oct 2025" atau "Aug 2025"
+  items: DoBySpvBranchBlockRaw[];
+}
+export interface DoBySpvRawResponse {
+  status: string;
+  message: string;
+  data: {
+    DOBySPV?: {
+      data?: {
+        current?: DoBySpvBlockRaw;
+        prevMonth?: DoBySpvBlockRaw;
+        prevYear?: DoBySpvBlockRaw;
+        prevDate?: DoBySpvBlockRaw;
+      };
+    };
+  };
+}
+
+// ========== DO by SPV UI-ready ==========
+export interface UiDoBySpvSpvItem { spvName: string; value: number; }
+export interface UiDoBySpvBranchBlock {
+  branchCode: string;
+  branchName: string;
+  items: UiDoBySpvSpvItem[];
+}
+export interface UiDoBySpvBlock {
+  period: string;
+  label: string;
+  items: UiDoBySpvBranchBlock[];
+}
+export interface UiDoBySpvResponse {
+  status: string;
+  message: string;
+  data: {
+    doBySpv: {
+      current?: UiDoBySpvBlock;
+      prevMonth?: UiDoBySpvBlock;
+      prevYear?: UiDoBySpvBlock;
+      prevDate?: UiDoBySpvBlock;
+    };
+    request: any;
+  };
+}
+
+
 // ==============================
 // Service
 // ==============================
@@ -358,6 +432,56 @@ export class SalesApiService extends BaseApiService {
       })  
       .pipe(catchError((err) => this.handleError(err)));
   }
+
+  
+  getDoBySpvRaw(filter: SalesFilter): Observable<DoBySpvRawResponse> {
+  // Validasi reuse dari KPI
+  const validationError = this.validateFilter(filter);
+  if (validationError) {
+    return throwError(() => new Error(validationError));
+  }
+
+  const endpoint = 'getDOBySPV';
+  const url = `${this.baseUrlOf(filter.companyId)}/${endpoint}`;
+
+  // Reuse builder KPI, lalu “duplikasi” branchId → branch agar kompatibel
+  const base = this.buildSalesKpiParams(filter);
+  const params: Record<string, string | number> = { ...base };
+  if (base['branchId']) {
+    (params as any)['branch'] = base['branchId'];
+  }
+
+  return this.http
+    .get<DoBySpvRawResponse>(url, {
+      headers: this.authHeaders,
+      params: this.buildParams(params),
+    })
+    .pipe(catchError((err) => this.handleError(err)));
+}
+
+getDoBySpvView(filter: SalesFilter): Observable<UiDoBySpvResponse> {
+  return this.getDoBySpvRaw(filter).pipe(
+    map((raw) => {
+      const x = raw?.data?.DOBySPV?.data ?? ({} as any);
+      const ui = {
+        current: mapDoBySpvBlock(x.current),
+        prevMonth: mapDoBySpvBlock(x.prevMonth),
+        prevYear: mapDoBySpvBlock(x.prevYear),
+        prevDate: mapDoBySpvBlock(x.prevDate),
+      };
+      return {
+        status: String(raw?.status ?? ''),
+        message: String(raw?.message ?? ''),
+        data: {
+          doBySpv: ui,
+          request: (raw as any)?.data?.request ?? null,
+        },
+      };
+    }),
+    catchError((err) => this.handleError(err))
+  );
+}
+
 
   /* ============================================================
      NEW: Public API for DO per Cabang

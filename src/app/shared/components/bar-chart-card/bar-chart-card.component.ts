@@ -243,7 +243,7 @@ export class BarChartCardComponent
           title: {
             display: !!this.title,
             text: this.title,
-            font: { size: 16, weight: 'bold' },
+            font: { size: 13, weight: 'normal' },
             padding: { bottom: 20 },
           },
           tooltip: {

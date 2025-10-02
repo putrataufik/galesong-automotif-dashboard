@@ -42,9 +42,9 @@ import {
 } from './main-utils';
 
 import { mapToLineSeries } from '../../shared/utils/chart-mapper';
-import { YoyProgressListComponent } from '../../shared/components/yoy-progress-list/yoy-progress-list.component';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
 import { KpiCardAsComponent } from "../../shared/components/kpi-card-as/kpi-card-as.component";
+import { LeaderboardListCardComponent } from "../../shared/components/leaderboard-list-card/leaderboard-list-card.component";
 
 const MONTH_LABELS: string[] = [
   'JAN',
@@ -75,9 +75,9 @@ const MONTH_LABELS: string[] = [
     CommonModule,
     KpiCardComponent,
     FilterMainDashboardComponent,
-    YoyProgressListComponent,
     LineChartCardComponent,
-    KpiCardAsComponent
+    KpiCardAsComponent,
+    LeaderboardListCardComponent
 ],
   templateUrl: './main-dashboard.component.html',
   styleUrls: ['./main-dashboard.component.css'],

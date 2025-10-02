@@ -442,6 +442,9 @@ export class AppComponent implements OnInit {
       // ✅ NEW: DO per Cabang (UI-ready: branchName sudah dipetakan di service)
       const doBranch$ = this.salesApi.getDoByBranchView(salesFilter);
 
+      // ✅ NEW: DO per SPV (UI-ready)
+      const doSpv$ = this.salesApi.getDoBySpvView(salesFilter);
+
       // ===== flags selesai =====
       let doneKpi = false;
       let doneTrend = false;
@@ -449,6 +452,7 @@ export class AppComponent implements OnInit {
       let doneMdist = false;
       let doneStockUnit = false;
       let doneDoBranch = false; // ✅ NEW
+      let doneDoSpv = false; // ✅ NEW
 
       const tryFinish = () => {
         if (
@@ -457,7 +461,8 @@ export class AppComponent implements OnInit {
           doneDovs &&
           doneMdist &&
           doneStockUnit &&
-          doneDoBranch
+          doneDoBranch &&
+          doneDoSpv
         ) {
           resolve();
         }
@@ -580,6 +585,41 @@ export class AppComponent implements OnInit {
         },
         error: () => {
           doneDoBranch = true;
+          tryFinish();
+        },
+      });
+
+      // ===== ✅ NEW: DO per SPV (cache snapshot) =====
+      doSpv$.subscribe({
+        next: (resp) => {
+          const cur = resp?.data?.doBySpv?.current;
+          const pm = resp?.data?.doBySpv?.prevMonth;
+          const py = resp?.data?.doBySpv?.prevYear;
+          const pd = resp?.data?.doBySpv?.prevDate; // bisa ada saat useCustomDate=true
+
+          this.salesState.saveDoBySpv({
+            companyId: salesFilter.companyId,
+            branchId: salesFilter.branchId,
+            useCustomDate: salesFilter.useCustomDate,
+            compare: !!salesFilter.compare,
+            year: salesFilter.year,
+            month:
+              salesFilter.month == null
+                ? null
+                : String(salesFilter.month).padStart(2, '0'),
+            selectedDate: salesFilter.selectedDate,
+            current: cur,
+            prevMonth: pm,
+            prevYear: py,
+            prevDate: pd,
+            timestamp: Date.now(),
+          });
+
+          doneDoSpv = true;
+          tryFinish();
+        },
+        error: () => {
+          doneDoSpv = true;
           tryFinish();
         },
       });

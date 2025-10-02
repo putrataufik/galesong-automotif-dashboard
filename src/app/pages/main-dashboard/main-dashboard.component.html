@@ -250,16 +250,18 @@
           {{ modelDistError() }}
         </div>
         } @else if (rows.length) {
-        <app-yoy-progress-list
-          [title]="'Proporsi Penjualan per Model'"
-          [unit]="'Unit'"
-          [items]="modelDistRows()"
-          [maxRows]="100"
-          [compare]="compare"
-          [labelCurr]="modelLabelCurr()"
-          [labelPrevY]="modelLabelPrevY()"
-          [labelPrevM]="modelLabelPrevM()"
-        ></app-yoy-progress-list>
+        <app-leaderboard-list-card
+        [title]="'Proporsi Penjualan per Model'"
+        [subtitle]="getPeriodDisplayName()"
+        [unit]="'Unit'"
+        [rows]="modelDistRows()"
+        [maxRows]="100"
+        [compare]="currentFilter.compare ?? false"
+        [labelCurr]="modelLabelCurr()"
+        [labelPrevY]="modelLabelPrevY()"
+        [labelPrevM]="modelLabelPrevM()"
+      >
+      </app-leaderboard-list-card>
 
         } @else {
         <div

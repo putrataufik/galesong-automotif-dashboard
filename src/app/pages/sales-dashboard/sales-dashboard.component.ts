@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
 import { FilterSalesDashboardComponent } from '../../shared/components/filter-sales-dashboard/filter-sales-dashboard.component';
 import { LineChartCardComponent } from '../../shared/components/line-chart-card/line-chart-card.component';
-import { YoyProgressListComponent } from '../../shared/components/yoy-progress-list/yoy-progress-list.component';
 import { AppFilter } from '../../types/filter.model';
 import { SalesStateService } from '../../core/state/sales-state.service';
 import { SalesDashboardFacade } from './sales-dashboard.facade';
@@ -14,7 +13,8 @@ import {
   getBranchDisplayName as utilBranchName,
 } from './sales.utils';
 import { StockUnitPanelComponent } from '../../shared/components/stock-unit-panel/stock-unit-panel.component';
-import { BarChartCardComponent } from "../../shared/components/bar-chart-card/bar-chart-card.component";
+import { BarChartCardComponent } from '../../shared/components/bar-chart-card/bar-chart-card.component';
+import { LeaderboardListCardComponent } from '../../shared/components/leaderboard-list-card/leaderboard-list-card.component';
 
 const MONTH_LABELS: string[] = [
   'JAN',
@@ -39,10 +39,10 @@ const MONTH_LABELS: string[] = [
     KpiCardComponent,
     FilterSalesDashboardComponent,
     LineChartCardComponent,
-    YoyProgressListComponent,
     StockUnitPanelComponent,
-    BarChartCardComponent
-],
+    BarChartCardComponent,
+    LeaderboardListCardComponent,
+  ],
   templateUrl: './sales-dashboard.component.html',
   styleUrl: './sales-dashboard.component.css',
   providers: [SalesDashboardFacade],
@@ -97,6 +97,15 @@ export class SalesDashboardComponent implements OnInit {
   doBranchChartData = this.facade.doBranchChartData;
   doBranchPeriodLabel = this.facade.doBranchPeriodLabel;
 
+  doSpvLoading = this.facade.doSpvLoading;
+  doSpvError = this.facade.doSpvError;
+
+  doSpvItems = this.facade.doSpvItems;
+  doSpvLabelCurr = this.facade.doSpvLabelCurr;
+  doSpvLabelPrevM = this.facade.doSpvLabelPrevM;
+  doSpvLabelPrevY = this.facade.doSpvLabelPrevY;
+  doSpvLabelPrevD = this.facade.doSpvLabelPrevD;
+
   ngOnInit(): void {
     const saved = this.state.getCurrentFilter();
     if (saved) {
@@ -112,6 +121,8 @@ export class SalesDashboardComponent implements OnInit {
       };
     }
     this.facade.initFromState(this.currentFilter);
+
+    console.log(this.modelLabelCurr)
   }
 
   onSearch(filter: AppFilter): void {
